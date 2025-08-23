@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Hospital Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 text-white min-h-screen p-6">
+    <h1 class="text-3xl font-bold mb-4 text-center">
+      Mini Hospital Management System
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 bg-gray-800 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Add Patient</h2>
+        <input
+          id="patName"
+          type="text"
+          placeholder="Patient Name"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <input
+          id="patAge"
+          type="number"
+          placeholder="Age"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <button
+          onclick="addPatient()"
+          class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded w-full"
+        >
+          Add
+        </button>
+      </div>
+
+      <div class="p-4 bg-gray-800 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Add Doctor</h2>
+        <input
+          id="docName"
+          type="text"
+          placeholder="Doctor Name"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <input
+          id="docSpecialty"
+          type="text"
+          placeholder="Specialty"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <button
+          onclick="addDoctor()"
+          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded w-full"
+        >
+          Add
+        </button>
+      </div>
+
+      <div class="p-4 bg-gray-800 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Schedule Appointment</h2>
+        <input
+          id="appPat"
+          type="text"
+          placeholder="Patient Name"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <input
+          id="appDoc"
+          type="text"
+          placeholder="Doctor Name"
+          class="w-full mb-2 p-2 rounded text-black"
+        />
+        <button
+          onclick="scheduleAppointment()"
+          class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded w-full"
+        >
+          Schedule
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Patients</h2>
+        <ul
+          id="patientList"
+          class="list-disc ml-4 overflow-y-auto mt-2 space-y-2 max-h-60"
+        ></ul>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Doctors</h2>
+        <ul
+          id="docList"
+          class="list-disc ml-4 overflow-y-auto mt-2 space-y-2 max-h-60"
+        ></ul>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">Appointments</h2>
+        <ul
+          id="appList"
+          class="list-disc ml-4 overflow-y-auto mt-2 space-y-2 max-h-60"
+        ></ul>
+      </div>
+    </div>
+
+    <script>
+      class Patient {
+        constructor(name, age) {
+          this.id = Date.now();
+          this.name = name;
+          this.age = age;
+        }
+      }
+      class Doctor {
+        constructor(name, specialty) {
+          this.id = Date.now();
+          this.name = name;
+          this.specialty = specialty;
+        }
+      }
+      class Appointment {
+        constructor(name, title) {
+          this.id = Date.now();
+          this.name = name;
+          this.title = title;
+        }
+      }
+      const patients = [];
+      const doctors = [];
+      const appointments = [];
+
+      const addPatient = () => {
+        const name = patName.value;
+        const age = patAge.value;
+
+        if (!name || !age) {
+          console.log("field empty.");
+          return;
+        }
+        const patient = new Patient(name, age);
+        patients.push(patient);
+        updatePatients();
+        patName.value = "";
+        patAge.value = "";
+        saveToLocal();
+      };
+      updatePatients = () => {
+        const list = patientList;
+        list.innerHTML = "";
+        patients.forEach((p) => {
+          list.innerHTML += `<li class="p-2 bg-blue-500 rounded">Name: ${
+            p.name
+          } <br> Age: ${p.age} ${"years of age"}</li>`;
+        });
+      };
+
+      const addDoctor = () => {
+        const name = docName.value;
+        const specialty = docSpecialty.value;
+
+        if (!name || !specialty) {
+          console.log("field empty.");
+          return;
+        }
+        const doctor = new Doctor(name, specialty);
+        doctors.push(doctor);
+        updateDoctor();
+        docName.value = "";
+        docSpecialty.value = "";
+        saveToLocal();
+      };
+
+      const updateDoctor = () => {
+        const doc = docList;
+        doc.innerHTML = "";
+        doctors.forEach((d) => {
+          doc.innerHTML += `<li class="p-2 bg-blue-500 rounded">Name: ${d.name} <br> Specialty: ${d.specialty}</li>`;
+        });
+      };
+      const scheduleAppointment = () => {
+        const name = appPat.value;
+        const title = appDoc.value;
+
+        if (!name || !title) {
+          console.log("field empty.");
+          return;
+        }
+        const appointment = new Appointment(name, title);
+        appointments.push(appointment);
+        updateAppointments();
+        appPat.value = "";
+        appDoc.value = "";
+        saveToLocal();
+      };
+      updateAppointments = () => {
+        const appoint = appList;
+        appoint.innerHTML = "";
+        appointments.forEach((a) => {
+          appoint.innerHTML += `<li class="p-2 bg-blue-500 rounded">Patient: ${a.name} <br> Doctor: ${a.title}</li>`;
+        });
+      };
+
+      const saveToLocal = () => {
+        localStorage.setItem("patients", JSON.stringify(patients));
+        localStorage.setItem("doctors", JSON.stringify(doctors));
+        localStorage.setItem("appointments", JSON.stringify(appointments));
+      };
+
+      fetchItem = () => {
+        const storedPatients =
+          JSON.parse(localStorage.getItem("patients")) || [];
+        const storedDoctors = JSON.parse(localStorage.getItem("doctors")) || [];
+        const storedAppointments =
+          JSON.parse(localStorage.getItem("appointments")) || [];
+
+        storedPatients.forEach((p) =>
+          patients.push(new Patient(p.name, p.age))
+        );
+        storedDoctors.forEach((d) =>
+          doctors.push(new Doctor(d.name, d.specialty))
+        );
+        storedAppointments.forEach((a) =>
+          appointments.push(new Appointment(a.name, a.title))
+        );
+        updatePatients();
+        updateDoctor();
+        updateAppointments();
+      };
+      fetchItem()
+      updateDoctor();
+      updateAppointments();
+      updatePatients();
+    </script>
+  </body>
+</html>
