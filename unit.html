@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter</title>
+</head>
+    <style>
+  * {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .converter-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    max-width: 400px; 
+    width: 100%;
+  }
+
+  select, input, button {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+
+  select:focus, input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  button {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+  }
+
+  button:hover {
+    background-color: #2563eb;
+  }
+
+  #result {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+  }
+</style>
+<body>
+    <div class="frame">
+        <div>
+            <select id="unit" name="unit">
+                <option value=""> Unit </option>
+                <option value="temperature">Temperature</option>
+                <option value="length">Length</option>
+                <option value="mass">Mass</option>
+                <option value="volume">Volume</option>
+                <option value="volume">Time</option>
+                <option value="volume">Energy</option>
+            </select>
+
+            <br><br>
+            <input type="number" id="input-value" placeholder="Enter value">
+
+            <br><br>
+
+            <select id="from-unit">
+                <option value=""> Select </option>
+            </select>
+
+            <select id="to-unit">
+                <option value=""> Select </option>
+            </select>
+
+            <br><br>
+
+            <p id="result"></p>
+
+            <br>
+            <button id="convert-btn">Convert</button>
+        </div>
+    </div>
+
+    <script>
+  const unitSelect = document.getElementById('unit');
+  const fromUnit = document.getElementById('from-unit');
+  const toUnit = document.getElementById('to-unit');
+  const result = document.getElementById('result');
+  const convertBtn = document.getElementById('convert-btn');
+  const inputValue = document.getElementById('input-value');
+
+  const units = {
+    temperature: ['Celsius', 'Fahrenheit', 'Kelvin'],
+    length: ['Meter', 'Kilometer', 'Centimeter', 'Inch', 'Foot'],
+    mass: ['Gram', 'Kilogram', 'Pound', 'Ounce'],
+    volume: ['Liter', 'Milliliter', 'Gallon'],
+    time: ['Second', 'Minute', 'Hour'],
+    energy: ['Joule', 'Kilojoule', 'Calorie', 'Kilocalorie']
+  };
+
+  unitSelect.addEventListener('change', () => {
+    const selectedCategory = unitSelect.value;
+    const options = units[selectedCategory] || [];
+
+    let htmlOptions = '<option value="">-- Select --</option>';
+    options.forEach(unit => {
+      htmlOptions += `<option value="${unit.toLowerCase()}">${unit}</option>`;
+    });
+
+    fromUnit.innerHTML = htmlOptions;
+    toUnit.innerHTML = htmlOptions;
+    result.textContent = '';
+  });
+
+  convertBtn.addEventListener('click', () => {
+    const category = unitSelect.value;
+    const from = fromUnit.value;
+    const to = toUnit.value;
+    const value = parseFloat(inputValue.value);
+
+    if (!from || !to || isNaN(value)) {
+      result.textContent = 'Please enter a value and select both units.';
+      return;
+    }
+
+    let convertedValue;
+
+    switch (category) {
+      case 'temperature':
+        convertedValue = convertTemperature(value, from, to);
+        break;
+      case 'length':
+        convertedValue = convertLength(value, from, to);
+        break;
+      case 'mass':
+        convertedValue = convertMass(value, from, to);
+        break;
+      case 'volume':
+        convertedValue = convertVolume(value, from, to);
+        break;
+      case 'time':
+        convertedValue = convertTime(value, from, to);
+        break;
+      case 'energy':
+        convertedValue = convertEnergy(value, from, to);
+        break;
+    }
+
+    result.textContent = ` ${convertedValue}`;
+  });
+
+  
+  function convertTemperature(value, from, to) {
+    if (from === to) return value;
+    if (from === 'celsius') {
+      if (to === 'fahrenheit') return (value * 9/5) + 32;
+      if (to === 'kelvin') return value + 273.15;
+    }
+    if (from === 'fahrenheit') {
+      if (to === 'celsius') return (value - 32) * 5/9;
+      if (to === 'kelvin') return (value - 32) * 5/9 + 273.15;
+    }
+    if (from === 'kelvin') {
+      if (to === 'celsius') return value - 273.15;
+      if (to === 'fahrenheit') return (value - 273.15) * 9/5 + 32;
+    }
+  }
+
+  function convertLength(value, from, to) {
+    const factors = {
+      meter: 1,
+      kilometer: 1000,
+      centimeter: 0.01,
+      inch: 0.0254,
+      foot: 0.3048
+    };
+    return (value * factors[from]) / factors[to];
+  }
+
+  function convertMass(value, from, to) {
+    const factors = {
+      gram: 1,
+      kilogram: 1000,
+      pound: 453.592,
+      ounce: 28.3495
+    };
+    return (value * factors[from]) / factors[to];
+  }
+
+  function convertVolume(value, from, to) {
+    const factors = {
+      liter: 1,
+      milliliter: 0.001,
+      gallon: 3.78541
+    };
+    return (value * factors[from]) / factors[to];
+  }
+
+  function convertTime(value, from, to) {
+    const factors = {
+      second: 1,
+      minute: 60,
+      hour: 3600
+    };
+    return (value * factors[from]) / factors[to];
+  }
+
+  function convertEnergy(value, from, to) {
+    const factors = {
+      joule: 1,
+      kilojoule: 1000,
+      calorie: 4.184,
+      kilocalorie: 4184
+    };
+    return (value * factors[from]) / factors[to];
+  }
+</script>
+</body>
+</html>
