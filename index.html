@@ -127,7 +127,7 @@
               <h2 class="text-xl font-bold text-white">Patients</h2>
               <p class="text-sm text-slate-400 mt-0.5">Manage patient records</p>
             </div>
-            <button onclick="openModal('patientModal')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Add Patient</button>
+            <button onclick="openAddPatient()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Add Patient</button>
           </div>
           <div class="mb-4">
             <input type="text" id="patientSearch" placeholder="Search patients by name or blood type..." oninput="renderPatients()" />
@@ -142,7 +142,7 @@
               <h2 class="text-xl font-bold text-white">Doctors</h2>
               <p class="text-sm text-slate-400 mt-0.5">Manage doctor profiles</p>
             </div>
-            <button onclick="openModal('doctorModal')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Add Doctor</button>
+            <button onclick="openAddDoctor()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Add Doctor</button>
           </div>
           <div class="mb-4">
             <input type="text" id="doctorSearch" placeholder="Search doctors by name or specialty..." oninput="renderDoctors()" />
@@ -157,7 +157,7 @@
               <h2 class="text-xl font-bold text-white">Appointments</h2>
               <p class="text-sm text-slate-400 mt-0.5">Schedule and manage appointments</p>
             </div>
-            <button onclick="openModal('appointmentModal')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Schedule</button>
+            <button onclick="openAddAppointment()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Schedule</button>
           </div>
           <div class="mb-4">
             <input type="text" id="appointmentSearch" placeholder="Search by patient or doctor name..." oninput="renderAppointments()" />
@@ -443,13 +443,18 @@
         }
 
         load() {
-          const p = JSON.parse(localStorage.getItem('hms_patients')) || [];
-          const d = JSON.parse(localStorage.getItem('hms_doctors')) || [];
-          const a = JSON.parse(localStorage.getItem('hms_appointments')) || [];
-
-          this.patients = p.map(x => new Patient(x.name, x.age, x.gender, x.blood, x.status, x.phone, x.notes, x.id));
-          this.doctors = d.map(x => new Doctor(x.name, x.specialty, x.phone, x.availability, x.dept, x.id));
-          this.appointments = a.map(x => new Appointment(x.patient, x.doctor, x.date, x.time, x.notes, x.status, x.id));
+          try {
+            const p = JSON.parse(localStorage.getItem('hms_patients') || '[]') || [];
+            const d = JSON.parse(localStorage.getItem('hms_doctors') || '[]') || [];
+            const a = JSON.parse(localStorage.getItem('hms_appointments') || '[]') || [];
+            this.patients = p.map(x => new Patient(x.name, x.age, x.gender, x.blood, x.status, x.phone, x.notes, x.id));
+            this.doctors = d.map(x => new Doctor(x.name, x.specialty, x.phone, x.availability, x.dept, x.id));
+            this.appointments = a.map(x => new Appointment(x.patient, x.doctor, x.date, x.time, x.notes, x.status, x.id));
+          } catch (e) {
+            this.patients = [];
+            this.doctors = [];
+            this.appointments = [];
+          }
         }
 
         addPatient(p) { this.patients.push(p); this.save(); }
@@ -799,11 +804,6 @@
       // ============================
       document.addEventListener('DOMContentLoaded', () => {
         $('currentDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-        // Wire up + Add buttons to open blank modal
-        document.querySelector('[onclick="openModal(\'patientModal\')"]').onclick = openAddPatient;
-        document.querySelector('[onclick="openModal(\'doctorModal\')"]').onclick = openAddDoctor;
-        document.querySelector('[onclick="openModal(\'appointmentModal\')"]').onclick = openAddAppointment;
 
         // Close modal on backdrop click
         ['patientModal','doctorModal','appointmentModal','confirmModal'].forEach(id => {
