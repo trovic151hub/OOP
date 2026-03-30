@@ -4,21 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MedCore | Hospital Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
-        }
-      }
+      theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } }
     }
   </script>
   <style>
     *, body { font-family: 'Plus Jakarta Sans', sans-serif; }
-
     :root {
       --bg-deep:   #04091a;
       --bg-side:   #060d1e;
@@ -29,23 +24,17 @@
       --text-1:    #e2ecff;
       --text-2:    #7a92b8;
       --text-3:    #3d5277;
-      --accent-from: #6d28d9;
-      --accent-to:   #4f46e5;
     }
-
     body { background: var(--bg-deep); color: var(--text-1); min-height: 100vh; }
-
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #1e3355; border-radius: 99px; }
 
     /* Sidebar */
     #sidebar { background: var(--bg-side); border-right: 1px solid var(--border); }
-
     .nav-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 10px;
+      padding: 10px 14px; border-radius: 10px;
       font-size: 0.875rem; font-weight: 500; color: var(--text-2);
       cursor: pointer; border: none; background: transparent; width: 100%;
       transition: background 0.15s, color 0.15s;
@@ -53,106 +42,82 @@
     .nav-item:hover:not(.active) { background: rgba(255,255,255,0.04); color: var(--text-1); }
     .nav-item.active {
       background: linear-gradient(135deg, #5b21b6, #4338ca);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(99,60,200,0.35);
+      color: #fff; box-shadow: 0 4px 20px rgba(99,60,200,0.35);
     }
-    .nav-item svg { flex-shrink: 0; }
 
     /* Topbar */
     #topbar { background: var(--bg-side); border-bottom: 1px solid var(--border); }
 
     /* Cards */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-      border-color: var(--border-hi);
-    }
-    .stat-card { border-top: 3px solid; }
-    .stat-card.blue  { border-top-color: #3b82f6; }
-    .stat-card.purple{ border-top-color: #8b5cf6; }
-    .stat-card.teal  { border-top-color: #14b8a6; }
-
+    .card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); border-color: var(--border-hi); }
+    .stat-card-blue   { border-top: 3px solid #3b82f6; }
+    .stat-card-purple { border-top: 3px solid #8b5cf6; }
+    .stat-card-teal   { border-top: 3px solid #14b8a6; }
     .patient-card { border-left: 3px solid #3b82f6; }
     .doctor-card  { border-left: 3px solid #8b5cf6; }
     .appt-card    { border-left: 3px solid #14b8a6; }
 
     /* Avatar */
     .avatar {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+      font-weight: 700; font-size: 0.9rem;
     }
-    .avatar-blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
-    .avatar-purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
-    .avatar-teal   { background: rgba(20,184,166,0.15);  color: #2dd4bf; }
+    .av-blue   { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .av-purple { background: rgba(139,92,246,0.15);  color: #a78bfa; }
+    .av-teal   { background: rgba(20,184,166,0.15);  color: #2dd4bf; }
 
-    /* Status badge */
+    /* Badges */
     .badge {
-      display: inline-flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; gap: 5px;
       padding: 3px 10px; border-radius: 999px;
       font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
     }
-    .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .badge-green  { background: rgba(16,185,129,0.12); color: #34d399; }
-    .badge-green .badge-dot  { background: #34d399; }
-    .badge-amber  { background: rgba(245,158,11,0.12); color: #fbbf24; }
-    .badge-amber .badge-dot  { background: #fbbf24; }
-    .badge-blue   { background: rgba(59,130,246,0.12); color: #60a5fa; }
-    .badge-blue .badge-dot   { background: #60a5fa; }
-    .badge-red    { background: rgba(239,68,68,0.12);  color: #f87171; }
-    .badge-red .badge-dot    { background: #f87171; }
-    .badge-slate  { background: rgba(100,116,139,0.15); color: #94a3b8; }
-    .badge-slate .badge-dot  { background: #94a3b8; }
+    .b-green  { background: rgba(16,185,129,0.12); color: #34d399; }
+    .b-amber  { background: rgba(245,158,11,0.12); color: #fbbf24; }
+    .b-blue   { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .b-red    { background: rgba(239,68,68,0.12);  color: #f87171; }
+    .b-slate  { background: rgba(100,116,139,0.15); color: #94a3b8; }
 
     /* Inputs */
     input, select, textarea {
       background: var(--bg-raised); border: 1px solid var(--border-hi);
-      color: var(--text-1); border-radius: 10px;
-      padding: 10px 14px; width: 100%; outline: none;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.875rem;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      color: var(--text-1); border-radius: 10px; padding: 10px 14px; width: 100%;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem;
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
     }
     input:focus, select:focus, textarea:focus {
-      border-color: #6d28d9;
-      box-shadow: 0 0 0 3px rgba(109,40,217,0.15);
+      border-color: #6d28d9; box-shadow: 0 0 0 3px rgba(109,40,217,0.15);
     }
     input::placeholder, textarea::placeholder { color: var(--text-3); }
     select option { background: var(--bg-raised); }
-    .search-wrap { position: relative; }
-    .search-wrap input { padding-left: 40px; }
-    .search-wrap .search-icon {
-      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-      color: var(--text-3); pointer-events: none;
-    }
 
     /* Buttons */
     .btn-primary {
-      background: linear-gradient(135deg, #6d28d9, #4f46e5);
-      color: #fff; border: none; border-radius: 10px;
-      padding: 9px 18px; font-size: 0.875rem; font-weight: 600;
-      cursor: pointer; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
-      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, #6d28d9, #4f46e5); color: #fff;
+      border: none; border-radius: 10px; padding: 9px 18px;
+      font-size: 0.875rem; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
       box-shadow: 0 4px 15px rgba(109,40,217,0.25);
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(109,40,217,0.35); }
     .btn-ghost {
-      background: var(--bg-raised); border: 1px solid var(--border-hi);
-      color: var(--text-2); border-radius: 10px;
-      padding: 9px 18px; font-size: 0.875rem; font-weight: 500;
+      background: var(--bg-raised); border: 1px solid var(--border-hi); color: var(--text-2);
+      border-radius: 10px; padding: 9px 18px; font-size: 0.875rem; font-weight: 500;
       cursor: pointer; transition: background 0.15s, color 0.15s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .btn-ghost:hover { background: #162038; color: var(--text-1); }
-    .btn-icon {
+    .btn-sm {
       padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;
       cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 5px;
-      transition: background 0.15s, color 0.15s;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s;
     }
     .btn-edit { background: var(--bg-raised); color: var(--text-2); }
     .btn-edit:hover { background: #1e2d4d; color: var(--text-1); }
@@ -163,235 +128,239 @@
     .modal-overlay {
       position: fixed; inset: 0; z-index: 50;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(2,6,18,0.75); backdrop-filter: blur(6px);
+      background: rgba(2,6,18,0.78); backdrop-filter: blur(6px);
     }
     .modal-box {
-      background: var(--bg-card); border: 1px solid var(--border-hi);
-      border-radius: 20px; width: 100%; max-width: 448px;
-      margin: 16px; overflow: hidden;
+      background: var(--bg-card); border: 1px solid var(--border-hi); border-radius: 20px;
+      width: 100%; max-width: 448px; margin: 16px; overflow: hidden;
       box-shadow: 0 24px 80px rgba(0,0,0,0.6);
     }
-    .modal-header-strip { height: 4px; background: linear-gradient(90deg, #6d28d9, #4f46e5, #06b6d4); }
+    .modal-strip { height: 4px; background: linear-gradient(90deg, #6d28d9, #4f46e5, #06b6d4); }
     .modal-body { padding: 24px; }
 
-    /* Label */
-    .field-label {
-      display: block; font-size: 0.75rem; font-weight: 600;
-      color: var(--text-2); margin-bottom: 6px; letter-spacing: 0.04em;
-      text-transform: uppercase;
+    /* Field label */
+    .flabel {
+      display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-2);
+      margin-bottom: 6px; letter-spacing: 0.06em; text-transform: uppercase;
     }
-    .field-label .req { color: #ef4444; margin-left: 3px; }
+    .flabel .req { color: #ef4444; margin-left: 3px; }
+
+    /* Section banner */
+    .section-banner {
+      background: linear-gradient(135deg, rgba(109,40,217,0.08), rgba(79,70,229,0.03));
+      border: 1px solid rgba(109,40,217,0.15);
+      border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 60px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .empty-icon {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: var(--bg-raised); border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); margin-bottom: 6px; font-size: 22px;
+    }
+
+    /* Divider */
+    hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+    /* Search with icon */
+    .search-wrap { position: relative; margin-bottom: 20px; }
+    .search-wrap input { padding-left: 40px; }
+    .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 15px; pointer-events: none; }
 
     /* Toast */
     #toast {
       position: fixed; bottom: 24px; right: 24px; z-index: 100;
       opacity: 0; transform: translateY(12px) scale(0.97);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s; pointer-events: none;
     }
-    #toast.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    #toast.show { opacity: 1; transform: none; pointer-events: auto; }
     .toast-inner {
       display: flex; align-items: center; gap: 10px;
-      padding: 12px 18px; border-radius: 14px;
-      font-size: 0.875rem; font-weight: 600;
+      padding: 12px 18px; border-radius: 14px; font-size: 0.875rem; font-weight: 600;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     }
 
-    /* Section header */
-    .section-banner {
-      background: linear-gradient(135deg, rgba(109,40,217,0.08), rgba(79,70,229,0.04));
-      border: 1px solid rgba(109,40,217,0.15);
-      border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;
-    }
+    /* Icon tint helpers */
+    .ic-blue   { color: #60a5fa; }
+    .ic-purple { color: #a78bfa; }
+    .ic-teal   { color: #2dd4bf; }
+    .ic-muted  { color: var(--text-3); }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center; padding: 56px 24px;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-    }
-    .empty-icon {
-      width: 56px; height: 56px; border-radius: 16px;
-      background: var(--bg-raised); border: 1px solid var(--border-hi);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text-3); margin-bottom: 4px;
-    }
+    /* Icon box */
+    .ic-box { border-radius: 10px; padding: 8px; display: inline-flex; align-items: center; justify-content: center; }
+    .ic-box-blue   { background: rgba(59,130,246,0.12); }
+    .ic-box-purple { background: rgba(139,92,246,0.12); }
+    .ic-box-teal   { background: rgba(20,184,166,0.12); }
 
-    /* Spinner for count-up */
-    @keyframes fadeUp { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: none; } }
-    .fade-up { animation: fadeUp 0.4s ease both; }
+    /* Status cycle hint */
+    .s-toggle { cursor: pointer; }
+    .s-toggle:hover { opacity: 0.7; }
 
-    /* Status clickable hint */
-    .status-toggle { cursor: pointer; }
-    .status-toggle:hover { opacity: 0.75; }
-
-    /* Divider */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   </style>
 </head>
 <body>
 
-  <!-- ========================= SIDEBAR ========================= -->
-  <aside id="sidebar" class="w-64 h-full min-h-screen flex flex-col py-5 px-3 fixed top-0 left-0 z-20">
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar" style="width:256px;min-height:100vh;display:flex;flex-direction:column;padding:20px 12px;position:fixed;top:0;left:0;z-index:20;height:100%;">
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-2 mb-8 mt-1">
-      <div style="background:linear-gradient(135deg,#6d28d9,#4f46e5);border-radius:10px;padding:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(109,40,217,0.4)">
-        <i data-lucide="activity" style="width:18px;height:18px;color:#fff;stroke-width:2.5"></i>
+    <div style="display:flex;align-items:center;gap:12px;padding:4px 6px;margin-bottom:32px;">
+      <div style="background:linear-gradient(135deg,#6d28d9,#4f46e5);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(109,40,217,0.4);flex-shrink:0;">
+        <i class="bi bi-heart-pulse-fill" style="color:#fff;font-size:17px;"></i>
       </div>
       <div>
-        <p style="font-size:1rem;font-weight:800;color:#e2ecff;line-height:1.2">MedCore</p>
-        <p style="font-size:0.65rem;font-weight:500;color:#3d5277;letter-spacing:0.05em;text-transform:uppercase">Hospital System</p>
+        <p style="font-size:1rem;font-weight:800;color:#e2ecff;line-height:1.1;">MedCore</p>
+        <p style="font-size:0.62rem;font-weight:600;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;">Hospital System</p>
       </div>
     </div>
 
     <!-- Nav -->
-    <nav class="flex flex-col gap-1 flex-1">
+    <nav style="display:flex;flex-direction:column;gap:4px;flex:1;">
       <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
-        <i data-lucide="layout-dashboard" style="width:16px;height:16px;stroke-width:2"></i>
+        <i class="bi bi-speedometer2" style="font-size:16px;flex-shrink:0;"></i>
         Dashboard
       </button>
       <button class="nav-item" data-page="patients" onclick="navigate('patients')">
-        <i data-lucide="users" style="width:16px;height:16px;stroke-width:2"></i>
+        <i class="bi bi-people-fill" style="font-size:16px;flex-shrink:0;"></i>
         Patients
       </button>
       <button class="nav-item" data-page="doctors" onclick="navigate('doctors')">
-        <i data-lucide="stethoscope" style="width:16px;height:16px;stroke-width:2"></i>
+        <i class="bi bi-person-badge-fill" style="font-size:16px;flex-shrink:0;"></i>
         Doctors
       </button>
       <button class="nav-item" data-page="appointments" onclick="navigate('appointments')">
-        <i data-lucide="calendar-days" style="width:16px;height:16px;stroke-width:2"></i>
+        <i class="bi bi-calendar3" style="font-size:16px;flex-shrink:0;"></i>
         Appointments
       </button>
     </nav>
 
-    <!-- Footer -->
+    <!-- Footer summary -->
     <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:16px;">
-      <p id="sidebarSummary" style="font-size:0.72rem;color:var(--text-3);font-weight:500;line-height:1.8;padding:0 4px"></p>
-      <p style="font-size:0.65rem;color:var(--text-3);margin-top:8px;padding:0 4px">MedCore v2.0</p>
+      <div id="sidebarSummary" style="display:flex;flex-direction:column;gap:6px;padding:0 4px;"></div>
+      <p style="font-size:0.65rem;color:var(--text-3);margin-top:12px;padding:0 4px;font-weight:500;">MedCore v2.0</p>
     </div>
   </aside>
 
-  <!-- ========================= MAIN ========================= -->
+  <!-- ===== MAIN ===== -->
   <div style="margin-left:256px;flex:1;display:flex;flex-direction:column;min-height:100vh;">
 
     <!-- Topbar -->
-    <header id="topbar" class="h-16 flex items-center justify-between px-8" style="position:sticky;top:0;z-index:10;">
-      <div class="flex items-center gap-3">
-        <h1 id="pageTitle" style="font-size:1.05rem;font-weight:700;color:var(--text-1)">Dashboard</h1>
-      </div>
-      <div class="flex items-center gap-4">
-        <span id="currentDate" style="font-size:0.8rem;color:var(--text-3);font-weight:500"></span>
-        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.4)">A</div>
+    <header id="topbar" style="height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:10;">
+      <h1 id="pageTitle" style="font-size:1.05rem;font-weight:700;color:var(--text-1);">Dashboard</h1>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span id="currentDate" style="font-size:0.8rem;color:var(--text-3);font-weight:500;"></span>
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6d28d9,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.4);">A</div>
       </div>
     </header>
 
     <!-- Pages -->
     <main style="flex:1;padding:28px 32px;">
 
-      <!-- ===== DASHBOARD ===== -->
+      <!-- DASHBOARD -->
       <section id="page-dashboard" class="page">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px;">
-          <div class="card stat-card blue" style="padding:22px 24px;">
+          <!-- Stat: Patients -->
+          <div class="card stat-card-blue" style="padding:22px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <p style="font-size:0.75rem;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em">Total Patients</p>
-              <div style="background:rgba(59,130,246,0.12);border-radius:10px;padding:8px;">
-                <i data-lucide="users" style="width:18px;height:18px;color:#60a5fa;stroke-width:2"></i>
-              </div>
+              <p style="font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.06em;">Total Patients</p>
+              <div class="ic-box ic-box-blue"><i class="bi bi-people-fill ic-blue" style="font-size:18px;"></i></div>
             </div>
-            <p id="dashPatients" style="font-size:2.4rem;font-weight:800;color:var(--text-1);line-height:1">0</p>
-            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px">Registered in system</p>
+            <p id="dashPatients" style="font-size:2.6rem;font-weight:800;color:var(--text-1);line-height:1;">0</p>
+            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px;">Registered in system</p>
           </div>
-          <div class="card stat-card purple" style="padding:22px 24px;">
+          <!-- Stat: Doctors -->
+          <div class="card stat-card-purple" style="padding:22px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <p style="font-size:0.75rem;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em">Total Doctors</p>
-              <div style="background:rgba(139,92,246,0.12);border-radius:10px;padding:8px;">
-                <i data-lucide="stethoscope" style="width:18px;height:18px;color:#a78bfa;stroke-width:2"></i>
-              </div>
+              <p style="font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.06em;">Total Doctors</p>
+              <div class="ic-box ic-box-purple"><i class="bi bi-person-badge-fill ic-purple" style="font-size:18px;"></i></div>
             </div>
-            <p id="dashDoctors" style="font-size:2.4rem;font-weight:800;color:var(--text-1);line-height:1">0</p>
-            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px">On staff</p>
+            <p id="dashDoctors" style="font-size:2.6rem;font-weight:800;color:var(--text-1);line-height:1;">0</p>
+            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px;">On staff</p>
           </div>
-          <div class="card stat-card teal" style="padding:22px 24px;">
+          <!-- Stat: Appointments -->
+          <div class="card stat-card-teal" style="padding:22px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <p style="font-size:0.75rem;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em">Appointments</p>
-              <div style="background:rgba(20,184,166,0.12);border-radius:10px;padding:8px;">
-                <i data-lucide="calendar-days" style="width:18px;height:18px;color:#2dd4bf;stroke-width:2"></i>
-              </div>
+              <p style="font-size:0.72rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.06em;">Appointments</p>
+              <div class="ic-box ic-box-teal"><i class="bi bi-calendar3 ic-teal" style="font-size:18px;"></i></div>
             </div>
-            <p id="dashAppointments" style="font-size:2.4rem;font-weight:800;color:var(--text-1);line-height:1">0</p>
-            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px">Total scheduled</p>
+            <p id="dashAppointments" style="font-size:2.6rem;font-weight:800;color:var(--text-1);line-height:1;">0</p>
+            <p style="font-size:0.75rem;color:var(--text-3);margin-top:6px;">Total scheduled</p>
           </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
           <div class="card" style="padding:22px 24px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-              <i data-lucide="user-check" style="width:15px;height:15px;color:#60a5fa;stroke-width:2.5"></i>
-              <p style="font-size:0.8rem;font-weight:700;color:var(--text-1);text-transform:uppercase;letter-spacing:0.05em">Recent Patients</p>
+              <i class="bi bi-person-check-fill ic-blue" style="font-size:14px;"></i>
+              <p style="font-size:0.72rem;font-weight:700;color:var(--text-1);text-transform:uppercase;letter-spacing:0.06em;">Recent Patients</p>
             </div>
             <ul id="dashRecentPatients" style="display:flex;flex-direction:column;gap:8px;"></ul>
           </div>
           <div class="card" style="padding:22px 24px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-              <i data-lucide="clock" style="width:15px;height:15px;color:#2dd4bf;stroke-width:2.5"></i>
-              <p style="font-size:0.8rem;font-weight:700;color:var(--text-1);text-transform:uppercase;letter-spacing:0.05em">Upcoming Appointments</p>
+              <i class="bi bi-clock-fill ic-teal" style="font-size:14px;"></i>
+              <p style="font-size:0.72rem;font-weight:700;color:var(--text-1);text-transform:uppercase;letter-spacing:0.06em;">Upcoming Appointments</p>
             </div>
             <ul id="dashRecentAppointments" style="display:flex;flex-direction:column;gap:8px;"></ul>
           </div>
         </div>
       </section>
 
-      <!-- ===== PATIENTS ===== -->
+      <!-- PATIENTS -->
       <section id="page-patients" class="page" style="display:none;">
-        <div class="section-banner" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="section-banner">
           <div>
-            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1)">Patients</h2>
-            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px">Manage and track all patient records</p>
+            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1);">Patients</h2>
+            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px;">Manage and track all patient records</p>
           </div>
           <button class="btn-primary" onclick="openAddPatient()">
-            <i data-lucide="plus" style="width:15px;height:15px;stroke-width:2.5"></i>
-            Add Patient
+            <i class="bi bi-plus-lg" style="font-size:14px;"></i> Add Patient
           </button>
         </div>
-        <div class="search-wrap" style="margin-bottom:20px;">
-          <i data-lucide="search" class="search-icon" style="width:16px;height:16px;stroke-width:2"></i>
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
           <input type="text" id="patientSearch" placeholder="Search by name or blood type…" oninput="renderPatients()" />
         </div>
         <div id="patientCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
       </section>
 
-      <!-- ===== DOCTORS ===== -->
+      <!-- DOCTORS -->
       <section id="page-doctors" class="page" style="display:none;">
-        <div class="section-banner" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="section-banner">
           <div>
-            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1)">Doctors</h2>
-            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px">Manage staff profiles and availability</p>
+            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1);">Doctors</h2>
+            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px;">Manage staff profiles and availability</p>
           </div>
           <button class="btn-primary" onclick="openAddDoctor()">
-            <i data-lucide="plus" style="width:15px;height:15px;stroke-width:2.5"></i>
-            Add Doctor
+            <i class="bi bi-plus-lg" style="font-size:14px;"></i> Add Doctor
           </button>
         </div>
-        <div class="search-wrap" style="margin-bottom:20px;">
-          <i data-lucide="search" class="search-icon" style="width:16px;height:16px;stroke-width:2"></i>
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
           <input type="text" id="doctorSearch" placeholder="Search by name or specialty…" oninput="renderDoctors()" />
         </div>
         <div id="doctorCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
       </section>
 
-      <!-- ===== APPOINTMENTS ===== -->
+      <!-- APPOINTMENTS -->
       <section id="page-appointments" class="page" style="display:none;">
-        <div class="section-banner" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="section-banner">
           <div>
-            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1)">Appointments</h2>
-            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px">Schedule, track and update appointments</p>
+            <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-1);">Appointments</h2>
+            <p style="font-size:0.8rem;color:var(--text-2);margin-top:2px;">Schedule, track and update appointments</p>
           </div>
           <button class="btn-primary" onclick="openAddAppointment()">
-            <i data-lucide="plus" style="width:15px;height:15px;stroke-width:2.5"></i>
-            Schedule
+            <i class="bi bi-plus-lg" style="font-size:14px;"></i> Schedule
           </button>
         </div>
-        <div class="search-wrap" style="margin-bottom:20px;">
-          <i data-lucide="search" class="search-icon" style="width:16px;height:16px;stroke-width:2"></i>
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
           <input type="text" id="appointmentSearch" placeholder="Search by patient or doctor name…" oninput="renderAppointments()" />
         </div>
         <div id="appointmentCards" style="display:flex;flex-direction:column;gap:12px;"></div>
@@ -400,35 +369,33 @@
     </main>
   </div>
 
-  <!-- ========================= PATIENT MODAL ========================= -->
+  <!-- ===== PATIENT MODAL ===== -->
   <div id="patientModal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
-      <div class="modal-header-strip"></div>
+      <div class="modal-strip"></div>
       <div class="modal-body">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="background:rgba(59,130,246,0.12);border-radius:10px;padding:8px;">
-              <i data-lucide="user-plus" style="width:18px;height:18px;color:#60a5fa;stroke-width:2"></i>
-            </div>
-            <h3 id="patientModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1)">Add Patient</h3>
+            <div class="ic-box ic-box-blue"><i class="bi bi-person-plus-fill ic-blue" style="font-size:17px;"></i></div>
+            <h3 id="patientModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1);">Add Patient</h3>
           </div>
-          <button onclick="closeModal('patientModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;border-radius:6px;display:flex;">
-            <i data-lucide="x" style="width:18px;height:18px;stroke-width:2.5"></i>
+          <button onclick="closeModal('patientModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;display:flex;align-items:center;padding:4px;">
+            <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <input type="hidden" id="patEditId" />
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div>
-            <label class="field-label">Full Name <span class="req">•</span></label>
+            <label class="flabel">Full Name <span class="req">•</span></label>
             <input type="text" id="patName" placeholder="e.g. John Smith" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label class="field-label">Age <span class="req">•</span></label>
+              <label class="flabel">Age <span class="req">•</span></label>
               <input type="number" id="patAge" placeholder="e.g. 35" min="0" max="150" />
             </div>
             <div>
-              <label class="field-label">Gender</label>
+              <label class="flabel">Gender</label>
               <select id="patGender">
                 <option value="Not specified">Not specified</option>
                 <option value="Male">Male</option>
@@ -439,7 +406,7 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label class="field-label">Blood Type</label>
+              <label class="flabel">Blood Type</label>
               <select id="patBlood">
                 <option value="Unknown">Unknown</option>
                 <option value="A+">A+</option><option value="A-">A-</option>
@@ -449,7 +416,7 @@
               </select>
             </div>
             <div>
-              <label class="field-label">Status</label>
+              <label class="flabel">Status</label>
               <select id="patStatus">
                 <option value="Active">Active</option>
                 <option value="Discharged">Discharged</option>
@@ -458,55 +425,55 @@
             </div>
           </div>
           <div>
-            <label class="field-label">Phone</label>
+            <label class="flabel">Phone</label>
             <input type="tel" id="patPhone" placeholder="e.g. +1 555 000 1234" />
           </div>
           <div>
-            <label class="field-label">Clinical Notes</label>
+            <label class="flabel">Clinical Notes</label>
             <textarea id="patNotes" rows="2" placeholder="Allergies, conditions, medications…"></textarea>
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px;">
           <button class="btn-ghost" style="flex:1;" onclick="closeModal('patientModal')">Cancel</button>
-          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitPatient()">Save Patient</button>
+          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitPatient()">
+            <i class="bi bi-check-lg" style="font-size:15px;"></i> Save Patient
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ========================= DOCTOR MODAL ========================= -->
+  <!-- ===== DOCTOR MODAL ===== -->
   <div id="doctorModal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
-      <div class="modal-header-strip"></div>
+      <div class="modal-strip"></div>
       <div class="modal-body">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="background:rgba(139,92,246,0.12);border-radius:10px;padding:8px;">
-              <i data-lucide="stethoscope" style="width:18px;height:18px;color:#a78bfa;stroke-width:2"></i>
-            </div>
-            <h3 id="doctorModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1)">Add Doctor</h3>
+            <div class="ic-box ic-box-purple"><i class="bi bi-person-badge-fill ic-purple" style="font-size:17px;"></i></div>
+            <h3 id="doctorModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1);">Add Doctor</h3>
           </div>
-          <button onclick="closeModal('doctorModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;border-radius:6px;display:flex;">
-            <i data-lucide="x" style="width:18px;height:18px;stroke-width:2.5"></i>
+          <button onclick="closeModal('doctorModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;display:flex;align-items:center;padding:4px;">
+            <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <input type="hidden" id="docEditId" />
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div>
-            <label class="field-label">Full Name <span class="req">•</span></label>
+            <label class="flabel">Full Name <span class="req">•</span></label>
             <input type="text" id="docName" placeholder="e.g. Dr. Sarah Lee" />
           </div>
           <div>
-            <label class="field-label">Specialty <span class="req">•</span></label>
+            <label class="flabel">Specialty <span class="req">•</span></label>
             <input type="text" id="docSpecialty" placeholder="e.g. Cardiology" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label class="field-label">Phone</label>
+              <label class="flabel">Phone</label>
               <input type="tel" id="docPhone" placeholder="+1 555 000 1234" />
             </div>
             <div>
-              <label class="field-label">Availability</label>
+              <label class="flabel">Availability</label>
               <select id="docAvailability">
                 <option value="Available">Available</option>
                 <option value="Busy">Busy</option>
@@ -515,62 +482,62 @@
             </div>
           </div>
           <div>
-            <label class="field-label">Department</label>
+            <label class="flabel">Department</label>
             <input type="text" id="docDept" placeholder="e.g. Internal Medicine" />
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px;">
           <button class="btn-ghost" style="flex:1;" onclick="closeModal('doctorModal')">Cancel</button>
-          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitDoctor()">Save Doctor</button>
+          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitDoctor()">
+            <i class="bi bi-check-lg" style="font-size:15px;"></i> Save Doctor
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ========================= APPOINTMENT MODAL ========================= -->
+  <!-- ===== APPOINTMENT MODAL ===== -->
   <div id="appointmentModal" class="modal-overlay" style="display:none;">
     <div class="modal-box">
-      <div class="modal-header-strip"></div>
+      <div class="modal-strip"></div>
       <div class="modal-body">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="background:rgba(20,184,166,0.12);border-radius:10px;padding:8px;">
-              <i data-lucide="calendar-plus" style="width:18px;height:18px;color:#2dd4bf;stroke-width:2"></i>
-            </div>
-            <h3 id="appointmentModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1)">Schedule Appointment</h3>
+            <div class="ic-box ic-box-teal"><i class="bi bi-calendar-plus-fill ic-teal" style="font-size:17px;"></i></div>
+            <h3 id="appointmentModalTitle" style="font-size:1rem;font-weight:700;color:var(--text-1);">Schedule Appointment</h3>
           </div>
-          <button onclick="closeModal('appointmentModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;border-radius:6px;display:flex;">
-            <i data-lucide="x" style="width:18px;height:18px;stroke-width:2.5"></i>
+          <button onclick="closeModal('appointmentModal')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;display:flex;align-items:center;padding:4px;">
+            <i class="bi bi-x-lg"></i>
           </button>
         </div>
         <input type="hidden" id="appEditId" />
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div>
-            <label class="field-label">Patient Name <span class="req">•</span></label>
+            <label class="flabel">Patient Name <span class="req">•</span></label>
             <input type="text" id="appPat" placeholder="e.g. John Smith" list="patientSuggestions" />
             <datalist id="patientSuggestions"></datalist>
           </div>
           <div>
-            <label class="field-label">Doctor Name <span class="req">•</span></label>
+            <label class="flabel">Doctor Name <span class="req">•</span></label>
             <input type="text" id="appDoc" placeholder="e.g. Dr. Sarah Lee" list="doctorSuggestions" />
             <datalist id="doctorSuggestions"></datalist>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label class="field-label">Date <span class="req">•</span></label>
+              <label class="flabel">Date <span class="req">•</span></label>
               <input type="date" id="appDate" />
             </div>
             <div>
-              <label class="field-label">Time</label>
+              <label class="flabel">Time</label>
               <input type="time" id="appTime" />
             </div>
           </div>
           <div>
-            <label class="field-label">Reason / Notes</label>
+            <label class="flabel">Reason / Notes</label>
             <textarea id="appNotes" rows="2" placeholder="Reason for visit, symptoms…"></textarea>
           </div>
           <div>
-            <label class="field-label">Status</label>
+            <label class="flabel">Status</label>
             <select id="appStatus">
               <option value="Pending">Pending</option>
               <option value="Confirmed">Confirmed</option>
@@ -581,129 +548,122 @@
         </div>
         <div style="display:flex;gap:10px;margin-top:20px;">
           <button class="btn-ghost" style="flex:1;" onclick="closeModal('appointmentModal')">Cancel</button>
-          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitAppointment()">Save Appointment</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================= CONFIRM MODAL ========================= -->
-  <div id="confirmModal" class="modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:380px;">
-      <div style="background:linear-gradient(90deg,#7f1d1d,#991b1b);height:4px;"></div>
-      <div class="modal-body" style="text-align:center;">
-        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:14px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <i data-lucide="trash-2" style="width:22px;height:22px;color:#f87171;stroke-width:2"></i>
-        </div>
-        <h3 style="font-size:1rem;font-weight:700;color:var(--text-1);margin-bottom:8px;">Delete Record</h3>
-        <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:24px;">This action is permanent and cannot be undone.</p>
-        <div style="display:flex;gap:10px;">
-          <button class="btn-ghost" style="flex:1;" onclick="closeModal('confirmModal')">Cancel</button>
-          <button id="confirmDeleteBtn" style="flex:1;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <i data-lucide="trash-2" style="width:14px;height:14px;stroke-width:2.5"></i>
-            Delete
+          <button class="btn-primary" style="flex:1;justify-content:center;" onclick="submitAppointment()">
+            <i class="bi bi-check-lg" style="font-size:15px;"></i> Save Appointment
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ========================= TOAST ========================= -->
+  <!-- ===== CONFIRM MODAL ===== -->
+  <div id="confirmModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:380px;">
+      <div style="height:4px;background:linear-gradient(90deg,#7f1d1d,#dc2626);"></div>
+      <div class="modal-body" style="text-align:center;">
+        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:14px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;color:#f87171;">
+          <i class="bi bi-trash3-fill"></i>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--text-1);margin-bottom:8px;">Delete Record</h3>
+        <p style="font-size:0.85rem;color:var(--text-2);margin-bottom:24px;">This action is permanent and cannot be undone.</p>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost" style="flex:1;" onclick="closeModal('confirmModal')">Cancel</button>
+          <button id="confirmDeleteBtn" style="flex:1;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Plus Jakarta Sans',sans-serif;">
+            <i class="bi bi-trash3-fill" style="font-size:13px;"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
   <div id="toast">
     <div id="toastInner" class="toast-inner"></div>
   </div>
 
-  <!-- ========================= SCRIPT ========================= -->
+  <!-- ===== SCRIPT ===== -->
   <script>
-    // ─── HELPERS ────────────────────────────────────────────────
     function $(id) { return document.getElementById(id); }
 
-    function ri() { lucide.createIcons(); }
-
+    // ── Toast ──────────────────────────────────────────────────
     function showToast(msg, type = 'success') {
       const el = $('toast'), inner = $('toastInner');
       const cfg = {
-        success: { bg:'#064e3b', border:'#065f46', color:'#34d399', icon:'check-circle-2' },
-        error:   { bg:'#450a0a', border:'#7f1d1d', color:'#f87171', icon:'alert-circle' },
-        info:    { bg:'#0c1a4a', border:'#1e3a8a', color:'#60a5fa', icon:'info' },
+        success: { bg:'#064e3b', border:'rgba(16,185,129,0.3)', color:'#34d399', icon:'bi-check-circle-fill' },
+        error:   { bg:'#450a0a', border:'rgba(239,68,68,0.3)',  color:'#f87171', icon:'bi-exclamation-triangle-fill' },
+        info:    { bg:'#0c1a4a', border:'rgba(59,130,246,0.3)', color:'#60a5fa', icon:'bi-info-circle-fill' },
       };
       const c = cfg[type] || cfg.success;
       inner.style.cssText = `background:${c.bg};border:1px solid ${c.border};color:${c.color};`;
-      inner.innerHTML = `<i data-lucide="${c.icon}" style="width:16px;height:16px;flex-shrink:0;stroke-width:2.5"></i> ${msg}`;
+      inner.innerHTML = `<i class="bi ${c.icon}" style="font-size:15px;flex-shrink:0;"></i> ${msg}`;
       el.classList.add('show');
-      ri();
       setTimeout(() => el.classList.remove('show'), 3200);
     }
 
-    function openModal(id)  { $(id).style.display = 'flex'; ri(); }
+    function openModal(id)  { $(id).style.display = 'flex'; }
     function closeModal(id) { $(id).style.display = 'none'; }
 
-    function countUp(el, target, duration = 700) {
-      const start = parseInt(el.textContent) || 0;
-      const startTime = performance.now();
-      function tick(now) {
-        const p = Math.min((now - startTime) / duration, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(start + (target - start) * ease);
+    function countUp(el, target, dur = 700) {
+      const from = parseInt(el.textContent) || 0;
+      const t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
         if (p < 1) requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
+      })(t0);
     }
 
-    function statusBadge(status, clickable) {
-      const map = {
-        Active:     ['badge-green', 'check-circle-2'],
-        Discharged: ['badge-slate', 'log-out'],
-        Critical:   ['badge-red',   'alert-triangle'],
-        Available:  ['badge-green', 'check-circle-2'],
-        Busy:       ['badge-amber', 'clock'],
-        'On Leave': ['badge-slate', 'moon'],
-        Pending:    ['badge-amber', 'clock'],
-        Confirmed:  ['badge-blue',  'calendar-check'],
-        Completed:  ['badge-green', 'check-circle-2'],
-        Cancelled:  ['badge-red',   'x-circle'],
+    // ── Status helpers ─────────────────────────────────────────
+    function badgeCfg(status) {
+      const m = {
+        Active:     ['b-green',  'bi-check-circle-fill'],
+        Discharged: ['b-slate',  'bi-box-arrow-right'],
+        Critical:   ['b-red',    'bi-exclamation-triangle-fill'],
+        Available:  ['b-green',  'bi-check-circle-fill'],
+        Busy:       ['b-amber',  'bi-clock-fill'],
+        'On Leave': ['b-slate',  'bi-moon-fill'],
+        Pending:    ['b-amber',  'bi-clock-fill'],
+        Confirmed:  ['b-blue',   'bi-calendar-check-fill'],
+        Completed:  ['b-green',  'bi-check-circle-fill'],
+        Cancelled:  ['b-red',    'bi-x-circle-fill'],
       };
-      const [cls, ico] = map[status] || ['badge-slate', 'circle'];
-      const extra = clickable ? 'status-toggle' : '';
-      return `<span class="badge ${cls} ${extra}" title="${clickable ? 'Click to change status' : ''}">
-        <span class="badge-dot"></span>
-        <i data-lucide="${ico}" style="width:10px;height:10px;stroke-width:2.5"></i>
-        ${status}
+      return m[status] || ['b-slate', 'bi-circle-fill'];
+    }
+
+    function statusBadge(status, clickable = false) {
+      const [cls, ico] = badgeCfg(status);
+      return `<span class="badge ${cls}${clickable ? ' s-toggle' : ''}" title="${clickable ? 'Click to change status' : ''}">
+        <i class="bi ${ico}" style="font-size:9px;"></i>${status}
       </span>`;
     }
 
-    // ─── OOP CLASSES ────────────────────────────────────────────
+    // ── OOP Classes ────────────────────────────────────────────
     class Patient {
       constructor(name, age, gender='Not specified', blood='Unknown', status='Active', phone='', notes='', id=null) {
         this.id = id || (Date.now() + Math.random());
         this.name = name; this.age = age; this.gender = gender;
-        this.blood = blood; this.status = status;
-        this.phone = phone; this.notes = notes;
+        this.blood = blood; this.status = status; this.phone = phone; this.notes = notes;
         this.createdAt = new Date().toLocaleDateString();
       }
     }
-
     class Doctor {
       constructor(name, specialty, phone='', availability='Available', dept='', id=null) {
         this.id = id || (Date.now() + Math.random());
         this.name = name; this.specialty = specialty;
-        this.phone = phone; this.availability = availability;
-        this.dept = dept;
+        this.phone = phone; this.availability = availability; this.dept = dept;
         this.createdAt = new Date().toLocaleDateString();
       }
     }
-
     class Appointment {
       constructor(patient, doctor, date='', time='', notes='', status='Pending', id=null) {
         this.id = id || (Date.now() + Math.random());
         this.patient = patient; this.doctor = doctor;
-        this.date = date; this.time = time;
-        this.notes = notes; this.status = status;
+        this.date = date; this.time = time; this.notes = notes; this.status = status;
         this.createdAt = new Date().toLocaleDateString();
       }
     }
 
-    // ─── STORE ──────────────────────────────────────────────────
+    // ── Store ──────────────────────────────────────────────────
     class HospitalStore {
       constructor() {
         this.patients = []; this.doctors = []; this.appointments = [];
@@ -722,18 +682,14 @@
           this.patients     = p.map(x => new Patient(x.name, x.age, x.gender, x.blood, x.status, x.phone, x.notes, x.id));
           this.doctors      = d.map(x => new Doctor(x.name, x.specialty, x.phone, x.availability, x.dept, x.id));
           this.appointments = a.map(x => new Appointment(x.patient, x.doctor, x.date, x.time, x.notes, x.status, x.id));
-        } catch(e) {
-          this.patients = []; this.doctors = []; this.appointments = [];
-        }
+        } catch(e) { this.patients=[]; this.doctors=[]; this.appointments=[]; }
       }
       addPatient(p)    { this.patients.push(p); this.save(); }
       updatePatient(u) { const i=this.patients.findIndex(p=>p.id==u.id); if(i>=0) this.patients[i]=u; this.save(); }
       deletePatient(id){ this.patients=this.patients.filter(p=>p.id!=id); this.save(); }
-
       addDoctor(d)     { this.doctors.push(d); this.save(); }
       updateDoctor(u)  { const i=this.doctors.findIndex(d=>d.id==u.id); if(i>=0) this.doctors[i]=u; this.save(); }
       deleteDoctor(id) { this.doctors=this.doctors.filter(d=>d.id!=id); this.save(); }
-
       addAppointment(a)    { this.appointments.push(a); this.save(); }
       updateAppointment(u) { const i=this.appointments.findIndex(a=>a.id==u.id); if(i>=0) this.appointments[i]=u; this.save(); }
       deleteAppointment(id){ this.appointments=this.appointments.filter(a=>a.id!=id); this.save(); }
@@ -741,13 +697,12 @@
 
     const store = new HospitalStore();
 
-    // ─── NAVIGATION ─────────────────────────────────────────────
+    // ── Navigation ─────────────────────────────────────────────
     function navigate(page) {
-      document.querySelectorAll('.page').forEach(s => s.style.display = 'none');
-      $(`page-${page}`).style.display = 'block';
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-      const titles = { dashboard:'Dashboard', patients:'Patients', doctors:'Doctors', appointments:'Appointments' };
-      $('pageTitle').textContent = titles[page];
+      document.querySelectorAll('.page').forEach(s => s.style.display='none');
+      $(`page-${page}`).style.display='block';
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page===page));
+      $('pageTitle').textContent = { dashboard:'Dashboard', patients:'Patients', doctors:'Doctors', appointments:'Appointments' }[page];
       if (page==='dashboard')    renderDashboard();
       if (page==='patients')     renderPatients();
       if (page==='doctors')      renderDoctors();
@@ -756,13 +711,18 @@
     }
 
     function updateSidebarSummary() {
-      $('sidebarSummary').textContent =
-        `${store.patients.length} Patient${store.patients.length!==1?'s':''}\n` +
-        `${store.doctors.length} Doctor${store.doctors.length!==1?'s':''}\n` +
-        `${store.appointments.length} Appointment${store.appointments.length!==1?'s':''}`;
+      $('sidebarSummary').innerHTML = [
+        ['bi-people-fill','ic-blue',   `${store.patients.length} Patient${store.patients.length!==1?'s':''}`],
+        ['bi-person-badge-fill','ic-purple', `${store.doctors.length} Doctor${store.doctors.length!==1?'s':''}`],
+        ['bi-calendar3','ic-teal',     `${store.appointments.length} Appointment${store.appointments.length!==1?'s':''}`],
+      ].map(([ico,col,txt]) =>
+        `<div style="display:flex;align-items:center;gap:7px;font-size:0.75rem;color:var(--text-2);font-weight:500;">
+           <i class="bi ${ico} ${col}" style="font-size:12px;"></i> ${txt}
+         </div>`
+      ).join('');
     }
 
-    // ─── DASHBOARD ──────────────────────────────────────────────
+    // ── Dashboard ──────────────────────────────────────────────
     function renderDashboard() {
       countUp($('dashPatients'),     store.patients.length);
       countUp($('dashDoctors'),      store.doctors.length);
@@ -771,338 +731,273 @@
       const rp = $('dashRecentPatients');
       const recent = store.patients.slice(-5).reverse();
       rp.innerHTML = recent.length === 0
-        ? `<li style="color:var(--text-3);font-size:0.8rem;text-align:center;padding:16px 0;">No patients registered yet.</li>`
+        ? `<li style="color:var(--text-3);font-size:0.8rem;text-align:center;padding:16px 0;">No patients yet.</li>`
         : recent.map(p => `
-          <li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div class="avatar avatar-blue" style="width:32px;height:32px;font-size:0.75rem;">${p.name.charAt(0).toUpperCase()}</div>
+          <li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:9px 13px;">
+            <div style="display:flex;align-items:center;gap:9px;">
+              <div class="avatar av-blue" style="width:30px;height:30px;font-size:0.72rem;">${p.name.charAt(0).toUpperCase()}</div>
               <div>
-                <p style="font-size:0.8rem;font-weight:600;color:var(--text-1)">${p.name}</p>
-                <p style="font-size:0.72rem;color:var(--text-3)">${p.age} yrs · ${p.blood}</p>
+                <p style="font-size:0.8rem;font-weight:600;color:var(--text-1);">${p.name}</p>
+                <p style="font-size:0.7rem;color:var(--text-3);">${p.age} yrs &bull; ${p.blood}</p>
               </div>
             </div>
             ${statusBadge(p.status)}
           </li>`).join('');
 
       const ra = $('dashRecentAppointments');
-      const upcoming = store.appointments.filter(a => a.status!=='Cancelled' && a.status!=='Completed').slice(-5).reverse();
+      const upcoming = store.appointments.filter(a=>a.status!=='Cancelled'&&a.status!=='Completed').slice(-5).reverse();
       ra.innerHTML = upcoming.length === 0
         ? `<li style="color:var(--text-3);font-size:0.8rem;text-align:center;padding:16px 0;">No upcoming appointments.</li>`
         : upcoming.map(a => `
-          <li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+          <li style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:9px 13px;">
             <div>
-              <p style="font-size:0.8rem;font-weight:600;color:var(--text-1)">${a.patient}</p>
-              <p style="font-size:0.72rem;color:var(--text-3)">with ${a.doctor} · ${a.date||'No date'}${a.time?' at '+a.time:''}</p>
+              <p style="font-size:0.8rem;font-weight:600;color:var(--text-1);">${a.patient}</p>
+              <p style="font-size:0.7rem;color:var(--text-3);">with ${a.doctor} &bull; ${a.date||'No date'}${a.time?' at '+a.time:''}</p>
             </div>
             ${statusBadge(a.status)}
           </li>`).join('');
-
-      ri();
     }
 
-    // ─── PATIENTS ───────────────────────────────────────────────
+    // ── Patients ───────────────────────────────────────────────
     function renderPatients() {
-      const q = ($('patientSearch') ? $('patientSearch').value : '').toLowerCase();
-      const list = store.patients.filter(p =>
-        p.name.toLowerCase().includes(q) || p.blood.toLowerCase().includes(q)
-      );
+      const q = ($('patientSearch')?$('patientSearch').value:'').toLowerCase();
+      const list = store.patients.filter(p=>p.name.toLowerCase().includes(q)||p.blood.toLowerCase().includes(q));
       const el = $('patientCards');
-      if (list.length === 0) {
-        el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-          <div class="empty-icon"><i data-lucide="user-x" style="width:26px;height:26px;stroke-width:1.5"></i></div>
-          <p style="font-size:0.9rem;font-weight:700;color:var(--text-1)">${q ? 'No results found' : 'No patients yet'}</p>
-          <p style="font-size:0.8rem;color:var(--text-2)">${q ? 'Try a different search term' : 'Add your first patient to get started'}</p>
-          ${!q ? `<button class="btn-primary" onclick="openAddPatient()" style="margin-top:4px;"><i data-lucide="plus" style="width:14px;height:14px;stroke-width:2.5"></i> Add Patient</button>` : ''}
-        </div>`;
-      } else {
-        el.innerHTML = list.map(p => `
+      el.innerHTML = list.length === 0
+        ? `<div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-icon"><i class="bi bi-person-x-fill"></i></div>
+            <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);">${q?'No results found':'No patients yet'}</p>
+            <p style="font-size:0.8rem;color:var(--text-2);">${q?'Try a different term':'Add your first patient to get started'}</p>
+            ${!q?`<button class="btn-primary" onclick="openAddPatient()" style="margin-top:6px;"><i class="bi bi-plus-lg" style="font-size:14px;"></i> Add Patient</button>`:''}
+          </div>`
+        : list.map(p => `
           <div class="card patient-card" style="padding:20px;">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div class="avatar avatar-blue">${p.name.charAt(0).toUpperCase()}</div>
+              <div style="display:flex;align-items:center;gap:11px;">
+                <div class="avatar av-blue">${p.name.charAt(0).toUpperCase()}</div>
                 <div>
-                  <p style="font-size:0.9rem;font-weight:700;color:var(--text-1)">${p.name}</p>
-                  <p style="font-size:0.75rem;color:var(--text-3)">${p.gender} · ${p.age} yrs</p>
+                  <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);">${p.name}</p>
+                  <p style="font-size:0.75rem;color:var(--text-3);">${p.gender} &bull; ${p.age} yrs</p>
                 </div>
               </div>
               ${statusBadge(p.status)}
             </div>
-            <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;color:var(--text-2);margin-bottom:16px;">
+            <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;color:var(--text-2);margin-bottom:14px;">
               <div style="display:flex;align-items:center;gap:7px;">
-                <i data-lucide="droplet" style="width:13px;height:13px;color:#60a5fa;stroke-width:2.5;flex-shrink:0"></i>
-                Blood Type: <span style="color:var(--text-1);font-weight:600">${p.blood}</span>
+                <i class="bi bi-droplet-fill ic-blue" style="font-size:12px;flex-shrink:0;"></i>
+                Blood Type: <span style="color:var(--text-1);font-weight:600;">${p.blood}</span>
               </div>
-              ${p.phone ? `<div style="display:flex;align-items:center;gap:7px;">
-                <i data-lucide="phone" style="width:13px;height:13px;color:#60a5fa;stroke-width:2.5;flex-shrink:0"></i>
-                <span style="color:var(--text-1)">${p.phone}</span>
-              </div>` : ''}
-              ${p.notes ? `<div style="display:flex;align-items:flex-start;gap:7px;">
-                <i data-lucide="file-text" style="width:13px;height:13px;color:#60a5fa;stroke-width:2.5;flex-shrink:0;margin-top:1px"></i>
-                <span style="color:var(--text-2);font-style:italic">${p.notes}</span>
-              </div>` : ''}
+              ${p.phone?`<div style="display:flex;align-items:center;gap:7px;">
+                <i class="bi bi-telephone-fill ic-blue" style="font-size:12px;flex-shrink:0;"></i>
+                <span style="color:var(--text-1);">${p.phone}</span>
+              </div>`:''}
+              ${p.notes?`<div style="display:flex;align-items:flex-start;gap:7px;">
+                <i class="bi bi-file-earmark-text-fill ic-blue" style="font-size:12px;flex-shrink:0;margin-top:1px;"></i>
+                <span style="color:var(--text-2);font-style:italic;">${p.notes}</span>
+              </div>`:''}
             </div>
-            <hr class="divider" />
+            <hr class="div" />
             <div style="display:flex;gap:8px;">
-              <button class="btn-icon btn-edit" style="flex:1;justify-content:center;" onclick="editPatient(${p.id})">
-                <i data-lucide="pencil" style="width:12px;height:12px;stroke-width:2.5"></i> Edit
+              <button class="btn-sm btn-edit" style="flex:1;justify-content:center;" onclick="editPatient(${p.id})">
+                <i class="bi bi-pencil-fill" style="font-size:11px;"></i> Edit
               </button>
-              <button class="btn-icon btn-del" style="flex:1;justify-content:center;" onclick="confirmDelete('patient',${p.id})">
-                <i data-lucide="trash-2" style="width:12px;height:12px;stroke-width:2.5"></i> Delete
+              <button class="btn-sm btn-del" style="flex:1;justify-content:center;" onclick="confirmDelete('patient',${p.id})">
+                <i class="bi bi-trash3-fill" style="font-size:11px;"></i> Delete
               </button>
             </div>
           </div>`).join('');
-      }
-      ri();
     }
 
     function openAddPatient() {
       $('patientModalTitle').textContent = 'Add Patient';
       $('patEditId').value = '';
-      ['patName','patAge','patPhone','patNotes'].forEach(id => $(id).value = '');
-      $('patGender').value = 'Not specified';
-      $('patBlood').value = 'Unknown';
-      $('patStatus').value = 'Active';
+      ['patName','patAge','patPhone','patNotes'].forEach(id=>$(id).value='');
+      $('patGender').value='Not specified'; $('patBlood').value='Unknown'; $('patStatus').value='Active';
       openModal('patientModal');
     }
-
     function editPatient(id) {
-      const p = store.patients.find(x => x.id == id);
-      if (!p) return;
-      $('patientModalTitle').textContent = 'Edit Patient';
-      $('patEditId').value = p.id;
-      $('patName').value = p.name; $('patAge').value = p.age;
-      $('patGender').value = p.gender; $('patBlood').value = p.blood;
-      $('patStatus').value = p.status; $('patPhone').value = p.phone;
-      $('patNotes').value = p.notes;
+      const p=store.patients.find(x=>x.id==id); if(!p)return;
+      $('patientModalTitle').textContent='Edit Patient';
+      $('patEditId').value=p.id; $('patName').value=p.name; $('patAge').value=p.age;
+      $('patGender').value=p.gender; $('patBlood').value=p.blood; $('patStatus').value=p.status;
+      $('patPhone').value=p.phone; $('patNotes').value=p.notes;
       openModal('patientModal');
     }
-
     function submitPatient() {
-      const name = $('patName').value.trim(), age = $('patAge').value.trim();
-      if (!name || !age) { showToast('Name and age are required.', 'error'); return; }
-      const editId = $('patEditId').value;
-      if (editId) {
-        store.updatePatient(new Patient(name, age, $('patGender').value, $('patBlood').value, $('patStatus').value, $('patPhone').value.trim(), $('patNotes').value.trim(), editId));
-        showToast('Patient updated successfully.');
-      } else {
-        store.addPatient(new Patient(name, age, $('patGender').value, $('patBlood').value, $('patStatus').value, $('patPhone').value.trim(), $('patNotes').value.trim()));
-        showToast('Patient added successfully.');
-      }
-      closeModal('patientModal');
-      renderPatients(); renderDashboard(); updateSidebarSummary();
+      const name=$('patName').value.trim(), age=$('patAge').value.trim();
+      if(!name||!age){showToast('Name and age are required.','error');return;}
+      const eid=$('patEditId').value;
+      if(eid){store.updatePatient(new Patient(name,age,$('patGender').value,$('patBlood').value,$('patStatus').value,$('patPhone').value.trim(),$('patNotes').value.trim(),eid));showToast('Patient updated.');}
+      else{store.addPatient(new Patient(name,age,$('patGender').value,$('patBlood').value,$('patStatus').value,$('patPhone').value.trim(),$('patNotes').value.trim()));showToast('Patient added.');}
+      closeModal('patientModal'); renderPatients(); renderDashboard(); updateSidebarSummary();
     }
 
-    // ─── DOCTORS ────────────────────────────────────────────────
+    // ── Doctors ────────────────────────────────────────────────
     function renderDoctors() {
-      const q = ($('doctorSearch') ? $('doctorSearch').value : '').toLowerCase();
-      const list = store.doctors.filter(d =>
-        d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q)
-      );
+      const q = ($('doctorSearch')?$('doctorSearch').value:'').toLowerCase();
+      const list = store.doctors.filter(d=>d.name.toLowerCase().includes(q)||d.specialty.toLowerCase().includes(q));
       const el = $('doctorCards');
-      if (list.length === 0) {
-        el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-          <div class="empty-icon"><i data-lucide="user-minus" style="width:26px;height:26px;stroke-width:1.5"></i></div>
-          <p style="font-size:0.9rem;font-weight:700;color:var(--text-1)">${q ? 'No results found' : 'No doctors yet'}</p>
-          <p style="font-size:0.8rem;color:var(--text-2)">${q ? 'Try a different search term' : 'Add your first doctor to get started'}</p>
-          ${!q ? `<button class="btn-primary" onclick="openAddDoctor()" style="margin-top:4px;"><i data-lucide="plus" style="width:14px;height:14px;stroke-width:2.5"></i> Add Doctor</button>` : ''}
-        </div>`;
-      } else {
-        el.innerHTML = list.map(d => `
+      el.innerHTML = list.length === 0
+        ? `<div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-icon"><i class="bi bi-person-dash-fill"></i></div>
+            <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);">${q?'No results found':'No doctors yet'}</p>
+            <p style="font-size:0.8rem;color:var(--text-2);">${q?'Try a different term':'Add your first doctor to get started'}</p>
+            ${!q?`<button class="btn-primary" onclick="openAddDoctor()" style="margin-top:6px;"><i class="bi bi-plus-lg" style="font-size:14px;"></i> Add Doctor</button>`:''}
+          </div>`
+        : list.map(d => `
           <div class="card doctor-card" style="padding:20px;">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div class="avatar avatar-purple">${d.name.charAt(0).toUpperCase()}</div>
+              <div style="display:flex;align-items:center;gap:11px;">
+                <div class="avatar av-purple">${d.name.charAt(0).toUpperCase()}</div>
                 <div>
-                  <p style="font-size:0.9rem;font-weight:700;color:var(--text-1)">${d.name}</p>
-                  <p style="font-size:0.75rem;color:var(--text-3)">${d.specialty}</p>
+                  <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);">${d.name}</p>
+                  <p style="font-size:0.75rem;color:var(--text-3);">${d.specialty}</p>
                 </div>
               </div>
               ${statusBadge(d.availability)}
             </div>
-            <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;color:var(--text-2);margin-bottom:16px;">
-              ${d.dept ? `<div style="display:flex;align-items:center;gap:7px;">
-                <i data-lucide="building-2" style="width:13px;height:13px;color:#a78bfa;stroke-width:2.5;flex-shrink:0"></i>
-                <span style="color:var(--text-1)">${d.dept}</span>
-              </div>` : ''}
-              ${d.phone ? `<div style="display:flex;align-items:center;gap:7px;">
-                <i data-lucide="phone" style="width:13px;height:13px;color:#a78bfa;stroke-width:2.5;flex-shrink:0"></i>
-                <span style="color:var(--text-1)">${d.phone}</span>
-              </div>` : ''}
+            <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;color:var(--text-2);margin-bottom:14px;">
+              ${d.dept?`<div style="display:flex;align-items:center;gap:7px;">
+                <i class="bi bi-building ic-purple" style="font-size:12px;flex-shrink:0;"></i>
+                <span style="color:var(--text-1);">${d.dept}</span>
+              </div>`:''}
+              ${d.phone?`<div style="display:flex;align-items:center;gap:7px;">
+                <i class="bi bi-telephone-fill ic-purple" style="font-size:12px;flex-shrink:0;"></i>
+                <span style="color:var(--text-1);">${d.phone}</span>
+              </div>`:''}
             </div>
-            <hr class="divider" />
+            <hr class="div" />
             <div style="display:flex;gap:8px;">
-              <button class="btn-icon btn-edit" style="flex:1;justify-content:center;" onclick="editDoctor(${d.id})">
-                <i data-lucide="pencil" style="width:12px;height:12px;stroke-width:2.5"></i> Edit
+              <button class="btn-sm btn-edit" style="flex:1;justify-content:center;" onclick="editDoctor(${d.id})">
+                <i class="bi bi-pencil-fill" style="font-size:11px;"></i> Edit
               </button>
-              <button class="btn-icon btn-del" style="flex:1;justify-content:center;" onclick="confirmDelete('doctor',${d.id})">
-                <i data-lucide="trash-2" style="width:12px;height:12px;stroke-width:2.5"></i> Delete
+              <button class="btn-sm btn-del" style="flex:1;justify-content:center;" onclick="confirmDelete('doctor',${d.id})">
+                <i class="bi bi-trash3-fill" style="font-size:11px;"></i> Delete
               </button>
             </div>
           </div>`).join('');
-      }
-      ri();
     }
 
     function openAddDoctor() {
-      $('doctorModalTitle').textContent = 'Add Doctor';
-      $('docEditId').value = '';
-      ['docName','docSpecialty','docPhone','docDept'].forEach(id => $(id).value = '');
-      $('docAvailability').value = 'Available';
+      $('doctorModalTitle').textContent='Add Doctor';
+      $('docEditId').value='';
+      ['docName','docSpecialty','docPhone','docDept'].forEach(id=>$(id).value='');
+      $('docAvailability').value='Available';
       openModal('doctorModal');
     }
-
     function editDoctor(id) {
-      const d = store.doctors.find(x => x.id == id);
-      if (!d) return;
-      $('doctorModalTitle').textContent = 'Edit Doctor';
-      $('docEditId').value = d.id;
-      $('docName').value = d.name; $('docSpecialty').value = d.specialty;
-      $('docPhone').value = d.phone; $('docAvailability').value = d.availability;
-      $('docDept').value = d.dept;
+      const d=store.doctors.find(x=>x.id==id); if(!d)return;
+      $('doctorModalTitle').textContent='Edit Doctor';
+      $('docEditId').value=d.id; $('docName').value=d.name; $('docSpecialty').value=d.specialty;
+      $('docPhone').value=d.phone; $('docAvailability').value=d.availability; $('docDept').value=d.dept;
       openModal('doctorModal');
     }
-
     function submitDoctor() {
-      const name = $('docName').value.trim(), specialty = $('docSpecialty').value.trim();
-      if (!name || !specialty) { showToast('Name and specialty are required.', 'error'); return; }
-      const editId = $('docEditId').value;
-      if (editId) {
-        store.updateDoctor(new Doctor(name, specialty, $('docPhone').value.trim(), $('docAvailability').value, $('docDept').value.trim(), editId));
-        showToast('Doctor updated successfully.');
-      } else {
-        store.addDoctor(new Doctor(name, specialty, $('docPhone').value.trim(), $('docAvailability').value, $('docDept').value.trim()));
-        showToast('Doctor added successfully.');
-      }
-      closeModal('doctorModal');
-      renderDoctors(); renderDashboard(); updateSidebarSummary();
+      const name=$('docName').value.trim(), specialty=$('docSpecialty').value.trim();
+      if(!name||!specialty){showToast('Name and specialty are required.','error');return;}
+      const eid=$('docEditId').value;
+      if(eid){store.updateDoctor(new Doctor(name,specialty,$('docPhone').value.trim(),$('docAvailability').value,$('docDept').value.trim(),eid));showToast('Doctor updated.');}
+      else{store.addDoctor(new Doctor(name,specialty,$('docPhone').value.trim(),$('docAvailability').value,$('docDept').value.trim()));showToast('Doctor added.');}
+      closeModal('doctorModal'); renderDoctors(); renderDashboard(); updateSidebarSummary();
     }
 
-    // ─── APPOINTMENTS ────────────────────────────────────────────
+    // ── Appointments ───────────────────────────────────────────
     function renderAppointments() {
-      const q = ($('appointmentSearch') ? $('appointmentSearch').value : '').toLowerCase();
-      const list = store.appointments.filter(a =>
-        a.patient.toLowerCase().includes(q) || a.doctor.toLowerCase().includes(q)
-      );
+      const q = ($('appointmentSearch')?$('appointmentSearch').value:'').toLowerCase();
+      const list = store.appointments.filter(a=>a.patient.toLowerCase().includes(q)||a.doctor.toLowerCase().includes(q));
       const el = $('appointmentCards');
-      if (list.length === 0) {
-        el.innerHTML = `<div class="empty-state">
-          <div class="empty-icon"><i data-lucide="calendar-x" style="width:26px;height:26px;stroke-width:1.5"></i></div>
-          <p style="font-size:0.9rem;font-weight:700;color:var(--text-1)">${q ? 'No results found' : 'No appointments yet'}</p>
-          <p style="font-size:0.8rem;color:var(--text-2)">${q ? 'Try a different search term' : 'Schedule your first appointment'}</p>
-          ${!q ? `<button class="btn-primary" onclick="openAddAppointment()" style="margin-top:4px;"><i data-lucide="plus" style="width:14px;height:14px;stroke-width:2.5"></i> Schedule</button>` : ''}
-        </div>`;
-      } else {
-        el.innerHTML = list.map(a => `
-          <div class="card appt-card" style="padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
-              <div class="avatar avatar-teal" style="flex-shrink:0;">${a.patient.charAt(0).toUpperCase()}</div>
+      el.innerHTML = list.length === 0
+        ? `<div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-calendar-x-fill"></i></div>
+            <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);">${q?'No results found':'No appointments yet'}</p>
+            <p style="font-size:0.8rem;color:var(--text-2);">${q?'Try a different term':'Schedule your first appointment'}</p>
+            ${!q?`<button class="btn-primary" onclick="openAddAppointment()" style="margin-top:6px;"><i class="bi bi-plus-lg" style="font-size:14px;"></i> Schedule</button>`:''}
+          </div>`
+        : list.map(a => `
+          <div class="card appt-card" style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:13px;flex:1;min-width:0;">
+              <div class="avatar av-teal" style="flex-shrink:0;">${a.patient.charAt(0).toUpperCase()}</div>
               <div style="min-width:0;">
                 <p style="font-size:0.9rem;font-weight:700;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                  ${a.patient} <span style="color:var(--text-3);font-weight:400">with</span> ${a.doctor}
+                  ${a.patient} <span style="color:var(--text-3);font-weight:400;">with</span> ${a.doctor}
                 </p>
                 <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">
-                  ${a.date ? `<span style="display:flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--text-2);">
-                    <i data-lucide="calendar" style="width:12px;height:12px;stroke-width:2;color:#2dd4bf"></i>
-                    ${a.date}${a.time ? ' at ' + a.time : ''}
-                  </span>` : ''}
-                  ${a.notes ? `<span style="font-size:0.75rem;color:var(--text-3);font-style:italic;">${a.notes}</span>` : ''}
+                  ${a.date?`<span style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--text-2);">
+                    <i class="bi bi-calendar3 ic-teal" style="font-size:11px;"></i>
+                    ${a.date}${a.time?' at '+a.time:''}
+                  </span>`:''}
+                  ${a.notes?`<span style="font-size:0.75rem;color:var(--text-3);font-style:italic;">${a.notes}</span>`:''}
                 </div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-              <span onclick="cycleStatus(${a.id})">${statusBadge(a.status, true)}</span>
-              <button class="btn-icon btn-edit" onclick="editAppointment(${a.id})">
-                <i data-lucide="pencil" style="width:12px;height:12px;stroke-width:2.5"></i> Edit
+              <span onclick="cycleStatus(${a.id})">${statusBadge(a.status,true)}</span>
+              <button class="btn-sm btn-edit" onclick="editAppointment(${a.id})">
+                <i class="bi bi-pencil-fill" style="font-size:11px;"></i> Edit
               </button>
-              <button class="btn-icon btn-del" onclick="confirmDelete('appointment',${a.id})">
-                <i data-lucide="trash-2" style="width:12px;height:12px;stroke-width:2.5"></i>
+              <button class="btn-sm btn-del" onclick="confirmDelete('appointment',${a.id})">
+                <i class="bi bi-trash3-fill" style="font-size:11px;"></i>
               </button>
             </div>
           </div>`).join('');
-      }
-      ri();
     }
 
     function cycleStatus(id) {
-      const statuses = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
-      const a = store.appointments.find(x => x.id == id);
-      if (!a) return;
-      a.status = statuses[(statuses.indexOf(a.status) + 1) % statuses.length];
-      store.save();
-      renderAppointments(); renderDashboard();
-      showToast(`Status changed to ${a.status}.`, 'info');
+      const statuses=['Pending','Confirmed','Completed','Cancelled'];
+      const a=store.appointments.find(x=>x.id==id); if(!a)return;
+      a.status=statuses[(statuses.indexOf(a.status)+1)%statuses.length];
+      store.save(); renderAppointments(); renderDashboard();
+      showToast(`Status changed to ${a.status}.`,'info');
     }
 
     function populateSuggestions() {
-      $('patientSuggestions').innerHTML = store.patients.map(p => `<option value="${p.name}">`).join('');
-      $('doctorSuggestions').innerHTML  = store.doctors.map(d => `<option value="${d.name}">`).join('');
+      $('patientSuggestions').innerHTML=store.patients.map(p=>`<option value="${p.name}">`).join('');
+      $('doctorSuggestions').innerHTML=store.doctors.map(d=>`<option value="${d.name}">`).join('');
     }
-
     function openAddAppointment() {
-      $('appointmentModalTitle').textContent = 'Schedule Appointment';
-      $('appEditId').value = '';
-      ['appPat','appDoc','appDate','appTime','appNotes'].forEach(id => $(id).value = '');
-      $('appStatus').value = 'Pending';
-      populateSuggestions();
-      openModal('appointmentModal');
+      $('appointmentModalTitle').textContent='Schedule Appointment';
+      $('appEditId').value='';
+      ['appPat','appDoc','appDate','appTime','appNotes'].forEach(id=>$(id).value='');
+      $('appStatus').value='Pending'; populateSuggestions(); openModal('appointmentModal');
     }
-
     function editAppointment(id) {
-      const a = store.appointments.find(x => x.id == id);
-      if (!a) return;
-      $('appointmentModalTitle').textContent = 'Edit Appointment';
-      $('appEditId').value = a.id;
-      $('appPat').value = a.patient; $('appDoc').value = a.doctor;
-      $('appDate').value = a.date; $('appTime').value = a.time;
-      $('appNotes').value = a.notes; $('appStatus').value = a.status;
-      populateSuggestions();
-      openModal('appointmentModal');
+      const a=store.appointments.find(x=>x.id==id); if(!a)return;
+      $('appointmentModalTitle').textContent='Edit Appointment';
+      $('appEditId').value=a.id; $('appPat').value=a.patient; $('appDoc').value=a.doctor;
+      $('appDate').value=a.date; $('appTime').value=a.time; $('appNotes').value=a.notes; $('appStatus').value=a.status;
+      populateSuggestions(); openModal('appointmentModal');
     }
-
     function submitAppointment() {
-      const patient = $('appPat').value.trim(), doctor = $('appDoc').value.trim();
-      if (!patient || !doctor) { showToast('Patient and doctor names are required.', 'error'); return; }
-      const editId = $('appEditId').value;
-      if (editId) {
-        store.updateAppointment(new Appointment(patient, doctor, $('appDate').value, $('appTime').value, $('appNotes').value.trim(), $('appStatus').value, editId));
-        showToast('Appointment updated.');
-      } else {
-        store.addAppointment(new Appointment(patient, doctor, $('appDate').value, $('appTime').value, $('appNotes').value.trim(), $('appStatus').value));
-        showToast('Appointment scheduled.');
-      }
-      closeModal('appointmentModal');
-      renderAppointments(); renderDashboard(); updateSidebarSummary();
+      const patient=$('appPat').value.trim(), doctor=$('appDoc').value.trim();
+      if(!patient||!doctor){showToast('Patient and doctor names are required.','error');return;}
+      const eid=$('appEditId').value;
+      if(eid){store.updateAppointment(new Appointment(patient,doctor,$('appDate').value,$('appTime').value,$('appNotes').value.trim(),$('appStatus').value,eid));showToast('Appointment updated.');}
+      else{store.addAppointment(new Appointment(patient,doctor,$('appDate').value,$('appTime').value,$('appNotes').value.trim(),$('appStatus').value));showToast('Appointment scheduled.');}
+      closeModal('appointmentModal'); renderAppointments(); renderDashboard(); updateSidebarSummary();
     }
 
-    // ─── DELETE ──────────────────────────────────────────────────
+    // ── Delete ─────────────────────────────────────────────────
     let _pending = null;
     function confirmDelete(type, id) {
       _pending = { type, id };
       openModal('confirmModal');
       $('confirmDeleteBtn').onclick = () => {
-        if (!_pending) return;
-        const { type, id } = _pending;
-        if (type==='patient')     { store.deletePatient(id);     renderPatients(); }
-        if (type==='doctor')      { store.deleteDoctor(id);      renderDoctors(); }
-        if (type==='appointment') { store.deleteAppointment(id); renderAppointments(); }
+        if(!_pending)return;
+        const {type,id}=_pending;
+        if(type==='patient'){store.deletePatient(id);renderPatients();}
+        if(type==='doctor'){store.deleteDoctor(id);renderDoctors();}
+        if(type==='appointment'){store.deleteAppointment(id);renderAppointments();}
         renderDashboard(); updateSidebarSummary();
-        closeModal('confirmModal');
-        showToast('Record deleted.', 'info');
-        _pending = null;
+        closeModal('confirmModal'); showToast('Record deleted.','info'); _pending=null;
       };
     }
 
-    // ─── INIT ────────────────────────────────────────────────────
+    // ── Init ───────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      $('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-        weekday:'long', year:'numeric', month:'long', day:'numeric'
+      $('currentDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      ['patientModal','doctorModal','appointmentModal','confirmModal'].forEach(id=>{
+        $(id).addEventListener('click',e=>{if(e.target===$(id))closeModal(id);});
       });
-
-      ['patientModal','doctorModal','appointmentModal','confirmModal'].forEach(id => {
-        $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); });
-      });
-
-      ri();
       renderDashboard();
       updateSidebarSummary();
     });
