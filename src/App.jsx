@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from './firebase'
+import { initSubscriptions, clearSubscriptions } from './store/useStore'
 import { ToastProvider } from './context/ToastContext'
-import { useStore } from './store/useStore'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import Login from './pages/Login'
@@ -14,14 +16,43 @@ import ComingSoon from './pages/ComingSoon'
 const COMING_SOON = ['departments', 'calendar', 'inventory', 'messages']
 
 function AppContent() {
-  const { currentUser } = useStore()
-  const [authPage, setAuthPage] = useState('login')
+  const [authUser, setAuthUser]   = useState(undefined)
+  const [authPage, setAuthPage]   = useState('login')
   const [activePage, setActivePage] = useState('dashboard')
 
-  if (!currentUser) {
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, user => {
+      setAuthUser(user)
+      if (user) {
+        initSubscriptions()
+      } else {
+        clearSubscriptions()
+      }
+    })
+    return unsub
+  }, [])
+
+  if (authUser === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm">Loading MedCore…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!authUser) {
     return authPage === 'login'
       ? <Login onSwitch={() => setAuthPage('register')} />
       : <Register onSwitch={() => setAuthPage('login')} />
+  }
+
+  const currentUser = {
+    name:  authUser.displayName || authUser.email?.split('@')[0] || 'User',
+    email: authUser.email,
+    role:  'Admin',
   }
 
   function renderPage() {

@@ -44,3 +44,13 @@ externalPort = 3001
 [deployment]
 deploymentTarget = "static"
 publicDir = "."
+
+[userenv]
+
+[userenv.shared]
+VITE_FIREBASE_API_KEY = "AIzaSyCHtidi7p50_ciBbOOr7xdLWpEU-4O9aY0"
+VITE_FIREBASE_PROJECT_ID = "hospital-management-4e0a3"
+VITE_FIREBASE_APP_ID = "1:284049979619:web:4f7cc085eff61aa02cedd6"
+VITE_FIREBASE_AUTH_DOMAIN = "hospital-management-4e0a3.firebaseapp.com"
+VITE_FIREBASE_STORAGE_BUCKET = "hospital-management-4e0a3.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "284049979619"

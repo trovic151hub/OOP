@@ -1,100 +1,100 @@
 import { useState, useEffect } from 'react'
+import {
+  collection, addDoc, updateDoc, deleteDoc,
+  doc, onSnapshot, query, orderBy
+} from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
+import { db, auth } from '../firebase'
 
-function loadFromStorage(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key) || '[]') || []
-  } catch {
-    return []
-  }
-}
-
-function saveToStorage(key, data) {
-  localStorage.setItem(key, JSON.stringify(data))
+const state = {
+  patients:     [],
+  doctors:      [],
+  appointments: [],
+  loading:      true,
 }
 
 let _listeners = []
 function notify() { _listeners.forEach(fn => fn()) }
 
-const state = {
-  patients: loadFromStorage('hms_patients'),
-  doctors: loadFromStorage('hms_doctors'),
-  appointments: loadFromStorage('hms_appointments'),
-  currentUser: JSON.parse(localStorage.getItem('hms_user') || 'null'),
+let _unsubs = []
+
+export function initSubscriptions() {
+  if (_unsubs.length > 0) return
+
+  const qP = query(collection(db, 'patients'),     orderBy('createdAt', 'desc'))
+  const qD = query(collection(db, 'doctors'),       orderBy('createdAt', 'desc'))
+  const qA = query(collection(db, 'appointments'),  orderBy('createdAt', 'desc'))
+
+  let pLoaded = false, dLoaded = false, aLoaded = false
+  function checkAll() {
+    if (pLoaded && dLoaded && aLoaded) { state.loading = false; notify() }
+  }
+
+  _unsubs.push(
+    onSnapshot(qP, snap => {
+      state.patients = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      pLoaded = true; checkAll(); notify()
+    }, console.error),
+    onSnapshot(qD, snap => {
+      state.doctors = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      dLoaded = true; checkAll(); notify()
+    }, console.error),
+    onSnapshot(qA, snap => {
+      state.appointments = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      aLoaded = true; checkAll(); notify()
+    }, console.error),
+  )
 }
 
-function makeId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+export function clearSubscriptions() {
+  _unsubs.forEach(fn => fn())
+  _unsubs = []
+  state.patients     = []
+  state.doctors      = []
+  state.appointments = []
+  state.loading      = true
+  notify()
+}
+
+function stripMeta(data) {
+  const { id: _id, createdAt: _c, ...rest } = data
+  return rest
 }
 
 export const store = {
-  getPatients: () => state.patients,
-  getDoctors: () => state.doctors,
-  getAppointments: () => state.appointments,
-  getCurrentUser: () => state.currentUser,
-
-  login(user) {
-    state.currentUser = user
-    localStorage.setItem('hms_user', JSON.stringify(user))
-    notify()
-  },
-  logout() {
-    state.currentUser = null
-    localStorage.removeItem('hms_user')
-    notify()
+  async logout() {
+    clearSubscriptions()
+    await signOut(auth)
   },
 
-  addPatient(data) {
-    const p = { id: makeId(), createdAt: new Date().toISOString(), ...data }
-    state.patients = [p, ...state.patients]
-    saveToStorage('hms_patients', state.patients)
-    notify()
-    return p
+  async addPatient(data) {
+    return addDoc(collection(db, 'patients'), { ...data, createdAt: new Date().toISOString() })
   },
-  updatePatient(id, data) {
-    state.patients = state.patients.map(p => p.id === id ? { ...p, ...data } : p)
-    saveToStorage('hms_patients', state.patients)
-    notify()
+  async updatePatient(id, data) {
+    await updateDoc(doc(db, 'patients', id), stripMeta(data))
   },
-  deletePatient(id) {
-    state.patients = state.patients.filter(p => p.id !== id)
-    saveToStorage('hms_patients', state.patients)
-    notify()
+  async deletePatient(id) {
+    await deleteDoc(doc(db, 'patients', id))
   },
 
-  addDoctor(data) {
-    const d = { id: makeId(), createdAt: new Date().toISOString(), ...data }
-    state.doctors = [d, ...state.doctors]
-    saveToStorage('hms_doctors', state.doctors)
-    notify()
-    return d
+  async addDoctor(data) {
+    return addDoc(collection(db, 'doctors'), { ...data, createdAt: new Date().toISOString() })
   },
-  updateDoctor(id, data) {
-    state.doctors = state.doctors.map(d => d.id === id ? { ...d, ...data } : d)
-    saveToStorage('hms_doctors', state.doctors)
-    notify()
+  async updateDoctor(id, data) {
+    await updateDoc(doc(db, 'doctors', id), stripMeta(data))
   },
-  deleteDoctor(id) {
-    state.doctors = state.doctors.filter(d => d.id !== id)
-    saveToStorage('hms_doctors', state.doctors)
-    notify()
+  async deleteDoctor(id) {
+    await deleteDoc(doc(db, 'doctors', id))
   },
 
-  addAppointment(data) {
-    const a = { id: makeId(), createdAt: new Date().toISOString(), ...data }
-    state.appointments = [a, ...state.appointments]
-    saveToStorage('hms_appointments', state.appointments)
-    notify()
-    return a
+  async addAppointment(data) {
+    return addDoc(collection(db, 'appointments'), { ...data, createdAt: new Date().toISOString() })
   },
-  updateAppointment(id, data) {
-    state.appointments = state.appointments.map(a => a.id === id ? { ...a, ...data } : a)
-    saveToStorage('hms_appointments', state.appointments)
-    notify()
+  async updateAppointment(id, data) {
+    await updateDoc(doc(db, 'appointments', id), stripMeta(data))
   },
-  deleteAppointment(id) {
-    state.appointments = state.appointments.filter(a => a.id !== id)
-    saveToStorage('hms_appointments', state.appointments)
-    notify()
+  async deleteAppointment(id) {
+    await deleteDoc(doc(db, 'appointments', id))
   },
 }
 
@@ -106,9 +106,9 @@ export function useStore() {
     return () => { _listeners = _listeners.filter(f => f !== fn) }
   }, [])
   return {
-    patients: state.patients,
-    doctors: state.doctors,
+    patients:     state.patients,
+    doctors:      state.doctors,
     appointments: state.appointments,
-    currentUser: state.currentUser,
+    loading:      state.loading,
   }
 }

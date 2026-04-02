@@ -19,7 +19,6 @@ const NAV_ITEMS = [
 export default function Sidebar({ activePage, onNavigate, currentUser }) {
   return (
     <aside className="fixed top-0 left-0 h-full w-60 bg-white border-r border-slate-200 flex flex-col z-20">
-      {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 h-16 border-b border-slate-100">
         <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
           <Activity size={16} className="text-white" />
@@ -30,7 +29,6 @@ export default function Sidebar({ activePage, onNavigate, currentUser }) {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-0.5">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
           <button
@@ -44,7 +42,6 @@ export default function Sidebar({ activePage, onNavigate, currentUser }) {
         ))}
       </nav>
 
-      {/* User + Logout */}
       <div className="px-3 pb-4 border-t border-slate-100 pt-3">
         {currentUser && (
           <div className="flex items-center gap-2.5 px-2 py-2 mb-2">
@@ -53,7 +50,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser }) {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-semibold text-slate-700 truncate">{currentUser.name}</p>
-              <p className="text-[10px] text-slate-400 truncate">{currentUser.role || 'Admin'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{currentUser.email}</p>
             </div>
           </div>
         )}

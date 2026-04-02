@@ -1,28 +1,43 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Activity, UserPlus } from 'lucide-react'
-import { store } from '../store/useStore'
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { auth } from '../firebase'
 import { useToast } from '../context/ToastContext'
 
 export default function Register({ onSwitch }) {
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
+  const [form, setForm]       = useState({ name: '', email: '', password: '', confirm: '' })
   const [showPass, setShowPass] = useState(false)
-  const [agreed, setAgreed] = useState(false)
+  const [agreed, setAgreed]   = useState(false)
+  const [loading, setLoading] = useState(false)
   const showToast = useToast()
 
   function set(k) { return e => setForm(f => ({ ...f, [k]: e.target.value })) }
 
-  function handleRegister(e) {
+  async function handleRegister(e) {
     e.preventDefault()
     if (!form.name || !form.email || !form.password) { showToast('All fields are required.', 'error'); return }
     if (form.password !== form.confirm) { showToast('Passwords do not match.', 'error'); return }
+    if (form.password.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return }
     if (!agreed) { showToast('Please agree to the Terms & Conditions.', 'error'); return }
-    store.login({ name: form.name, email: form.email, role: 'Admin' })
-    showToast('Account created successfully!', 'success')
+    setLoading(true)
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password)
+      await updateProfile(user, { displayName: form.name })
+      showToast('Account created successfully!', 'success')
+    } catch (err) {
+      const msg = err.code === 'auth/email-already-in-use'
+        ? 'An account with this email already exists.'
+        : err.code === 'auth/invalid-email'
+        ? 'Invalid email address.'
+        : 'Registration failed. Please try again.'
+      showToast(msg, 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left: visual */}
       <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 p-10">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center">
@@ -49,7 +64,6 @@ export default function Register({ onSwitch }) {
         <p className="text-xs text-slate-400">Copyright © 2025 MedCore. All rights reserved.</p>
       </div>
 
-      {/* Right: form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -59,17 +73,17 @@ export default function Register({ onSwitch }) {
           <form onSubmit={handleRegister} className="flex flex-col gap-4">
             <div>
               <label className="label">Full Name</label>
-              <input type="text" value={form.name} onChange={set('name')} placeholder="Input your name" className="input-field" />
+              <input type="text" value={form.name} onChange={set('name')} placeholder="Input your name" className="input-field" autoComplete="name" />
             </div>
             <div>
               <label className="label">Email Address</label>
-              <input type="email" value={form.email} onChange={set('email')} placeholder="Input your email" className="input-field" />
+              <input type="email" value={form.email} onChange={set('email')} placeholder="Input your email" className="input-field" autoComplete="email" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label">Password</label>
                 <div className="relative">
-                  <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Password" className="input-field pr-9" />
+                  <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Min 6 characters" className="input-field pr-9" autoComplete="new-password" />
                   <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -77,15 +91,18 @@ export default function Register({ onSwitch }) {
               </div>
               <div>
                 <label className="label">Confirm Password</label>
-                <input type="password" value={form.confirm} onChange={set('confirm')} placeholder="Confirm" className="input-field" />
+                <input type="password" value={form.confirm} onChange={set('confirm')} placeholder="Confirm" className="input-field" autoComplete="new-password" />
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-500">
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded" />
               I agree to the <span className="text-teal-600 font-semibold">Terms &amp; Conditions</span>
             </label>
-            <button type="submit" className="btn-primary justify-center py-2.5 text-base">
-              <UserPlus size={16} /> Create Account
+            <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
+              {loading
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <><UserPlus size={16} /> Create Account</>
+              }
             </button>
             <p className="text-center text-sm text-slate-500">
               Already have an account?{' '}

@@ -1,25 +1,38 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Activity, LogIn } from 'lucide-react'
-import { store } from '../store/useStore'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../firebase'
 import { useToast } from '../context/ToastContext'
 
 export default function Login({ onSwitch }) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [remember, setRemember] = useState(false)
+  const [loading, setLoading]   = useState(false)
   const showToast = useToast()
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault()
     if (!email || !password) { showToast('Please fill in all fields.', 'error'); return }
-    store.login({ name: 'James Cartis', email, role: 'Admin' })
-    showToast('Welcome back!', 'success')
+    setLoading(true)
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      showToast('Welcome back!', 'success')
+    } catch (err) {
+      const msg = err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
+        ? 'Invalid email or password.'
+        : err.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Try again later.'
+        : 'Login failed. Please try again.'
+      showToast(msg, 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left: visual */}
       <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 p-10">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center">
@@ -31,7 +44,6 @@ export default function Login({ onSwitch }) {
           <h2 className="text-3xl font-extrabold text-slate-800 mb-3">Stay on Top of<br />Every Detail</h2>
           <p className="text-slate-500 text-sm leading-relaxed">From appointments to inventory, MedCore gives you a clear view of daily hospital operations.</p>
         </div>
-        {/* Mock UI preview */}
         <div className="rounded-2xl bg-white/70 backdrop-blur border border-white shadow-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-5 h-5 rounded bg-teal-100" />
@@ -51,7 +63,6 @@ export default function Login({ onSwitch }) {
         <p className="text-xs text-slate-400">Copyright © 2025 MedCore. All rights reserved.</p>
       </div>
 
-      {/* Right: form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -62,9 +73,10 @@ export default function Login({ onSwitch }) {
             <div>
               <label className="label">Email or Username</label>
               <input
-                type="text" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Input your email or username"
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="Input your email"
                 className="input-field"
+                autoComplete="email"
               />
             </div>
             <div>
@@ -74,6 +86,7 @@ export default function Login({ onSwitch }) {
                   type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="Input your password"
                   className="input-field pr-10"
+                  autoComplete="current-password"
                 />
                 <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -87,8 +100,11 @@ export default function Login({ onSwitch }) {
               </label>
               <button type="button" className="text-teal-600 font-semibold hover:underline">Forgot Password?</button>
             </div>
-            <button type="submit" className="btn-primary justify-center py-2.5 text-base mt-1">
-              <LogIn size={16} /> Login
+            <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base mt-1 disabled:opacity-60 disabled:cursor-not-allowed">
+              {loading
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <><LogIn size={16} /> Login</>
+              }
             </button>
             <p className="text-center text-sm text-slate-500">
               New to MedCore?{' '}
