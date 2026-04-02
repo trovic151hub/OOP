@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Activity, UserPlus } from 'lucide-react'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { auth } from '../firebase'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from '../firebase'
 import { useToast } from '../context/ToastContext'
 
 export default function Register({ onSwitch }) {
-  const [form, setForm]       = useState({ name: '', email: '', password: '', confirm: '' })
+  const [form, setForm]         = useState({ name: '', email: '', password: '', confirm: '' })
   const [showPass, setShowPass] = useState(false)
-  const [agreed, setAgreed]   = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [agreed, setAgreed]     = useState(false)
+  const [loading, setLoading]   = useState(false)
   const showToast = useToast()
 
   function set(k) { return e => setForm(f => ({ ...f, [k]: e.target.value })) }
@@ -23,6 +24,13 @@ export default function Register({ onSwitch }) {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password)
       await updateProfile(user, { displayName: form.name })
+      await setDoc(doc(db, 'users', user.uid), {
+        uid:       user.uid,
+        name:      form.name,
+        email:     form.email,
+        role:      'Admin',
+        createdAt: new Date().toISOString(),
+      })
       showToast('Account created successfully!', 'success')
     } catch (err) {
       const msg = err.code === 'auth/email-already-in-use'
