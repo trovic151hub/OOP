@@ -1,18 +1,21 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Users, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Filter, Download, Eye } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import { SkeletonTable } from '../components/ui/Skeleton'
+import PatientDrawer from '../components/PatientDrawer'
 import { useToast } from '../context/ToastContext'
 import { formatDate } from '../utils/helpers'
+import { exportPatients } from '../utils/exportCSV'
 
-const EMPTY_FORM = { name: '', age: '', gender: 'Not specified', blood: 'Unknown', condition: '', status: 'Active', phone: '', email: '', patientType: 'Outpatient', location: '', notes: '' }
+const EMPTY_FORM = { name: '', age: '', gender: 'Not specified', blood: 'Unknown', condition: '', status: 'Active', phone: '', email: '', patientType: 'Outpatient', location: '', department: '', notes: '' }
 const STATUSES = ['Active', 'Admitted', 'In Treatment', 'Discharged', 'Critical']
 
-function PatientForm({ form, setForm }) {
+function PatientForm({ form, setForm, departments }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1">
@@ -48,9 +51,20 @@ function PatientForm({ form, setForm }) {
           <input className="input-field" placeholder="+1 555 000 1234" value={form.phone} onChange={set('phone')} />
         </div>
         <div>
+          <label className="label">Email</label>
+          <input className="input-field" type="email" placeholder="patient@email.com" value={form.email} onChange={set('email')} />
+        </div>
+        <div>
           <label className="label">Patient Type</label>
           <select className="input-field" value={form.patientType} onChange={set('patientType')}>
             {['Outpatient','Inpatient'].map(v => <option key={v}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Department</label>
+          <select className="input-field" value={form.department} onChange={set('department')}>
+            <option value="">None</option>
+            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
         </div>
         <div className="col-span-2">
@@ -58,7 +72,7 @@ function PatientForm({ form, setForm }) {
           <input className="input-field" placeholder="e.g. Hypertension" value={form.condition} onChange={set('condition')} />
         </div>
         <div className="col-span-2">
-          <label className="label">Location (Room)</label>
+          <label className="label">Room / Location</label>
           <input className="input-field" placeholder="e.g. Room 402B – 4th Floor" value={form.location} onChange={set('location')} />
         </div>
         <div className="col-span-2">
@@ -70,16 +84,18 @@ function PatientForm({ form, setForm }) {
   )
 }
 
-export default function Patients() {
-  const { patients } = useStore()
+export default function Patients({ currentUser }) {
+  const { patients, departments, loading } = useStore()
   const showToast = useToast()
-  const [search, setSearch] = useState('')
+  const [search, setSearch]         = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
   const [filterType, setFilterType] = useState('All')
-  const [modal, setModal] = useState(false)
-  const [editId, setEditId] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [confirmId, setConfirmId] = useState(null)
+  const [modal, setModal]           = useState(false)
+  const [editId, setEditId]         = useState(null)
+  const [form, setForm]             = useState(EMPTY_FORM)
+  const [confirmId, setConfirmId]   = useState(null)
+  const [confirmName, setConfirmName] = useState('')
+  const [drawerPatient, setDrawerPatient] = useState(null)
 
   const filtered = patients.filter(p => {
     const q = search.toLowerCase()
@@ -99,20 +115,25 @@ export default function Patients() {
     setModal(false)
   }
 
+  if (loading) return <SkeletonTable rows={6} cols={7} />
+
   return (
     <div>
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Patients</h2>
           <p className="text-sm text-slate-400 mt-0.5">{patients.length} total patients registered</p>
         </div>
-        <button onClick={openAdd} className="btn-primary">
-          <Plus size={15} /> Add New Patient
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => exportPatients(patients)} className="btn-ghost text-xs">
+            <Download size={13} /> Export CSV
+          </button>
+          <button onClick={openAdd} className="btn-primary">
+            <Plus size={15} /> Add New Patient
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder="Search by name, condition…" className="flex-1 min-w-48" />
         <div className="flex items-center gap-2">
@@ -129,7 +150,6 @@ export default function Patients() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -139,7 +159,7 @@ export default function Patients() {
                 <th className="table-th">Gender / Age</th>
                 <th className="table-th">Condition</th>
                 <th className="table-th">Blood</th>
-                <th className="table-th">Patient Type</th>
+                <th className="table-th">Type</th>
                 <th className="table-th">Location</th>
                 <th className="table-th">Status</th>
                 <th className="table-th text-right">Actions</th>
@@ -162,7 +182,9 @@ export default function Patients() {
                     <div className="flex items-center gap-3">
                       <Avatar name={p.name} size="sm" />
                       <div>
-                        <p className="font-semibold text-slate-800 text-sm">{p.name}</p>
+                        <button onClick={() => setDrawerPatient(p)} className="font-semibold text-slate-800 text-sm hover:text-teal-600 transition-colors text-left">
+                          {p.name}
+                        </button>
                         <p className="text-xs text-slate-400">#{p.id?.slice(-6).toUpperCase()}</p>
                       </div>
                     </div>
@@ -177,10 +199,13 @@ export default function Patients() {
                   <td className="table-td"><Badge status={p.status || 'Active'} /></td>
                   <td className="table-td text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setDrawerPatient(p)} className="p-1.5 rounded-lg text-slate-400 hover:bg-teal-50 hover:text-teal-600 transition-colors" title="View Profile">
+                        <Eye size={14} />
+                      </button>
                       <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                      <button onClick={() => { setConfirmId(p.id); setConfirmName(p.name) }} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -192,14 +217,13 @@ export default function Patients() {
         </div>
         {filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
-            Showing {filtered.length} of {patients.length} patients
+            Showing {filtered.length} of {patients.length} patients · Click a name to view full profile
           </div>
         )}
       </div>
 
-      {/* Add/Edit Modal */}
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Patient' : 'Add New Patient'} icon={Users}>
-        <PatientForm form={form} setForm={setForm} />
+        <PatientForm form={form} setForm={setForm} departments={departments} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
           <button onClick={handleSubmit} className="btn-primary flex-1 justify-center">
@@ -210,8 +234,15 @@ export default function Patients() {
 
       <ConfirmModal
         open={!!confirmId} onClose={() => setConfirmId(null)}
-        onConfirm={() => { store.deletePatient(confirmId); showToast('Patient deleted.', 'info') }}
+        onConfirm={() => { store.deletePatient(confirmId, confirmName); showToast('Patient deleted.', 'info') }}
         message="Are you sure you want to delete this patient record? This action cannot be undone."
+      />
+
+      <PatientDrawer
+        patient={drawerPatient}
+        onClose={() => setDrawerPatient(null)}
+        currentUser={currentUser}
+        onEdit={p => { openEdit(p); setDrawerPatient(null) }}
       />
     </div>
   )

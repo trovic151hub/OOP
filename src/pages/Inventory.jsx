@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Package, AlertTriangle, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Package, AlertTriangle, Filter, Download } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import { useToast } from '../context/ToastContext'
+import { exportInventory } from '../utils/exportCSV'
 
 const EMPTY_FORM = { name: '', category: 'Medication', quantity: '', unit: 'pieces', reorderLevel: '', supplier: '', location: '', notes: '' }
 const CATEGORIES = ['Medication', 'Equipment', 'Supplies', 'PPE', 'Laboratory', 'Surgical', 'Radiology', 'Other']
@@ -117,11 +118,16 @@ export default function Inventory({ currentUser }) {
             {inventory.length} items · {lowStockCount > 0 && <span className="text-amber-500 font-semibold">{lowStockCount} need attention</span>}
           </p>
         </div>
-        {isAdmin && (
-          <button onClick={openAdd} className="btn-primary">
-            <Plus size={15} /> Add Item
+        <div className="flex items-center gap-2">
+          <button onClick={() => exportInventory(inventory)} className="btn-ghost text-xs">
+            <Download size={13} /> Export CSV
           </button>
-        )}
+          {isAdmin && (
+            <button onClick={openAdd} className="btn-primary">
+              <Plus size={15} /> Add Item
+            </button>
+          )}
+        </div>
       </div>
 
       {lowStockCount > 0 && (

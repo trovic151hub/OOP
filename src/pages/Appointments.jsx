@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Calendar, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Calendar, Filter, Download } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import { SkeletonTable } from '../components/ui/Skeleton'
 import { useToast } from '../context/ToastContext'
 import { formatDate, APPOINTMENT_STATUSES, cycleStatus } from '../utils/helpers'
+import { exportAppointments } from '../utils/exportCSV'
 
 const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled' }
 const APPT_TYPES = ['Consultation','Follow-up','Surgery','Telemedicine','Check-up']
@@ -62,16 +64,17 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
   )
 }
 
-export default function Appointments() {
-  const { appointments, patients, doctors } = useStore()
+export default function Appointments({ currentUser }) {
+  const { appointments, patients, doctors, loading } = useStore()
   const showToast = useToast()
-  const [search, setSearch] = useState('')
+  const [search, setSearch]         = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
   const [filterType, setFilterType] = useState('All')
-  const [modal, setModal] = useState(false)
-  const [editId, setEditId] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [confirmId, setConfirmId] = useState(null)
+  const [modal, setModal]           = useState(false)
+  const [editId, setEditId]         = useState(null)
+  const [form, setForm]             = useState(EMPTY_FORM)
+  const [confirmId, setConfirmId]   = useState(null)
+  const [confirmLabel, setConfirmLabel] = useState('')
 
   const filtered = appointments.filter(a => {
     const q = search.toLowerCase()
@@ -98,20 +101,25 @@ export default function Appointments() {
     showToast(`Status changed to ${next}.`, 'info')
   }
 
+  if (loading) return <SkeletonTable rows={6} cols={7} />
+
   return (
     <div>
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Appointments</h2>
           <p className="text-sm text-slate-400 mt-0.5">{appointments.length} total appointments</p>
         </div>
-        <button onClick={openAdd} className="btn-primary">
-          <Plus size={15} /> Schedule Appointment
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => exportAppointments(appointments)} className="btn-ghost text-xs">
+            <Download size={13} /> Export CSV
+          </button>
+          <button onClick={openAdd} className="btn-primary">
+            <Plus size={15} /> Schedule Appointment
+          </button>
+        </div>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {APPOINTMENT_STATUSES.map(s => {
           const count = appointments.filter(a => a.status === s).length
@@ -126,7 +134,6 @@ export default function Appointments() {
         })}
       </div>
 
-      {/* Filters */}
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder="Search by patient or doctor…" className="flex-1 min-w-48" />
         <div className="flex items-center gap-2">
@@ -142,7 +149,6 @@ export default function Appointments() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -202,7 +208,7 @@ export default function Appointments() {
                         <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
                           <Pencil size={14} />
                         </button>
-                        <button onClick={() => setConfirmId(a.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                        <button onClick={() => { setConfirmId(a.id); setConfirmLabel(`${a.patientName} w/ ${a.doctorName}`) }} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -220,7 +226,6 @@ export default function Appointments() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Appointment' : 'Schedule Appointment'} icon={Calendar} accentColor="teal">
         <AppointmentForm form={form} setForm={setForm} patients={patients} doctors={doctors} />
         <div className="flex gap-3 mt-5">
@@ -233,7 +238,7 @@ export default function Appointments() {
 
       <ConfirmModal
         open={!!confirmId} onClose={() => setConfirmId(null)}
-        onConfirm={() => { store.deleteAppointment(confirmId); showToast('Appointment deleted.', 'info') }}
+        onConfirm={() => { store.deleteAppointment(confirmId, confirmLabel); showToast('Appointment deleted.', 'info') }}
         message="Are you sure you want to delete this appointment? This action cannot be undone."
       />
     </div>

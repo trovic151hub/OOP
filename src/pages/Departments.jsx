@@ -51,7 +51,7 @@ function DeptForm({ form, setForm }) {
 }
 
 export default function Departments({ currentUser }) {
-  const { departments, doctors } = useStore()
+  const { departments, doctors, patients } = useStore()
   const showToast = useToast()
   const [search, setSearch]     = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
@@ -119,7 +119,10 @@ export default function Departments({ currentUser }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(dept => {
-            const deptDoctors = doctors.filter(d => d.department?.toLowerCase() === dept.name?.toLowerCase())
+            const deptDoctors  = doctors.filter(d => d.department?.toLowerCase() === dept.name?.toLowerCase())
+            const admittedPats = patients.filter(p => (p.status === 'Admitted' || p.status === 'In Treatment') && p.department?.toLowerCase() === dept.name?.toLowerCase())
+            const totalBeds    = parseInt(dept.capacity) || 0
+            const occupancy    = totalBeds > 0 ? Math.round((admittedPats.length / totalBeds) * 100) : 0
             return (
               <div key={dept.id} className="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
@@ -149,9 +152,29 @@ export default function Departments({ currentUser }) {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
                   {dept.floor && <div className="flex items-center gap-1.5"><span className="text-slate-300">📍</span>{dept.floor}</div>}
-                  {dept.capacity && <div className="flex items-center gap-1.5"><span className="text-slate-300">🛏</span>{dept.capacity} beds</div>}
-                  {dept.phone && <div className="flex items-center gap-1.5 col-span-2"><span className="text-slate-300">📞</span>{dept.phone}</div>}
+                  {dept.phone && <div className="flex items-center gap-1.5"><span className="text-slate-300">📞</span>{dept.phone}</div>}
                 </div>
+
+                {totalBeds > 0 && (
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className="font-semibold text-slate-600">Bed Occupancy</span>
+                      <span className={`font-bold ${occupancy >= 90 ? 'text-red-500' : occupancy >= 70 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                        {admittedPats.length}/{totalBeds} ({occupancy}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${occupancy >= 90 ? 'bg-red-500' : occupancy >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                        style={{ width: `${Math.min(occupancy, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                      <span>{admittedPats.length} occupied</span>
+                      <span>{Math.max(0, totalBeds - admittedPats.length)} available</span>
+                    </div>
+                  </div>
+                )}
                 <div className="pt-2 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
                   <Users size={12} className="text-slate-300" />
                   <span>{deptDoctors.length} doctor{deptDoctors.length !== 1 ? 's' : ''} assigned</span>

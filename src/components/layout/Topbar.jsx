@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { Search, Bell, Settings } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { Search, Bell, Menu, X, AlertTriangle, Package, Calendar, MessageSquare, ChevronRight } from 'lucide-react'
+import { useStore } from '../../store/useStore'
+import Avatar from '../ui/Avatar'
 
 const PAGE_LABELS = {
   dashboard:    'Dashboard',
@@ -10,43 +12,248 @@ const PAGE_LABELS = {
   calendar:     'Calendar',
   inventory:    'Inventory',
   messages:     'Messages',
+  billing:      'Billing',
+  shifts:       'Shifts',
+  auditlog:     'Audit Log',
+  users:        'User Management',
 }
 
-export default function Topbar({ activePage, currentUser }) {
-  const [search, setSearch] = useState('')
+function useDebounce(value, delay = 300) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debouncedValue
+}
+
+export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle }) {
+  const { patients, doctors, appointments, inventory, messages } = useStore()
+  const [search, setSearch]             = useState('')
+  const [searchOpen, setSearchOpen]     = useState(false)
+  const [notifOpen, setNotifOpen]       = useState(false)
+  const [notifRead, setNotifRead]       = useState(() => localStorage.getItem('notifReadAt') || '')
+  const searchRef = useRef(null)
+  const notifRef  = useRef(null)
+  const debounced = useDebounce(search)
+
+  useEffect(() => {
+    const handler = e => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const today = new Date().toISOString().slice(0, 10)
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+
+  const upcomingToday = appointments.filter(a =>
+    (a.date === today || a.date === tomorrow) && (a.status === 'Scheduled' || a.status === 'Ongoing')
+  )
+
+  function getStockStatus(qty, reorder) {
+    const q = parseInt(qty) || 0; const r = parseInt(reorder) || 0
+    if (q === 0) return 'Out of Stock'
+    if (q <= r) return 'Low Stock'
+    return 'In Stock'
+  }
+  const lowStockItems = inventory.filter(i => getStockStatus(i.quantity, i.reorderLevel) !== 'In Stock')
+  const recentMessages = messages.slice(-3).reverse()
+  const totalNotifs = upcomingToday.length + lowStockItems.length
+
+  function markRead() {
+    const now = new Date().toISOString()
+    localStorage.setItem('notifReadAt', now)
+    setNotifRead(now)
+    setNotifOpen(v => !v)
+  }
+
+  const searchResults = debounced.length >= 2 ? {
+    patients:     patients.filter(p => p.name?.toLowerCase().includes(debounced.toLowerCase())).slice(0, 4),
+    doctors:      doctors.filter(d => d.name?.toLowerCase().includes(debounced.toLowerCase()) || d.specialty?.toLowerCase().includes(debounced.toLowerCase())).slice(0, 3),
+    appointments: appointments.filter(a => a.patientName?.toLowerCase().includes(debounced.toLowerCase()) || a.doctorName?.toLowerCase().includes(debounced.toLowerCase())).slice(0, 3),
+  } : null
+
+  const hasResults = searchResults && (searchResults.patients.length + searchResults.doctors.length + searchResults.appointments.length) > 0
 
   return (
-    <header className="fixed top-0 left-60 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
-      <h1 className="text-lg font-bold text-slate-800">{PAGE_LABELS[activePage] || 'Dashboard'}</h1>
+    <header className="fixed top-0 left-0 md:left-60 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-10">
       <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <button onClick={onMobileMenuToggle} className="md:hidden w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50">
+          <Menu size={18} />
+        </button>
+        <h1 className="text-base md:text-lg font-bold text-slate-800">{PAGE_LABELS[activePage] || 'Dashboard'}</h1>
+      </div>
+
+      <div className="flex items-center gap-2 md:gap-3">
+        <div ref={searchRef} className="relative hidden sm:block">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
           <input
             type="text"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setSearchOpen(true) }}
+            onFocus={() => setSearchOpen(true)}
             placeholder="Search anything…"
-            className="pl-8 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-52 transition-all"
+            className="pl-8 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-48 md:w-56 transition-all"
           />
+          {search && (
+            <button onClick={() => { setSearch(''); setSearchOpen(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <X size={12} />
+            </button>
+          )}
+
+          {searchOpen && hasResults && (
+            <div className="absolute top-full mt-2 left-0 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+              {searchResults.patients.length > 0 && (
+                <div>
+                  <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Patients</div>
+                  {searchResults.patients.map(p => (
+                    <button key={p.id} onClick={() => { onNavigate('patients'); setSearch(''); setSearchOpen(false) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
+                      <Avatar name={p.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{p.name}</p>
+                        <p className="text-xs text-slate-400">{p.age} yrs · {p.status}</p>
+                      </div>
+                      <ChevronRight size={13} className="text-slate-300" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {searchResults.doctors.length > 0 && (
+                <div>
+                  <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Doctors</div>
+                  {searchResults.doctors.map(d => (
+                    <button key={d.id} onClick={() => { onNavigate('doctors'); setSearch(''); setSearchOpen(false) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
+                      <Avatar name={d.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{d.name}</p>
+                        <p className="text-xs text-slate-400">{d.specialty}</p>
+                      </div>
+                      <ChevronRight size={13} className="text-slate-300" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {searchResults.appointments.length > 0 && (
+                <div>
+                  <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Appointments</div>
+                  {searchResults.appointments.map(a => (
+                    <button key={a.id} onClick={() => { onNavigate('appointments'); setSearch(''); setSearchOpen(false) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
+                      <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <Calendar size={13} className="text-teal-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{a.patientName}</p>
+                        <p className="text-xs text-slate-400">{a.doctorName} · {a.date}</p>
+                      </div>
+                      <ChevronRight size={13} className="text-slate-300" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {searchOpen && search.length >= 2 && !hasResults && (
+            <div className="absolute top-full mt-2 left-0 w-72 bg-white border border-slate-200 rounded-xl shadow-xl z-50 px-4 py-6 text-center text-sm text-slate-400">
+              No results found for "<strong>{search}</strong>"
+            </div>
+          )}
         </div>
 
-        {/* Bell */}
-        <button className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors relative">
-          <Bell size={16} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-teal-500" />
-        </button>
+        <div ref={notifRef} className="relative">
+          <button
+            onClick={markRead}
+            className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors relative"
+          >
+            <Bell size={16} />
+            {totalNotifs > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-teal-500 text-white text-[9px] font-bold flex items-center justify-center">
+                {totalNotifs > 9 ? '9+' : totalNotifs}
+              </span>
+            )}
+          </button>
 
-        {/* Settings */}
-        <button className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
-          <Settings size={16} />
-        </button>
+          {notifOpen && (
+            <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <p className="text-sm font-bold text-slate-700">Notifications</p>
+                <span className="text-xs text-slate-400">{totalNotifs} alerts</span>
+              </div>
 
-        {/* Avatar */}
+              {upcomingToday.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">
+                    Upcoming Appointments
+                  </div>
+                  {upcomingToday.slice(0, 4).map(a => (
+                    <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('calendar'); setNotifOpen(false) }}>
+                      <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Calendar size={13} className="text-teal-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
+                        <p className="text-xs text-slate-400 truncate">Dr. {a.doctorName} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {lowStockItems.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">
+                    Inventory Alerts
+                  </div>
+                  {lowStockItems.slice(0, 3).map(i => (
+                    <div key={i.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('inventory'); setNotifOpen(false) }}>
+                      <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <AlertTriangle size={13} className="text-amber-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">{i.name}</p>
+                        <p className="text-xs text-amber-600">{parseInt(i.quantity) === 0 ? 'Out of stock' : `Only ${i.quantity} ${i.unit} left`}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {recentMessages.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">
+                    Recent Messages
+                  </div>
+                  {recentMessages.map(m => (
+                    <div key={m.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('messages'); setNotifOpen(false) }}>
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <MessageSquare size={13} className="text-blue-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">{m.senderName}</p>
+                        <p className="text-xs text-slate-400 truncate">{m.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {totalNotifs === 0 && recentMessages.length === 0 && (
+                <div className="px-4 py-8 text-center text-sm text-slate-400">
+                  <Bell size={24} className="text-slate-200 mx-auto mb-2" />
+                  All caught up!
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-2 ml-1">
-          <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center text-white text-sm font-bold">
-            {currentUser?.name?.charAt(0).toUpperCase() || 'A'}
-          </div>
+          <Avatar name={currentUser?.name} size="sm" />
           <div className="hidden md:block">
             <p className="text-sm font-semibold text-slate-700 leading-tight">{currentUser?.name || 'Admin'}</p>
             <p className="text-xs text-slate-400">{currentUser?.role || 'Admin'}</p>
