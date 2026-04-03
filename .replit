@@ -1,4 +1,4 @@
-modules = ["web", "python-3.11"]
+modules = ["web", "python-3.11", "nodejs-20"]
 [agent]
 expertMode = true
 
@@ -23,7 +23,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 -m http.server 5000 --bind 0.0.0.0"
+args = "npm run dev"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -33,6 +33,28 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 5001
+externalPort = 3000
+
+[[ports]]
+localPort = 5002
+externalPort = 3001
+
+[[ports]]
+localPort = 5003
+externalPort = 3003
+
 [deployment]
 deploymentTarget = "static"
 publicDir = "."
+
+[userenv]
+
+[userenv.shared]
+VITE_FIREBASE_API_KEY = "AIzaSyCHtidi7p50_ciBbOOr7xdLWpEU-4O9aY0"
+VITE_FIREBASE_PROJECT_ID = "hospital-management-4e0a3"
+VITE_FIREBASE_APP_ID = "1:284049979619:web:4f7cc085eff61aa02cedd6"
+VITE_FIREBASE_AUTH_DOMAIN = "hospital-management-4e0a3.firebaseapp.com"
+VITE_FIREBASE_STORAGE_BUCKET = "hospital-management-4e0a3.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "284049979619"
