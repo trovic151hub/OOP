@@ -48,11 +48,11 @@ function ClaimForm({ form, setForm, patients, billing }) {
           <input className="input-field" placeholder="GRP-000" value={form.groupNumber} onChange={set('groupNumber')} />
         </div>
         <div>
-          <label className="label">Claim Amount ($) <span className="text-red-400">*</span></label>
+          <label className="label">Claim Amount (₦) <span className="text-red-400">*</span></label>
           <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.claimAmount} onChange={set('claimAmount')} />
         </div>
         <div>
-          <label className="label">Approved Amount ($)</label>
+          <label className="label">Approved Amount (₦)</label>
           <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.approvedAmount} onChange={set('approvedAmount')} />
         </div>
         <div>

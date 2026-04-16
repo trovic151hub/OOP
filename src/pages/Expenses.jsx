@@ -170,7 +170,7 @@ export default function Expenses() {
               <BarChart data={byMonth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000000 ? `₦${(v/1000000).toFixed(1)}m` : v >= 1000 ? `₦${(v/1000).toFixed(0)}k` : `₦${v}`} />
                 <Tooltip formatter={v => formatCurrency(v)} />
                 <Legend />
                 <Bar dataKey="Revenue"  fill="#14b8a6" radius={[4,4,0,0]} />
@@ -183,7 +183,7 @@ export default function Expenses() {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byCat} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`} />
+                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000000 ? `₦${(v/1000000).toFixed(1)}m` : v >= 1000 ? `₦${(v/1000).toFixed(0)}k` : `₦${v}`} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
                 <Tooltip formatter={v => formatCurrency(v)} />
                 <Bar dataKey="amount" fill="#f472b6" radius={[0,4,4,0]} />

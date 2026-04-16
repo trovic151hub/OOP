@@ -167,7 +167,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 {[
                   { label: 'Appointments', value: patAppts.length, color: 'text-teal-600' },
                   { label: 'Medical Records', value: patRecords.length, color: 'text-blue-600' },
-                  { label: 'Total Billed', value: `$${totalBilled.toFixed(0)}`, color: 'text-emerald-600' },
+                  { label: 'Total Billed', value: `₦${Math.round(totalBilled).toLocaleString('en-NG')}`, color: 'text-emerald-600' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="card p-4 text-center">
                     <p className={`text-xl font-extrabold ${color}`}>{value}</p>
@@ -280,11 +280,11 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
             <div className="p-6 flex flex-col gap-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                 <div className="card p-4 text-center">
-                  <p className="text-xl font-extrabold text-slate-800">${totalBilled.toFixed(2)}</p>
+                  <p className="text-xl font-extrabold text-slate-800">₦{Math.round(totalBilled).toLocaleString('en-NG')}</p>
                   <p className="text-xs text-slate-400 mt-0.5">Total Billed</p>
                 </div>
                 <div className="card p-4 text-center">
-                  <p className="text-xl font-extrabold text-emerald-600">${totalPaid.toFixed(2)}</p>
+                  <p className="text-xl font-extrabold text-emerald-600">₦{Math.round(totalPaid).toLocaleString('en-NG')}</p>
                   <p className="text-xs text-slate-400 mt-0.5">Total Paid</p>
                 </div>
               </div>
@@ -301,7 +301,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                     <p className="text-xs text-slate-400">{formatDate(b.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-800">${parseFloat(b.total).toFixed(2)}</p>
+                    <p className="font-bold text-slate-800">₦{Math.round(parseFloat(b.total||0)).toLocaleString('en-NG')}</p>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                       b.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
                       b.status === 'Overdue' ? 'bg-red-100 text-red-600' :

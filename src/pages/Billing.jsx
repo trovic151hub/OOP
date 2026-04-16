@@ -118,11 +118,11 @@ function printInvoice(invoice) {
         ${invoice.services ? `<pre style="font-size:13px;color:#64748b;margin:0;white-space:pre-wrap">${invoice.services}</pre>` : ''}
       </div>
       <div>
-        ${parseFloat(invoice.discount) > 0 ? `<div class="total-line"><span>Subtotal</span><span>$${parseFloat(invoice.subtotal||0).toFixed(2)}</span></div>
-        <div class="total-line"><span>Discount</span><span>-$${parseFloat(invoice.discount||0).toFixed(2)}</span></div>` : ''}
+        ${parseFloat(invoice.discount) > 0 ? `<div class="total-line"><span>Subtotal</span><span>₦${parseFloat(invoice.subtotal||0).toLocaleString('en-NG')}</span></div>
+        <div class="total-line"><span>Discount</span><span>-₦${parseFloat(invoice.discount||0).toLocaleString('en-NG')}</span></div>` : ''}
         <div class="total-line" style="border-top:2px solid #0d9488;padding-top:12px">
           <span style="font-weight:800;font-size:16px">Total Due</span>
-          <span class="total-amount">$${parseFloat(invoice.total||0).toFixed(2)}</span>
+          <span class="total-amount">₦${parseFloat(invoice.total||0).toLocaleString('en-NG')}</span>
         </div>
       </div>
       ${invoice.notes ? `<div style="margin-top:24px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px;color:#64748b"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
@@ -194,9 +194,9 @@ export default function Billing({ currentUser }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'Total Invoices', value: billing.length,                                              color: 'text-slate-700' },
-          { label: 'Revenue',        value: `$${totalRevenue.toFixed(0)}`,                               color: 'text-emerald-600' },
-          { label: 'Pending',        value: `$${totalPending.toFixed(0)}`,                               color: 'text-amber-600' },
-          { label: 'Overdue',        value: `$${totalOverdue.toFixed(0)}`,                               color: 'text-red-500' },
+          { label: 'Revenue',        value: `₦${Math.round(totalRevenue).toLocaleString('en-NG')}`,  color: 'text-emerald-600' },
+          { label: 'Pending',        value: `₦${Math.round(totalPending).toLocaleString('en-NG')}`,  color: 'text-amber-600' },
+          { label: 'Overdue',        value: `₦${Math.round(totalOverdue).toLocaleString('en-NG')}`,  color: 'text-red-500' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4">
             <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>
@@ -247,7 +247,7 @@ export default function Billing({ currentUser }) {
                   <td className="table-td font-semibold text-slate-800 text-sm">{b.patientName}</td>
                   <td className="table-td text-slate-500 text-xs max-w-40 truncate">{b.description || '—'}</td>
                   <td className="table-td text-slate-500 text-xs">{b.date ? formatDate(b.date) : '—'}</td>
-                  <td className="table-td font-bold text-slate-800">${parseFloat(b.total || 0).toFixed(2)}</td>
+                  <td className="table-td font-bold text-slate-800">₦{Math.round(parseFloat(b.total || 0)).toLocaleString('en-NG')}</td>
                   <td className="table-td">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[b.status] || 'bg-slate-100 text-slate-600'}`}>
                       {b.status}

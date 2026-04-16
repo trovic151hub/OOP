@@ -70,7 +70,7 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
-function fmt(n) { return n >= 1000 ? `$${(n/1000).toFixed(1)}k` : `$${n}` }
+function fmt(n) { return n >= 1000000 ? `₦${(n/1000000).toFixed(1)}m` : n >= 1000 ? `₦${(n/1000).toFixed(0)}k` : `₦${n}` }
 
 export default function Dashboard({ onNavigate, currentUser }) {
   const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults } = useStore()
@@ -290,7 +290,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} formatter={(v) => [`$${v}`, 'Revenue']} />
+                <Tooltip content={<ChartTooltip />} formatter={(v) => [`₦${Number(v).toLocaleString('en-NG')}`, 'Revenue']} />
                 <Bar dataKey="Revenue" name="Revenue" fill="#0d9488" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>

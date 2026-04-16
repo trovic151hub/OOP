@@ -14,7 +14,7 @@ function ChartTooltip({ active, payload, label }) {
     <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2 text-xs">
       <p className="font-bold text-slate-700 mb-1">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }} className="font-semibold">{p.name}: {typeof p.value === 'number' && p.name?.toLowerCase().includes('revenue') ? `$${p.value.toFixed(0)}` : p.value}</p>
+        <p key={i} style={{ color: p.color }} className="font-semibold">{p.name}: {typeof p.value === 'number' && p.name?.toLowerCase().includes('revenue') ? `₦${Math.round(p.value).toLocaleString('en-NG')}` : p.value}</p>
       ))}
     </div>
   )
