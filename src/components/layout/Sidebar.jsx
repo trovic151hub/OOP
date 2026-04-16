@@ -2,10 +2,11 @@ import React from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
-  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2,
+  UserCog, ClipboardList, Clock, X, BarChart2,
   UserCircle, BedDouble, FlaskConical, UserCheck, Pill, TrendingDown,
   FileText, Shield, BarChart, FlaskRound, Settings
 } from 'lucide-react'
+import NairaIcon from '../ui/NairaIcon'
 import { store } from '../../store/useStore'
 
 const ALL_NAV = [
@@ -24,7 +25,7 @@ const ALL_NAV = [
   { id: 'calendar',         label: 'Calendar',          icon: CalendarDays,    roles: ['Admin','Doctor','Receptionist'] },
   { id: 'shifts',           label: 'Shifts',            icon: Clock,           roles: ['Admin','Doctor','Receptionist'] },
   { id: 'inventory',        label: 'Inventory',         icon: Package,         roles: ['Admin'] },
-  { id: 'billing',          label: 'Billing',           icon: DollarSign,      roles: ['Admin','Receptionist'] },
+  { id: 'billing',          label: 'Billing',           icon: NairaIcon,       roles: ['Admin','Receptionist'] },
   { id: 'insurance',        label: 'Insurance & Claims',icon: Shield,          roles: ['Admin','Receptionist'] },
   { id: 'expenses',         label: 'Expenses',          icon: TrendingDown,    roles: ['Admin'] },
   { id: 'messages',         label: 'Messages',          icon: MessageSquare,   roles: ['Admin','Doctor','Receptionist'] },

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, TrendingDown, Search, Filter, Download, BarChart2, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, TrendingDown, Search, Filter, Download, BarChart2 } from 'lucide-react'
+import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
@@ -158,7 +159,7 @@ export default function Expenses() {
 
       {pendingExp > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2 text-sm text-amber-700">
-          <DollarSign size={15} /> <strong>{formatCurrency(pendingExp)}</strong> in pending expenses awaiting payment
+          <NairaIcon size={15} /> <strong>{formatCurrency(pendingExp)}</strong> in pending expenses awaiting payment
         </div>
       )}
 

@@ -4,7 +4,8 @@ import {
   AreaChart, Area, PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts'
 import { useStore } from '../store/useStore'
-import { TrendingUp, DollarSign, Users, Calendar, Package, Download, BarChart2 } from 'lucide-react'
+import { TrendingUp, Users, Calendar, Package, Download, BarChart2 } from 'lucide-react'
+import NairaIcon from '../components/ui/NairaIcon'
 
 const COLORS = ['#0d9488', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
@@ -129,8 +130,8 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Total Revenue" value={`$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`} sub={`${collectionRate}% collected`} icon={DollarSign} color="emerald" />
-        <SummaryCard label="Outstanding" value={`$${totalPending.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`} sub="Pending invoices" icon={TrendingUp} color="amber" />
+        <SummaryCard label="Total Revenue" value={`₦${Math.round(totalRevenue).toLocaleString('en-NG')}`} sub={`${collectionRate}% collected`} icon={NairaIcon} color="emerald" />
+        <SummaryCard label="Outstanding" value={`₦${Math.round(totalPending).toLocaleString('en-NG')}`} sub="Pending invoices" icon={TrendingUp} color="amber" />
         <SummaryCard label="Total Patients" value={patients.length} sub={`${patients.filter(p => p.status === 'Active').length} active`} icon={Users} color="teal" />
         <SummaryCard label="Total Appointments" value={appointments.length} sub={`${appointments.filter(a => a.status === 'Completed').length} completed`} icon={Calendar} color="blue" />
       </div>

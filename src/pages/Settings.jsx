@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Building2, Clock, DollarSign, Save, Globe, Phone, Mail, CheckCircle, Database, Loader2 } from 'lucide-react'
+import { Settings as SettingsIcon, Building2, Clock, Save, Globe, Phone, Mail, CheckCircle, Database, Loader2 } from 'lucide-react'
+import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
 import { seedDatabase } from '../utils/seedData'
@@ -152,7 +153,7 @@ export default function Settings() {
           </Field>
         </Section>
 
-        <Section title="Financial Settings" icon={DollarSign}>
+        <Section title="Financial Settings" icon={NairaIcon}>
           <Field label="Currency">
             <select className="input-field" value={form.currency || 'USD'} onChange={set('currency')}>
               {CURRENCIES.map(c => <option key={c}>{c}</option>)}

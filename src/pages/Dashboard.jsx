@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import {
   Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock,
-  CheckCircle, Building2, Package, AlertTriangle, DollarSign,
+  CheckCircle, Building2, Package, AlertTriangle,
   BedDouble, FlaskConical, UserCheck, Bell
 } from 'lucide-react'
 import {
@@ -11,11 +11,14 @@ import {
 import { useStore } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
+import NairaIcon from '../components/ui/NairaIcon'
 import { formatDate } from '../utils/helpers'
 
 function StatCard({ label, value, sub, icon: Icon, color, trend }) {
   const ref = useRef(null)
+  const isNumber = typeof value === 'number'
   useEffect(() => {
+    if (!isNumber) return
     const el = ref.current
     if (!el) return
     let start = 0; const end = value; const dur = 800
@@ -26,7 +29,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
       if (p < 1) requestAnimationFrame(tick)
     }
     requestAnimationFrame(tick)
-  }, [value])
+  }, [value, isNumber])
 
   const colors = {
     teal:   { bg: 'bg-teal-50',   icon: 'text-teal-600',   border: 'border-teal-100' },
@@ -39,20 +42,23 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
   const c = colors[color] || colors.teal
 
   return (
-    <div className="card p-5 flex items-start justify-between">
-      <div>
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{label}</p>
-        <p ref={ref} className="text-3xl font-extrabold text-slate-800 mb-1">0</p>
-        {sub && <p className="text-xs text-slate-400">{sub}</p>}
+    <div className="card p-3 sm:p-5 flex items-start justify-between min-w-0">
+      <div className="min-w-0 flex-1 pr-2">
+        <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 sm:mb-2 truncate">{label}</p>
+        {isNumber
+          ? <p ref={ref} className="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-0.5 sm:mb-1">0</p>
+          : <p className="text-lg sm:text-2xl font-extrabold text-slate-800 mb-0.5 sm:mb-1 truncate">{value}</p>
+        }
+        {sub && <p className="text-[10px] sm:text-xs text-slate-400 truncate">{sub}</p>}
         {trend && (
-          <div className={`flex items-center gap-1 text-xs font-semibold mt-2 ${trend.up ? 'text-emerald-600' : 'text-red-500'}`}>
-            {trend.up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          <div className={`flex items-center gap-1 text-[10px] sm:text-xs font-semibold mt-1 sm:mt-2 ${trend.up ? 'text-emerald-600' : 'text-red-500'}`}>
+            {trend.up ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
             {trend.label}
           </div>
         )}
       </div>
-      <div className={`w-11 h-11 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center flex-shrink-0`}>
-        <Icon size={20} className={c.icon} />
+      <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex-shrink-0 ${c.bg} border ${c.border} flex items-center justify-center`}>
+        <Icon size={17} className={c.icon} />
       </div>
     </div>
   )
@@ -169,7 +175,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
           <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={{ up: true, label: '+12%' }} />
           <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={{ up: true, label: '+1.5%' }} />
           <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={{ up: true, label: '+8%' }} />
-          <StatCard label="Revenue"     value={Math.round(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={DollarSign} color="emerald" />
+          <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={NairaIcon} color="emerald" />
           <StatCard label="Rooms"       value={rooms.length}        sub={`${vacantRooms} vacant · ${occupiedRooms} occupied`} icon={BedDouble}  color="amber" />
           <StatCard label="Lab Results" value={labResults.length}   sub={`${pendingLabs} pending · ${abnormalLabs} abnormal`} icon={FlaskConical} color="red" />
         </div>

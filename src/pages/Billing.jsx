@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, DollarSign, Printer, Download, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Printer, Download, Filter } from 'lucide-react'
+import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
 import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
@@ -235,7 +236,7 @@ export default function Billing({ currentUser }) {
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
-                      <DollarSign size={32} className="text-slate-200" />
+                      <NairaIcon size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No invoices yet'}</p>
                       {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Create First Invoice</button>}
                     </div>
@@ -282,7 +283,7 @@ export default function Billing({ currentUser }) {
         )}
       </div>
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Invoice' : 'New Invoice'} icon={DollarSign} maxWidth="max-w-xl">
+      <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Invoice' : 'New Invoice'} icon={NairaIcon} maxWidth="max-w-xl">
         <InvoiceForm form={form} setForm={setForm} patients={patients} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
