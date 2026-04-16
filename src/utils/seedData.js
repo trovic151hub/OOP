@@ -1,4 +1,4 @@
-import { collection, addDoc, setDoc, doc, getDocs } from 'firebase/firestore'
+import { collection, addDoc, setDoc, doc, getDocs, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
 function daysAgo(n) {
@@ -19,9 +19,9 @@ function getWeekStart() {
   return mon.toISOString().slice(0, 10)
 }
 
-async function collectionEmpty(name) {
+async function clearCollection(name) {
   const snap = await getDocs(collection(db, name))
-  return snap.empty
+  await Promise.all(snap.docs.map(d => deleteDoc(d.ref)))
 }
 
 async function addMany(col, items) {
@@ -58,8 +58,7 @@ export async function seedDatabase(showToast) {
     }, { merge: true })
 
     // ── DEPARTMENTS ────────────────────────────────────────────────
-    const deptEmpty = await collectionEmpty('departments')
-    if (deptEmpty) {
+    await clearCollection('departments')
       await addMany('departments', [
         { name: 'Emergency Medicine',      head: 'Dr. Michael Torres',  staffCount: 18, description: '24/7 emergency and trauma care for critical and life-threatening conditions.',     color: 'red',    createdAt: ts(90) },
         { name: 'Cardiology',              head: 'Dr. Sarah Chen',      staffCount: 13, description: 'Diagnosis and management of heart diseases, arrhythmias and vascular conditions.',  color: 'rose',   createdAt: ts(88) },
@@ -72,11 +71,9 @@ export async function seedDatabase(showToast) {
         { name: 'Obstetrics & Gynaecology',head: 'Dr. Kemi Oladapo',   staffCount: 12, description: 'Maternal health, antenatal care, labour management and gynaecological surgery.',    color: 'pink',   createdAt: ts(74) },
         { name: 'Psychiatry',              head: 'Dr. Tunde Balogun',   staffCount: 6,  description: 'Mental health assessment, counselling and pharmacological treatment.',              color: 'indigo', createdAt: ts(72) },
       ])
-    }
 
     // ── DOCTORS ───────────────────────────────────────────────────
-    const docEmpty = await collectionEmpty('doctors')
-    if (docEmpty) {
+    await clearCollection('doctors')
       await addMany('doctors', [
         { name: 'Dr. Sarah Chen',      specialty: 'Cardiologist',              department: 'Cardiology',               email: 'sarah.chen@medcore.ng',      phone: '+234 803 555 0201', availability: 'Available',  experience: '14 years', schedule: 'Mon–Fri  08:00–16:00', about: 'Board-certified cardiologist specialising in interventional cardiology and heart failure management.', createdAt: ts(90) },
         { name: 'Dr. Michael Torres',  specialty: 'Emergency Physician',       department: 'Emergency Medicine',       email: 'm.torres@medcore.ng',        phone: '+234 808 555 0202', availability: 'Busy',       experience: '10 years', schedule: 'Mon–Sat  07:00–19:00', about: 'Experienced emergency physician with expertise in trauma, resuscitation and critical care.', createdAt: ts(88) },
@@ -91,11 +88,9 @@ export async function seedDatabase(showToast) {
         { name: 'Dr. Ngozi Obi',       specialty: 'Dermatologist',             department: 'Internal Medicine',        email: 'n.obi@medcore.ng',           phone: '+234 803 555 0211', availability: 'Available',  experience: '6 years',  schedule: 'Mon–Fri  09:00–15:00', about: 'Skin specialist treating acne, eczema, psoriasis, hyperpigmentation and skin infections.', createdAt: ts(70) },
         { name: 'Dr. Femi Adeleke',    specialty: 'Urologist',                 department: 'Surgery',                  email: 'f.adeleke@medcore.ng',       phone: '+234 809 555 0212', availability: 'Available',  experience: '9 years',  schedule: 'Mon–Thu  08:00–15:00', about: 'Urologist with expertise in kidney stones, prostate conditions and bladder disorders.', createdAt: ts(68) },
       ])
-    }
 
     // ── PATIENTS ──────────────────────────────────────────────────
-    const patEmpty = await collectionEmpty('patients')
-    if (patEmpty) {
+    await clearCollection('patients')
       await addMany('patients', [
         { name: 'Chukwuemeka Obi',      age: 34, gender: 'Male',   blood: 'O+',  condition: 'Malaria (Severe)',            status: 'Admitted',     patientType: 'Inpatient',  location: 'Room 301',       phone: '+234 803 111 0001', email: 'c.obi@email.com',       emergencyContact: 'Ngozi Obi +234 803 111 0002',    allergies: 'None',         insurance: 'NHIS',                  notes: 'IV artesunate commenced. Repeat RDT in 48h.', createdAt: ts(3) },
         { name: 'Fatima Al-Hassan',      age: 48, gender: 'Female', blood: 'A+',  condition: 'Hypertensive Crisis',         status: 'Admitted',     patientType: 'Inpatient',  location: 'Room 205',       phone: '+234 806 111 0003', email: 'f.alhassan@email.com',  emergencyContact: 'Musa Al-Hassan +234 806 111 0004', allergies: 'ACE Inhibitors', insurance: 'AIICO',                 notes: 'BP 210/118 on admission. IV labetalol started.', createdAt: ts(2) },
@@ -122,11 +117,9 @@ export async function seedDatabase(showToast) {
         { name: 'Precious Anozie',       age: 23, gender: 'Female', blood: 'A+',  condition: 'Peptic Ulcer Disease',        status: 'Active',       patientType: 'Outpatient', location: 'Lagos',          phone: '+234 806 111 0045', email: 'p.anozie@email.com',    emergencyContact: 'Emeka Anozie +234 806 111 0046',   allergies: 'Ibuprofen',    insurance: 'AIICO',                 notes: 'H. pylori positive. Triple therapy initiated.', createdAt: ts(9) },
         { name: 'Damilola Ogunleye',     age: 55, gender: 'Male',   blood: 'O+',  condition: 'Ischaemic Heart Disease',     status: 'In Treatment', patientType: 'Inpatient',  location: 'Room 211',       phone: '+234 808 111 0047', email: 'd.ogunleye@email.com',  emergencyContact: 'Sola Ogunleye +234 808 111 0048',  allergies: 'Clopidogrel',  insurance: 'Axamansard',            notes: 'Post-PCI day 2. Dual antiplatelet therapy. Cardiac rehab planned.', createdAt: ts(2) },
       ])
-    }
 
     // ── APPOINTMENTS ──────────────────────────────────────────────
-    const apptEmpty = await collectionEmpty('appointments')
-    if (apptEmpty) {
+    await clearCollection('appointments')
       await addMany('appointments', [
         // ── TODAY — Checked In ──
         { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',     type: 'Follow-up',        date: t, timeStart: '07:30', timeEnd: '08:00', status: 'Checked In',  notes: 'BP medication review and ECG.',                         requiresFollowUp: false, createdAt: ts(1) },
@@ -178,11 +171,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Olumide Bakare',     doctorName: 'Dr. Adaeze Nwosu',   type: 'Consultation',     date: daysAgo(12), timeStart: '11:00', timeEnd: '11:30', status: 'Completed', notes: 'BPH symptoms, PSA ordered. Tamsulosin started.', requiresFollowUp: true, followUpDate: t, createdAt: ts(13) },
         { patientName: 'Grace Oduya',        doctorName: 'Dr. David Kim',      type: 'Post-surgery',     date: daysAgo(30), timeStart: '10:00', timeEnd: '10:30', status: 'Completed', notes: 'ORIF tibia — operative notes documented.', requiresFollowUp: true, followUpDate: t, createdAt: ts(31) },
       ])
-    }
 
     // ── ROOMS ─────────────────────────────────────────────────────
-    const roomEmpty = await collectionEmpty('rooms')
-    if (roomEmpty) {
+    await clearCollection('rooms')
       await addMany('rooms', [
         { roomNumber: '101', type: 'ICU',            floor: '1', capacity: 1, status: 'Occupied',    patientName: 'Henry Wilson',        notes: 'O2 supply and cardiac monitor active.',                     createdAt: ts(25) },
         { roomNumber: '102', type: 'ICU',            floor: '1', capacity: 1, status: 'Occupied',    patientName: 'Chidera Nwachukwu',   notes: 'High-flow O2 + IV antibiotics.',                            createdAt: ts(2) },
@@ -199,11 +190,9 @@ export async function seedDatabase(showToast) {
         { roomNumber: '501', type: 'Operating Room', floor: '5', capacity: 1, status: 'Vacant',      patientName: '',                    notes: 'Last sterilised today.',                                     createdAt: ts(1) },
         { roomNumber: '502', type: 'Operating Room', floor: '5', capacity: 1, status: 'Maintenance', patientName: '',                    notes: 'Anaesthesia machine service in progress.',                   createdAt: ts(2) },
       ])
-    }
 
     // ── LAB RESULTS ───────────────────────────────────────────────
-    const labEmpty = await collectionEmpty('labResults')
-    if (labEmpty) {
+    await clearCollection('labResults')
       await addMany('labResults', [
         { patientName: 'Marcus Johnson',     testName: 'Lipid Panel',              result: 'LDL 162 mg/dL, HDL 38 mg/dL, TG 210 mg/dL',    normalRange: 'LDL <130, HDL >40, TG <150',          status: 'Abnormal', orderedBy: 'Dr. Sarah Chen',     date: daysAgo(2),  notes: 'High LDL. Atorvastatin 20mg started.', createdAt: ts(3) },
         { patientName: 'Benjamin Carter',    testName: 'HbA1c',                    result: '8.9%',                                           normalRange: '<5.7% normal, <7% diabetic target',   status: 'Abnormal', orderedBy: 'Dr. Sarah Chen',     date: daysAgo(5),  notes: 'Above target. Insulin adjustment.', createdAt: ts(6) },
@@ -220,11 +209,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Grace Oduya',        testName: 'X-Ray Right Tibia',        result: 'Callus formation, good alignment',                normalRange: 'N/A',                                  status: 'Normal',   orderedBy: 'Dr. Priya Sharma',   date: daysAgo(6),  notes: 'Healing well. Hardware intact.', createdAt: ts(7) },
         { patientName: 'Damilola Ogunleye',  testName: 'Coronary Angiogram',       result: 'LAD 90% stenosis — stent placed',                normalRange: 'N/A',                                  status: 'Abnormal', orderedBy: 'Dr. Sarah Chen',     date: daysAgo(3),  notes: 'Successful PCI. Dual antiplatelet commenced.', createdAt: ts(4) },
       ])
-    }
 
     // ── BILLING ───────────────────────────────────────────────────
-    const billEmpty = await collectionEmpty('billing')
-    if (billEmpty) {
+    await clearCollection('billing')
       await addMany('billing', [
         { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',     description: 'Cardiology consultation + ECG + lipid panel',        total: 45000,   date: daysAgo(7),  status: 'Paid',    paymentMethod: 'AIICO Insurance',    createdAt: ts(8) },
         { patientName: 'Benjamin Carter',    doctorName: 'Dr. Sarah Chen',     description: 'Inpatient diabetes management — 5 days',             total: 680000,  date: daysAgo(5),  status: 'Pending', paymentMethod: 'NHIS',               createdAt: ts(6) },
@@ -241,11 +228,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Emmanuel Abubakar',  doctorName: 'Dr. Adaeze Nwosu',   description: 'Blood transfusion 2 units + malaria treatment',      total: 210000,  date: daysAgo(3),  status: 'Paid',    paymentMethod: 'Cash',               createdAt: ts(4) },
         { patientName: 'Ngozi Eze',          doctorName: 'Dr. Kemi Oladapo',   description: 'Antenatal GDM workup + OGTT',                        total: 52000,   date: daysAgo(10), status: 'Paid',    paymentMethod: 'Hygeia HMO',         createdAt: ts(11) },
       ])
-    }
 
     // ── INVENTORY ─────────────────────────────────────────────────
-    const invEmpty = await collectionEmpty('inventory')
-    if (invEmpty) {
+    await clearCollection('inventory')
       await addMany('inventory', [
         { name: 'Artesunate Injection 60mg',    category: 'Medication',  quantity: 120, unit: 'vials',    reorderLevel: 50,  supplier: 'Emzor Pharma',          location: 'Pharmacy Store A',  status: 'In Stock',     createdAt: ts(30) },
         { name: 'Ciprofloxacin 500mg Tabs',     category: 'Medication',  quantity: 600, unit: 'tablets',  reorderLevel: 200, supplier: 'May & Baker Nigeria',   location: 'Pharmacy Shelf B1', status: 'In Stock',     createdAt: ts(60) },
@@ -264,11 +249,9 @@ export async function seedDatabase(showToast) {
         { name: 'Lidocaine Injection 1%',       category: 'Medication',  quantity: 24,  unit: 'vials',    reorderLevel: 30,  supplier: 'May & Baker Nigeria',   location: 'Cold Storage C2',   status: 'Low Stock',    createdAt: ts(20) },
         { name: 'Hydroxyurea 500mg Caps',       category: 'Medication',  quantity: 150, unit: 'capsules', reorderLevel: 60,  supplier: 'Emzor Pharma',          location: 'Pharmacy Shelf D1', status: 'In Stock',     createdAt: ts(25) },
       ])
-    }
 
     // ── EXPENSES ──────────────────────────────────────────────────
-    const expEmpty = await collectionEmpty('expenses')
-    if (expEmpty) {
+    await clearCollection('expenses')
       await addMany('expenses', [
         { description: 'Medical Staff Salaries — March',     category: 'Salaries',    amount: 18400000, date: daysAgo(46), status: 'Paid',    vendor: 'Internal Payroll',          recurring: true,  createdAt: ts(47) },
         { description: 'Electricity & EKEDC Bills — March', category: 'Utilities',   amount: 1250000,  date: daysAgo(46), status: 'Paid',    vendor: 'Eko Electricity DISCOM',    recurring: true,  createdAt: ts(47) },
@@ -281,11 +264,9 @@ export async function seedDatabase(showToast) {
         { description: 'Laundry & Linen Services',          category: 'Maintenance', amount: 185000,   date: daysAgo(2),  status: 'Paid',    vendor: 'CleanMed Services Ltd',     recurring: true,  createdAt: ts(3) },
         { description: 'Office & Admin Supplies — April',   category: 'Supplies',    amount: 165000,   date: daysAgo(2),  status: 'Pending', vendor: 'Jumia Business',            recurring: true,  createdAt: ts(3) },
       ])
-    }
 
     // ── PRESCRIPTIONS ─────────────────────────────────────────────
-    const rxEmpty = await collectionEmpty('prescriptions')
-    if (rxEmpty) {
+    await clearCollection('prescriptions')
       await addMany('prescriptions', [
         { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',    date: daysAgo(7),  status: 'Active',    notes: 'Take with food. Avoid alcohol. Monitor BP weekly.',          medications: [{ name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', duration: '90 days' }, { name: 'Atorvastatin', dosage: '20mg', frequency: 'Once at night', duration: '90 days' }], createdAt: ts(8) },
         { patientName: 'Elena Rodriguez',    doctorName: 'Dr. Emily Watson',  date: daysAgo(14), status: 'Active',    notes: 'Use rescue inhaler as needed. Carry at all times.',           medications: [{ name: 'Salbutamol Inhaler', dosage: '100mcg/puff', frequency: 'As needed', duration: 'Ongoing' }, { name: 'Budesonide Inhaler', dosage: '200mcg', frequency: 'Twice daily', duration: '60 days' }], createdAt: ts(15) },
@@ -300,11 +281,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Ifeoma Adeleke',     doctorName: 'Dr. James Okonkwo', date: daysAgo(14), status: 'Active',    notes: 'Preventer daily, rescue only when needed. Record peak flow.', medications: [{ name: 'Budesonide Inhaler', dosage: '100mcg/puff', frequency: 'Two puffs twice daily', duration: 'Ongoing' }, { name: 'Salbutamol Inhaler', dosage: '100mcg/puff', frequency: 'As needed', duration: 'Ongoing' }], createdAt: ts(15) },
         { patientName: 'Grace Oduya',        doctorName: 'Dr. David Kim',     date: daysAgo(30), status: 'Completed', notes: 'Post-surgical pain management. Completed full course.',        medications: [{ name: 'Diclofenac', dosage: '75mg', frequency: 'Twice daily (with food)', duration: '14 days' }, { name: 'Calcium + Vitamin D3', dosage: '600mg/400IU', frequency: 'Once daily', duration: '90 days' }], createdAt: ts(31) },
       ])
-    }
 
     // ── INSURANCE CLAIMS ──────────────────────────────────────────
-    const claimEmpty = await collectionEmpty('claims')
-    if (claimEmpty) {
+    await clearCollection('claims')
       await addMany('claims', [
         { patientName: 'Marcus Johnson',     insuranceProvider: 'AIICO Insurance',  policyNumber: 'AIICO-2024-00721', coverageType: 'Outpatient',  claimAmount: 45000,   approvedAmount: 40500,  invoiceNumber: 'MCH-0001', submittedDate: daysAgo(6),  status: 'Confirmed', notes: '90% outpatient cover approved.',                   createdAt: ts(7) },
         { patientName: 'Benjamin Carter',    insuranceProvider: 'NHIS',             policyNumber: 'NHIS-TX-94847',    coverageType: 'Inpatient',   claimAmount: 680000,  approvedAmount: null,   invoiceNumber: 'MCH-0002', submittedDate: daysAgo(4),  status: 'Pending',   notes: 'Awaiting NHIS pre-authorisation for extended stay.',createdAt: ts(5) },
@@ -317,11 +296,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Damilola Ogunleye',  insuranceProvider: 'Axamansard',       policyNumber: 'AXA-2024-99102',   coverageType: 'Cardiac',     claimAmount: 2100000, approvedAmount: null,   invoiceNumber: 'MCH-0012', submittedDate: daysAgo(2),  status: 'Pending',   notes: 'PCI procedure — high-value claim. Specialist review.',createdAt: ts(3) },
         { patientName: 'Ngozi Eze',          insuranceProvider: 'Hygeia HMO',       policyNumber: 'HYG-2024-56781',   coverageType: 'Antenatal',   claimAmount: 52000,   approvedAmount: 46800,  invoiceNumber: 'MCH-0014', submittedDate: daysAgo(9),  status: 'Confirmed', notes: 'GDM workup approved at 90%.',                       createdAt: ts(10) },
       ])
-    }
 
     // ── PHARMACY ORDERS ───────────────────────────────────────────
-    const pharmEmpty = await collectionEmpty('pharmacyOrders')
-    if (pharmEmpty) {
+    await clearCollection('pharmacyOrders')
       await addMany('pharmacyOrders', [
         { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',    medications: [{ name: 'Lisinopril 10mg', qty: 90 }, { name: 'Atorvastatin 20mg', qty: 90 }],                             status: 'Dispensed', pharmacistName: 'Pharm. Mark Owens',  dispensedAt: daysAgo(6),  advancePayment: 8500,   notes: '3-month supply dispensed.', createdAt: ts(7) },
         { patientName: 'Elena Rodriguez',    doctorName: 'Dr. Emily Watson',  medications: [{ name: 'Salbutamol Inhaler', qty: 2 }, { name: 'Budesonide Inhaler', qty: 1 }],                          status: 'Dispensed', pharmacistName: 'Pharm. Linda Park',  dispensedAt: daysAgo(13), advancePayment: 6200,   notes: 'Patient counselled on inhaler technique.', createdAt: ts(14) },
@@ -334,11 +311,9 @@ export async function seedDatabase(showToast) {
         { patientName: 'Ifeoma Adeleke',     doctorName: 'Dr. James Okonkwo', medications: [{ name: 'Budesonide Inhaler 100mcg', qty: 2 }, { name: 'Salbutamol Inhaler', qty: 1 }],                  status: 'Dispensed', pharmacistName: 'Pharm. Tobi Alabi',  dispensedAt: daysAgo(14), advancePayment: 5200,   notes: 'Parent counselled on paediatric inhaler use.', createdAt: ts(15) },
         { patientName: 'Ngozi Eze',          doctorName: 'Dr. Kemi Oladapo',  medications: [{ name: 'Metformin 500mg', qty: 60 }, { name: 'Folic Acid 5mg', qty: 90 }],                              status: 'Dispensed', pharmacistName: 'Pharm. Mark Owens',  dispensedAt: daysAgo(10), advancePayment: 3000,   notes: 'GDM management + antenatal vitamins.', createdAt: ts(11) },
       ])
-    }
 
     // ── SHIFTS (current week) ─────────────────────────────────────
-    const shiftEmpty = await collectionEmpty('shifts')
-    if (shiftEmpty) {
+    await clearCollection('shifts')
       await addMany('shifts', [
         { day: 'Monday',    shiftType: 'Morning',   doctorName: 'Dr. Sarah Chen',      doctorId: '', weekStart, createdAt: ts(3) },
         { day: 'Monday',    shiftType: 'Morning',   doctorName: 'Dr. Adaeze Nwosu',    doctorId: '', weekStart, createdAt: ts(3) },
@@ -374,11 +349,9 @@ export async function seedDatabase(showToast) {
         { day: 'Sunday',    shiftType: 'Afternoon', doctorName: 'Dr. Michael Torres',  doctorId: '', weekStart, createdAt: ts(3) },
         { day: 'Sunday',    shiftType: 'Night',     doctorName: 'Dr. Emily Watson',    doctorId: '', weekStart, createdAt: ts(3) },
       ])
-    }
 
     // ── MEDICAL RECORDS ───────────────────────────────────────────
-    const medEmpty = await collectionEmpty('medicalRecords')
-    if (medEmpty) {
+    await clearCollection('medicalRecords')
       await addMany('medicalRecords', [
         { patientId: 'seed-1',  patientName: 'Marcus Johnson',     date: daysAgo(7),  diagnosis: 'Essential Hypertension (I10)',              notes: 'BP 162/98 on presentation. Lisinopril started. Lifestyle modifications advised.',           doctor: 'Dr. Sarah Chen',     type: 'Consultation', vitals: { bp: '162/98', hr: 82, temp: 36.7, weight: 92 },  createdAt: ts(8) },
         { patientId: 'seed-2',  patientName: 'Benjamin Carter',    date: daysAgo(5),  diagnosis: 'Type 2 Diabetes Mellitus (E11)',            notes: 'Admitted for glycaemic control. HbA1c 8.9%. Insulin regime and dietitian referral.',        doctor: 'Dr. Sarah Chen',     type: 'Admission',    vitals: { bp: '140/88', hr: 76, temp: 37.1, weight: 88 },  createdAt: ts(6) },
@@ -391,11 +364,9 @@ export async function seedDatabase(showToast) {
         { patientId: 'seed-9',  patientName: 'Babatunde Olatunde', date: daysAgo(1),  diagnosis: 'Acute Appendicitis (K37)',                  notes: 'Laparoscopic appendicectomy under GA. No perforation. Drain placed. Day 1 post-op stable.',  doctor: 'Dr. Biodun Afolabi', type: 'Surgical',     vitals: { bp: '116/72', hr: 84, temp: 37.3, weight: 78 },  createdAt: ts(2) },
         { patientId: 'seed-10', patientName: 'Ngozi Eze',          date: daysAgo(10), diagnosis: 'Gestational Diabetes Mellitus (O24.4)',     notes: '28 weeks. OGTT 8.9 mmol/L at 2h. Dietary advice given. Metformin started.',                 doctor: 'Dr. Kemi Oladapo',   type: 'Consultation', vitals: { bp: '112/70', hr: 78, temp: 36.6, weight: 72 },  createdAt: ts(11) },
       ])
-    }
 
     // ── DOCUMENTS ─────────────────────────────────────────────────
-    const docDocEmpty = await collectionEmpty('documents')
-    if (docDocEmpty) {
+    await clearCollection('documents')
       await addMany('documents', [
         { patientName: 'Benjamin Carter',    title: 'Admission Consent Form',             type: 'Consent Form',   date: daysAgo(5),  size: '248 KB', uploadedBy: 'Admin',              notes: 'Signed and witnessed. Diabetes management plan attached.',          createdAt: ts(6) },
         { patientName: 'Samuel Mensah',      title: 'ICU Admission & Treatment Report',   type: 'Medical Report', date: daysAgo(3),  size: '512 KB', uploadedBy: 'Dr. Sarah Chen',     notes: 'Cardiac event summary and cardioversion protocol.',                  createdAt: ts(4) },
@@ -410,7 +381,6 @@ export async function seedDatabase(showToast) {
         { patientName: 'Henry Wilson',       title: 'COPD Exacerbation Summary',          type: 'Medical Report', date: daysAgo(1),  size: '420 KB', uploadedBy: 'Dr. Michael Torres', notes: 'Emergency presentation, ABG, treatment and ICU placement.',          createdAt: ts(2) },
         { patientName: 'Fatima Al-Hassan',   title: 'Hypertension Discharge Summary',     type: 'Medical Report', date: daysAgo(2),  size: '175 KB', uploadedBy: 'Dr. Adaeze Nwosu',  notes: 'Hypertensive crisis admission — treatment and discharge plan.',      createdAt: ts(3) },
       ])
-    }
 
     showToast?.('Demo data loaded successfully!', 'success')
     return true

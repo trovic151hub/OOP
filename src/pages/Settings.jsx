@@ -40,7 +40,7 @@ export default function Settings() {
   const [seeding, setSeeding] = useState(false)
 
   async function handleSeed() {
-    if (!window.confirm('This will add demo patients, doctors, appointments, billing, inventory and more to your database.\n\nExisting data will NOT be overwritten. Continue?')) return
+    if (!window.confirm('This will REPLACE all existing demo data (patients, doctors, appointments, billing, inventory, prescriptions, shifts, claims and more) with the full updated dataset.\n\nContinue?')) return
     setSeeding(true)
     await seedDatabase(showToast)
     setSeeding(false)
