@@ -3,27 +3,30 @@ import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
   UserCog, DollarSign, ClipboardList, Clock, X, BarChart2,
-  UserCircle, BedDouble, FlaskConical
+  UserCircle, BedDouble, FlaskConical, UserCheck, Pill, TrendingDown
 } from 'lucide-react'
 import { store } from '../../store/useStore'
 
 const ALL_NAV = [
-  { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'my-profile',   label: 'My Profile',      icon: UserCircle,      roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'appointments', label: 'Appointments',    icon: Calendar,        roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'patients',     label: 'Patients',        icon: Users,           roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'doctors',      label: 'Doctors',         icon: Stethoscope,     roles: ['Admin','Receptionist'] },
-  { id: 'departments',  label: 'Departments',     icon: Building2,       roles: ['Admin','Receptionist'] },
-  { id: 'rooms',        label: 'Rooms & Beds',    icon: BedDouble,       roles: ['Admin','Receptionist'] },
-  { id: 'lab-results',  label: 'Lab Results',     icon: FlaskConical,    roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'calendar',     label: 'Calendar',        icon: CalendarDays,    roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'shifts',       label: 'Shifts',          icon: Clock,           roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'inventory',    label: 'Inventory',       icon: Package,         roles: ['Admin'] },
-  { id: 'billing',      label: 'Billing',         icon: DollarSign,      roles: ['Admin','Receptionist'] },
-  { id: 'messages',     label: 'Messages',        icon: MessageSquare,   roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'users',        label: 'User Management', icon: UserCog,         roles: ['Admin'] },
-  { id: 'reports',      label: 'Reports',         icon: BarChart2,       roles: ['Admin'] },
-  { id: 'auditlog',     label: 'Audit Log',       icon: ClipboardList,   roles: ['Admin'] },
+  { id: 'dashboard',     label: 'Dashboard',       icon: LayoutDashboard, roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'my-profile',    label: 'My Profile',      icon: UserCircle,      roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'queue',         label: 'Waiting Room',    icon: UserCheck,       roles: ['Admin','Receptionist'] },
+  { id: 'appointments',  label: 'Appointments',    icon: Calendar,        roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'patients',      label: 'Patients',        icon: Users,           roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'prescriptions', label: 'Prescriptions',   icon: Pill,            roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'doctors',       label: 'Doctors',         icon: Stethoscope,     roles: ['Admin','Receptionist'] },
+  { id: 'departments',   label: 'Departments',     icon: Building2,       roles: ['Admin','Receptionist'] },
+  { id: 'rooms',         label: 'Rooms & Beds',    icon: BedDouble,       roles: ['Admin','Receptionist'] },
+  { id: 'lab-results',   label: 'Lab Results',     icon: FlaskConical,    roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'calendar',      label: 'Calendar',        icon: CalendarDays,    roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'shifts',        label: 'Shifts',          icon: Clock,           roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'inventory',     label: 'Inventory',       icon: Package,         roles: ['Admin'] },
+  { id: 'billing',       label: 'Billing',         icon: DollarSign,      roles: ['Admin','Receptionist'] },
+  { id: 'expenses',      label: 'Expenses',        icon: TrendingDown,    roles: ['Admin'] },
+  { id: 'messages',      label: 'Messages',        icon: MessageSquare,   roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'users',         label: 'User Management', icon: UserCog,         roles: ['Admin'] },
+  { id: 'reports',       label: 'Reports',         icon: BarChart2,       roles: ['Admin'] },
+  { id: 'auditlog',      label: 'Audit Log',       icon: ClipboardList,   roles: ['Admin'] },
 ]
 
 const ROLE_BADGE = {

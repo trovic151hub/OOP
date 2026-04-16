@@ -43,7 +43,24 @@ A full-featured hospital management system built with React + Vite + Tailwind CS
 | Reports & Analytics | `reports` | Admin only |
 | Audit Log | `auditlog` | Admin only |
 
-### Firestore Collections (10 real-time subscriptions)
+### Pages (Updated)
+| Page | Route Key | Roles |
+|------|-----------|-------|
+| Waiting Room Queue | `queue` | Admin, Receptionist |
+| Prescriptions | `prescriptions` | All staff |
+| Expense Tracking | `expenses` | Admin only |
+| Patient Portal | — | Patient role (separate layout) |
+
+### Features Added (Latest Session)
+1. **Waiting Room Queue** — Real-time patient flow board with wait time tracking, status advances (Checked In → In Progress → Completed), and per-doctor filtering for doctors.
+2. **Prescription Management** — Full CRUD for prescriptions with multi-medication table, datalist autocomplete, status tracking (Active/Completed/Cancelled), print-to-prescription feature, and CSV export.
+3. **Expense Tracking** — Expense CRUD with 11 categories, analytics chart (Revenue vs Expenses, by Category), P&L calculation, month filtering, and CSV export.
+4. **Dark Mode** — CSS variables approach via `data-theme="dark"` on `<html>`. Toggle button in Topbar (Moon/Sun icon). Persists in `localStorage`. Covers sidebar, topbar, cards, inputs, buttons, tables.
+5. **Patient Portal** — Separate layout for `Patient` role users. Shows personalized Overview, Appointments, Prescriptions, Lab Results, and Bills — filtered by their name. Assign via User Management.
+6. **Print / PDF Export** — Print button in Topbar triggers `window.print()`. `@media print` CSS hides navigation/sidebar. Prescriptions page has per-Rx print button generating a formatted prescription slip. Dark mode auto-reverts for print.
+7. **formatCurrency utility** — Added to `src/utils/helpers.js`. Badge statuses extended: Paid, Overdue, Inactive.
+
+### Firestore Collections (14 real-time subscriptions)
 - `patients` — patient records (with department, email, blood type fields)
 - `doctors` — doctor profiles (with department matching)
 - `appointments` — appointment scheduling

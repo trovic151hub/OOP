@@ -47,6 +47,9 @@ export function getBadgeStyle(status) {
     Maintenance:   'bg-amber-50 text-amber-700',
     Occupied:      'bg-blue-50 text-blue-700',
     Vacant:        'bg-emerald-50 text-emerald-700',
+    Paid:          'bg-emerald-50 text-emerald-700',
+    Overdue:       'bg-red-50 text-red-700',
+    Inactive:      'bg-slate-100 text-slate-500',
   }
   return map[status] || 'bg-slate-100 text-slate-600'
 }
@@ -68,4 +71,9 @@ export function getAvatarColor(str = '') {
 
 export function todayISO() {
   return new Date().toISOString().slice(0, 10)
+}
+
+export function formatCurrency(amount) {
+  const n = Number(amount) || 0
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 }

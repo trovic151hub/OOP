@@ -4,13 +4,14 @@ import { useStore, store } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { useToast } from '../context/ToastContext'
 
-const ROLES = ['Admin', 'Doctor', 'Receptionist']
-const TABS  = ['All', 'Admin', 'Doctor', 'Receptionist']
+const ROLES = ['Admin', 'Doctor', 'Receptionist', 'Patient']
+const TABS  = ['All', 'Admin', 'Doctor', 'Receptionist', 'Patient']
 
 const ROLE_BADGE = {
   Admin:        'bg-teal-100 text-teal-700 border border-teal-200',
   Doctor:       'bg-purple-100 text-purple-700 border border-purple-200',
   Receptionist: 'bg-blue-100 text-blue-700 border border-blue-200',
+  Patient:      'bg-emerald-100 text-emerald-700 border border-emerald-200',
 }
 
 function getLastSeen(lastSeen) {

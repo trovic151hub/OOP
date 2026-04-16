@@ -1,25 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical } from 'lucide-react'
+import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical, Moon, Sun, Printer } from 'lucide-react'
 import { useStore } from '../../store/useStore'
+import { useTheme } from '../../context/ThemeContext'
 import Avatar from '../ui/Avatar'
 
 const PAGE_LABELS = {
-  dashboard:    'Dashboard',
-  appointments: 'Appointments',
-  patients:     'Patients',
-  doctors:      'Doctors',
-  departments:  'Departments',
-  calendar:     'Calendar',
-  inventory:    'Inventory',
-  messages:     'Messages',
-  billing:      'Billing',
-  shifts:       'Shifts',
-  'my-profile':   'My Profile',
-  rooms:          'Rooms & Beds',
-  'lab-results':  'Lab Results',
-  reports:        'Reports & Analytics',
-  auditlog:       'Audit Log',
-  users:          'User Management',
+  dashboard:     'Dashboard',
+  appointments:  'Appointments',
+  patients:      'Patients',
+  doctors:       'Doctors',
+  departments:   'Departments',
+  calendar:      'Calendar',
+  inventory:     'Inventory',
+  messages:      'Messages',
+  billing:       'Billing',
+  shifts:        'Shifts',
+  'my-profile':  'My Profile',
+  rooms:         'Rooms & Beds',
+  'lab-results': 'Lab Results',
+  reports:       'Reports & Analytics',
+  auditlog:      'Audit Log',
+  users:         'User Management',
+  queue:         'Waiting Room Queue',
+  prescriptions: 'Prescriptions',
+  expenses:      'Expense Tracking',
 }
 
 function useDebounce(value, delay = 300) {
@@ -33,10 +37,11 @@ function useDebounce(value, delay = 300) {
 
 export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle }) {
   const { patients, doctors, appointments, inventory, messages, labResults } = useStore()
-  const [search, setSearch]             = useState('')
-  const [searchOpen, setSearchOpen]     = useState(false)
-  const [notifOpen, setNotifOpen]       = useState(false)
-  const [notifRead, setNotifRead]       = useState(() => localStorage.getItem('notifReadAt') || '')
+  const { dark, toggle: toggleDark } = useTheme()
+  const [search, setSearch]           = useState('')
+  const [searchOpen, setSearchOpen]   = useState(false)
+  const [notifOpen, setNotifOpen]     = useState(false)
+  const [notifRead, setNotifRead]     = useState(() => localStorage.getItem('notifReadAt') || '')
   const searchRef = useRef(null)
   const notifRef  = useRef(null)
   const debounced = useDebounce(search)
@@ -50,7 +55,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today    = new Date().toISOString().slice(0, 10)
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 
   const upcomingToday = appointments.filter(a =>
@@ -63,11 +68,11 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     if (q <= r) return 'Low Stock'
     return 'In Stock'
   }
-  const lowStockItems    = inventory.filter(i => getStockStatus(i.quantity, i.reorderLevel) !== 'In Stock')
-  const checkedInPats    = appointments.filter(a => a.status === 'Checked In' && a.date === today)
-  const abnormalLabs     = labResults.filter(l => l.status === 'Abnormal')
-  const recentMessages   = messages.slice(-3).reverse()
-  const totalNotifs      = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
+  const lowStockItems  = inventory.filter(i => getStockStatus(i.quantity, i.reorderLevel) !== 'In Stock')
+  const checkedInPats  = appointments.filter(a => a.status === 'Checked In' && a.date === today)
+  const abnormalLabs   = labResults.filter(l => l.status === 'Abnormal')
+  const recentMessages = messages.slice(-3).reverse()
+  const totalNotifs    = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
 
   function markRead() {
     const now = new Date().toISOString()
@@ -83,6 +88,8 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   } : null
 
   const hasResults = searchResults && (searchResults.patients.length + searchResults.doctors.length + searchResults.appointments.length) > 0
+
+  function handlePrint() { window.print() }
 
   return (
     <header className="fixed top-0 left-0 md:left-60 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-10">
@@ -171,6 +178,22 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
           )}
         </div>
 
+        <button
+          onClick={handlePrint}
+          title="Print current page"
+          className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors no-print"
+        >
+          <Printer size={16} />
+        </button>
+
+        <button
+          onClick={toggleDark}
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors no-print"
+        >
+          {dark ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
         <div ref={notifRef} className="relative">
           <button
             onClick={markRead}
@@ -216,7 +239,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                     Patients Checked In — Waiting
                   </div>
                   {checkedInPats.slice(0, 4).map(a => (
-                    <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('appointments'); setNotifOpen(false) }}>
+                    <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('queue'); setNotifOpen(false) }}>
                       <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <UserCheck size={13} className="text-violet-600" />
                       </div>

@@ -166,3 +166,123 @@ body {
 }
 
 .table-row:hover { background: #f8fafc; }
+
+/* ───────────── DARK MODE ───────────── */
+[data-theme="dark"] body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .input-field {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .input-field::placeholder { color: #475569; }
+[data-theme="dark"] .input-field:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20,184,166,0.2);
+}
+
+[data-theme="dark"] .btn-ghost {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+[data-theme="dark"] .btn-ghost:hover {
+  background: #263348;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .sidebar-link {
+  color: #94a3b8;
+}
+[data-theme="dark"] .sidebar-link:hover {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+[data-theme="dark"] .sidebar-link.active {
+  background: rgba(20,184,166,0.12);
+  color: #2dd4bf;
+}
+
+[data-theme="dark"] aside {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] header {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+[data-theme="dark"] .table-th {
+  color: #94a3b8;
+  border-color: #334155;
+}
+[data-theme="dark"] .table-td {
+  color: #cbd5e1;
+  border-color: #1e293b;
+}
+[data-theme="dark"] .table-row:hover { background: #1e293b; }
+
+[data-theme="dark"] footer {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #475569;
+}
+
+[data-theme="dark"] select option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #334155; }
+
+/* ───────────── PRINT STYLES ───────────── */
+@media print {
+  .no-print,
+  header,
+  aside,
+  footer,
+  nav {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    font-size: 12pt;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .card {
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .flex-1.md\:ml-60 {
+    margin-left: 0 !important;
+  }
+
+  #rx-print {
+    display: block !important;
+    position: static !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

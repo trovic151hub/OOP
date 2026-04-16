@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase'
 import { initSubscriptions, clearSubscriptions, ensureUserProfile, store, useStore } from './store/useStore'
 import { ToastProvider } from './context/ToastContext'
+import { ThemeProvider } from './context/ThemeContext'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import Login from './pages/Login'
@@ -23,6 +24,10 @@ import Reports from './pages/Reports'
 import MyProfile from './pages/MyProfile'
 import Rooms from './pages/Rooms'
 import LabResults from './pages/LabResults'
+import Queue from './pages/Queue'
+import Prescriptions from './pages/Prescriptions'
+import Expenses from './pages/Expenses'
+import PatientPortal from './pages/PatientPortal'
 
 function AppContent() {
   const [authUser, setAuthUser]     = useState(undefined)
@@ -79,6 +84,10 @@ function AppContent() {
     lastSeen: userProfile?.lastSeen || '',
   }
 
+  if (currentUser.role === 'Patient') {
+    return <PatientPortal currentUser={currentUser} />
+  }
+
   function navigate(page) {
     setActivePage(page)
     setMobileOpen(false)
@@ -86,23 +95,26 @@ function AppContent() {
 
   function renderPage() {
     switch (activePage) {
-      case 'dashboard':   return <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'patients':    return <Patients currentUser={currentUser} onNavigate={navigate} />
-      case 'doctors':     return <Doctors currentUser={currentUser} />
-      case 'appointments':return <Appointments currentUser={currentUser} />
-      case 'departments': return <Departments currentUser={currentUser} />
-      case 'calendar':    return <CalendarPage onNavigate={navigate} />
-      case 'inventory':   return <Inventory currentUser={currentUser} />
-      case 'messages':    return <Messages currentUser={currentUser} />
-      case 'billing':     return <Billing currentUser={currentUser} />
-      case 'shifts':      return <Shifts currentUser={currentUser} />
-      case 'my-profile':  return <MyProfile currentUser={currentUser} />
-      case 'rooms':       return <Rooms currentUser={currentUser} />
-      case 'lab-results': return <LabResults currentUser={currentUser} />
-      case 'reports':     return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'auditlog':    return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'users':       return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      default:            return <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'dashboard':     return <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'patients':      return <Patients currentUser={currentUser} onNavigate={navigate} />
+      case 'doctors':       return <Doctors currentUser={currentUser} />
+      case 'appointments':  return <Appointments currentUser={currentUser} />
+      case 'departments':   return <Departments currentUser={currentUser} />
+      case 'calendar':      return <CalendarPage onNavigate={navigate} />
+      case 'inventory':     return <Inventory currentUser={currentUser} />
+      case 'messages':      return <Messages currentUser={currentUser} />
+      case 'billing':       return <Billing currentUser={currentUser} />
+      case 'shifts':        return <Shifts currentUser={currentUser} />
+      case 'my-profile':    return <MyProfile currentUser={currentUser} />
+      case 'rooms':         return <Rooms currentUser={currentUser} />
+      case 'lab-results':   return <LabResults currentUser={currentUser} />
+      case 'queue':         return <Queue currentUser={currentUser} />
+      case 'prescriptions': return <Prescriptions currentUser={currentUser} />
+      case 'expenses':      return currentUser.role === 'Admin' ? <Expenses /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'reports':       return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'auditlog':      return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'users':         return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      default:              return <Dashboard onNavigate={navigate} currentUser={currentUser} />
     }
   }
 
@@ -128,7 +140,7 @@ function AppContent() {
         <main className="flex-1 pt-16 px-4 md:px-6 py-6 overflow-y-auto">
           {renderPage()}
         </main>
-        <footer className="px-6 py-3 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
+        <footer className="px-6 py-3 border-t border-slate-200 bg-white text-center text-xs text-slate-400 no-print">
           Copyright © 2025 MedCore. All rights reserved. ·{' '}
           <span className="text-teal-500 cursor-pointer hover:underline">Privacy Policy</span> ·{' '}
           <span className="text-teal-500 cursor-pointer hover:underline">Terms and conditions</span>
@@ -140,8 +152,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </ThemeProvider>
   )
 }

@@ -19,6 +19,8 @@ const state = {
   shifts:         [],
   rooms:          [],
   labResults:     [],
+  prescriptions:  [],
+  expenses:       [],
   loading:        true,
 }
 
@@ -57,9 +59,11 @@ export function initSubscriptions() {
   const qS  = query(collection(db, 'shifts'),          orderBy('createdAt', 'asc'))
   const qRm = query(collection(db, 'rooms'),           orderBy('createdAt', 'desc'))
   const qLr = query(collection(db, 'labResults'),      orderBy('date', 'desc'))
+  const qRx = query(collection(db, 'prescriptions'),   orderBy('date', 'desc'))
+  const qEx = query(collection(db, 'expenses'),        orderBy('date', 'desc'))
 
   let loaded = 0
-  function checkAll() { if (++loaded >= 12) { state.loading = false; notify() } }
+  function checkAll() { if (++loaded >= 14) { state.loading = false; notify() } }
 
   _unsubs.push(
     onSnapshot(qP,  snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
@@ -74,6 +78,8 @@ export function initSubscriptions() {
     onSnapshot(qS,  snap => { state.shifts         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
     onSnapshot(qRm, snap => { state.rooms          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
     onSnapshot(qLr, snap => { state.labResults     = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qRx, snap => { state.prescriptions  = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qEx, snap => { state.expenses       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
   )
 }
 
@@ -83,7 +89,8 @@ export function clearSubscriptions() {
   Object.assign(state, {
     patients: [], doctors: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
-    billing: [], shifts: [], rooms: [], labResults: [], loading: true,
+    billing: [], shifts: [], rooms: [], labResults: [],
+    prescriptions: [], expenses: [], loading: true,
   })
   notify()
 }
@@ -336,6 +343,34 @@ export const store = {
   async deleteShift(id) {
     await deleteDoc(doc(db, 'shifts', id))
   },
+
+  async addPrescription(data) {
+    const ref = await addDoc(collection(db, 'prescriptions'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Prescription', `${data.patientName}`)
+    return ref
+  },
+  async updatePrescription(id, data) {
+    await updateDoc(doc(db, 'prescriptions', id), stripMeta(data))
+    logAudit('Updated', 'Prescription', data.patientName)
+  },
+  async deletePrescription(id) {
+    await deleteDoc(doc(db, 'prescriptions', id))
+    logAudit('Deleted', 'Prescription', id)
+  },
+
+  async addExpense(data) {
+    const ref = await addDoc(collection(db, 'expenses'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Expense', data.description)
+    return ref
+  },
+  async updateExpense(id, data) {
+    await updateDoc(doc(db, 'expenses', id), stripMeta(data))
+    logAudit('Updated', 'Expense', data.description)
+  },
+  async deleteExpense(id) {
+    await deleteDoc(doc(db, 'expenses', id))
+    logAudit('Deleted', 'Expense', id)
+  },
 }
 
 export function useStore() {
@@ -355,9 +390,12 @@ export function useStore() {
     users:          state.users,
     medicalRecords: state.medicalRecords,
     billing:        state.billing,
+    invoices:       state.billing,
     shifts:         state.shifts,
     rooms:          state.rooms,
     labResults:     state.labResults,
+    prescriptions:  state.prescriptions,
+    expenses:       state.expenses,
     loading:        state.loading,
   }
 }
