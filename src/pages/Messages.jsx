@@ -139,7 +139,7 @@ export default function Messages({ currentUser }) {
         </div>
       </div>
 
-      <div className="w-56 flex-shrink-0 flex flex-col gap-4">
+      <div className="hidden lg:flex w-56 flex-shrink-0 flex-col gap-4">
         <div className="card p-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Staff Members</p>
           <div className="flex flex-col gap-2">

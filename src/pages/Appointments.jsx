@@ -36,8 +36,8 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
         <input className="input-field" placeholder="e.g. Dr. Sarah Lee" value={form.doctorName} onChange={set('doctorName')} list="doctor-suggestions" />
         <datalist id="doctor-suggestions">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-3 sm:col-span-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
           <input className="input-field" type="date" value={form.date} onChange={set('date')} />
         </div>

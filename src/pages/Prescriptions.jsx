@@ -20,24 +20,24 @@ const EMPTY_FORM = {
 function MedRow({ med, idx, onChange, onRemove, canRemove }) {
   const set = k => e => onChange(idx, { ...med, [k]: e.target.value })
   return (
-    <div className="grid grid-cols-12 gap-2 items-start">
-      <div className="col-span-4">
+    <div className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-start">
+      <div className="col-span-2 sm:col-span-4">
         <input className="input-field" placeholder="Medication name" value={med.name} onChange={set('name')} />
       </div>
-      <div className="col-span-2">
+      <div className="col-span-1 sm:col-span-2">
         <input className="input-field" placeholder="Dosage e.g. 500mg" value={med.dosage} onChange={set('dosage')} />
       </div>
-      <div className="col-span-3">
+      <div className="col-span-1 sm:col-span-3">
         <select className="input-field" value={med.frequency} onChange={set('frequency')}>
           {FREQUENCIES.map(f => <option key={f}>{f}</option>)}
         </select>
       </div>
-      <div className="col-span-2">
+      <div className="col-span-1 sm:col-span-2">
         <select className="input-field" value={med.duration} onChange={set('duration')}>
           {DURATIONS.map(d => <option key={d}>{d}</option>)}
         </select>
       </div>
-      <div className="col-span-1 flex items-center justify-center pt-2.5">
+      <div className="col-span-1 sm:col-span-1 flex items-center justify-center pt-2.5">
         {canRemove && (
           <button type="button" onClick={() => onRemove(idx)} className="text-slate-300 hover:text-red-400 transition-colors">
             <Trash2 size={14} />
@@ -85,7 +85,7 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
             <Plus size={11} /> Add Medication
           </button>
         </div>
-        <div className="grid grid-cols-12 gap-2 mb-1 px-0.5">
+        <div className="hidden sm:grid grid-cols-12 gap-2 mb-1 px-0.5">
           {['Name', 'Dosage', 'Frequency', 'Duration', ''].map((h, i) => (
             <div key={i} className={`text-[9px] font-bold text-slate-400 uppercase tracking-wide ${i === 0 ? 'col-span-4' : i === 1 ? 'col-span-2' : i === 2 ? 'col-span-3' : i === 3 ? 'col-span-2' : 'col-span-1'}`}>{h}</div>
           ))}

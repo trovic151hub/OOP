@@ -96,7 +96,7 @@ export default function Register({ onSwitch }) {
               <label className="label">Email Address</label>
               <input type="email" value={form.email} onChange={set('email')} placeholder="Input your email" className="input-field" autoComplete="email" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="label">Password</label>
                 <div className="relative">

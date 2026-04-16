@@ -210,7 +210,8 @@ export default function Expenses() {
       </div>
 
       <div className="card overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px]">
           <thead><tr>
             {['Description','Category','Amount','Date','Status','Vendor',''].map(h => <th key={h} className="table-th">{h}</th>)}
           </tr></thead>
@@ -244,6 +245,7 @@ export default function Expenses() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Expense' : 'Add Expense'} icon={TrendingDown} accentColor="teal">

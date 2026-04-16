@@ -157,7 +157,7 @@ export default function StaffPerformance() {
           <h2 className="text-xl font-bold text-slate-800">Staff Performance</h2>
           <p className="text-sm text-slate-400 mt-0.5">{doctors.length} doctors · {overallRate}% overall completion rate</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs text-slate-500 font-medium">Sort by:</span>
           {[
             { key: 'appointments', label: 'Appointments' },
