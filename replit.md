@@ -40,6 +40,7 @@ A full-featured hospital management system built with React + Vite + Tailwind CS
 | Billing | `billing` | Admin, Receptionist |
 | Messages | `messages` | All |
 | User Management | `users` | Admin only |
+| Reports & Analytics | `reports` | Admin only |
 | Audit Log | `auditlog` | Admin only |
 
 ### Firestore Collections (10 real-time subscriptions)

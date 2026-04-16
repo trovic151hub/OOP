@@ -19,6 +19,7 @@ import UsersPage from './pages/UsersPage'
 import Billing from './pages/Billing'
 import AuditLog from './pages/AuditLog'
 import Shifts from './pages/Shifts'
+import Reports from './pages/Reports'
 
 function AppContent() {
   const [authUser, setAuthUser]         = useState(undefined)
@@ -83,6 +84,7 @@ function AppContent() {
       case 'messages':     return <Messages currentUser={currentUser} />
       case 'billing':      return <Billing currentUser={currentUser} />
       case 'shifts':       return <Shifts currentUser={currentUser} />
+      case 'reports':      return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
       case 'auditlog':     return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
       case 'users':        return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
       default:             return <Dashboard onNavigate={navigate} currentUser={currentUser} />

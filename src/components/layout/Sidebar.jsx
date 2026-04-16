@@ -2,7 +2,7 @@ import React from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
-  UserCog, DollarSign, ClipboardList, Clock, X
+  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2
 } from 'lucide-react'
 import { store } from '../../store/useStore'
 
@@ -18,6 +18,7 @@ const ALL_NAV = [
   { id: 'billing',      label: 'Billing',         icon: DollarSign,      roles: ['Admin','Receptionist'] },
   { id: 'messages',     label: 'Messages',        icon: MessageSquare,   roles: ['Admin','Doctor','Receptionist'] },
   { id: 'users',        label: 'User Management', icon: UserCog,         roles: ['Admin'] },
+  { id: 'reports',      label: 'Reports',         icon: BarChart2,       roles: ['Admin'] },
   { id: 'auditlog',     label: 'Audit Log',       icon: ClipboardList,   roles: ['Admin'] },
 ]
 

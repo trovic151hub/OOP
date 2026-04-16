@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   collection, addDoc, updateDoc, deleteDoc,
-  doc, onSnapshot, query, orderBy, setDoc, getDoc, getDocs, limit
+  doc, onSnapshot, query, orderBy, where, setDoc, getDoc, getDocs, limit
 } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
 import { db, auth } from '../firebase'
@@ -95,7 +95,7 @@ export async function ensureUserProfile(firebaseUser) {
       uid:       firebaseUser.uid,
       name:      firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
       email:     firebaseUser.email,
-      role:      'Admin',
+      role:      'Receptionist',
       createdAt: new Date().toISOString(),
     })
   }
@@ -124,6 +124,10 @@ export const store = {
     logAudit('Updated', 'Patient', data.name)
   },
   async deletePatient(id, name) {
+    const apptSnap = await getDocs(query(collection(db, 'appointments'), where('patientName', '==', name)))
+    await Promise.all(apptSnap.docs.map(d => deleteDoc(d.ref)))
+    const recSnap = await getDocs(query(collection(db, 'medicalRecords'), where('patientId', '==', id)))
+    await Promise.all(recSnap.docs.map(d => deleteDoc(d.ref)))
     await deleteDoc(doc(db, 'patients', id))
     logAudit('Deleted', 'Patient', name || id)
   },
@@ -138,6 +142,10 @@ export const store = {
     logAudit('Updated', 'Doctor', data.name)
   },
   async deleteDoctor(id, name) {
+    const apptSnap = await getDocs(query(collection(db, 'appointments'), where('doctorName', '==', name)))
+    await Promise.all(apptSnap.docs.map(d => deleteDoc(d.ref)))
+    const shiftSnap = await getDocs(query(collection(db, 'shifts'), where('doctorId', '==', id)))
+    await Promise.all(shiftSnap.docs.map(d => deleteDoc(d.ref)))
     await deleteDoc(doc(db, 'doctors', id))
     logAudit('Deleted', 'Doctor', name || id)
   },
@@ -181,6 +189,23 @@ export const store = {
   async deleteInventoryItem(id, name) {
     await deleteDoc(doc(db, 'inventory', id))
     logAudit('Deleted', 'Inventory', name || id)
+  },
+
+  async deductInventoryForPrescription(prescriptionText) {
+    if (!prescriptionText || !prescriptionText.trim()) return []
+    const snap = await getDocs(collection(db, 'inventory'))
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    const lower = prescriptionText.toLowerCase()
+    const deducted = []
+    for (const item of items) {
+      if (item.name && lower.includes(item.name.toLowerCase()) && (item.stock || 0) > 0) {
+        const newStock = Math.max(0, (item.stock || 0) - 1)
+        await updateDoc(doc(db, 'inventory', item.id), { stock: newStock })
+        logAudit('Deducted', 'Inventory', `${item.name} (Rx)`)
+        deducted.push(item.name)
+      }
+    }
+    return deducted
   },
 
   async sendMessage(text, senderName, senderRole) {

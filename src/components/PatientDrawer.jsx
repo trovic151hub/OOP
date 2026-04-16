@@ -74,7 +74,16 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
   async function saveRecord() {
     if (!recForm.date) { showToast('Date is required.', 'error'); return }
     await store.addMedicalRecord({ ...recForm, patientId: patient.id, patientName: patient.name })
-    showToast('Record added.')
+    if (recForm.prescription) {
+      const deducted = await store.deductInventoryForPrescription(recForm.prescription)
+      if (deducted.length > 0) {
+        showToast(`Record added. Inventory updated: ${deducted.join(', ')}.`, 'success')
+      } else {
+        showToast('Record added.', 'success')
+      }
+    } else {
+      showToast('Record added.', 'success')
+    }
     setRecForm(EMPTY_REC)
     setAddRec(false)
   }
