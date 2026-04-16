@@ -237,27 +237,38 @@ export const store = {
     await updateDoc(doc(db, 'users', uid), { role })
     logAudit('Role Changed', 'User', `${uid} → ${role}`)
     if (role === 'Doctor') {
-      const existing = await getDocs(query(collection(db, 'doctors'), where('uid', '==', uid)))
-      if (existing.empty) {
-        const userSnap = await getDoc(doc(db, 'users', uid))
-        if (userSnap.exists()) {
-          const u = userSnap.data()
-          await addDoc(collection(db, 'doctors'), {
-            uid:          uid,
-            name:         u.name || 'Doctor',
-            email:        u.email || '',
-            phone:        u.phone || '',
-            specialty:    '',
-            department:   '',
-            availability: 'Available',
-            schedule:     '',
-            about:        '',
-            experience:   '',
-            createdAt:    new Date().toISOString(),
-          })
-        }
+      const byUid = await getDocs(query(collection(db, 'doctors'), where('uid', '==', uid)))
+      if (!byUid.empty) return
+      const userSnap = await getDoc(doc(db, 'users', uid))
+      if (!userSnap.exists()) return
+      const u = userSnap.data()
+      const byEmail = u.email
+        ? await getDocs(query(collection(db, 'doctors'), where('email', '==', u.email)))
+        : { empty: true }
+      if (!byEmail.empty) {
+        await updateDoc(byEmail.docs[0].ref, { uid })
+        logAudit('Linked', 'Doctor Profile', `${u.email} → uid:${uid}`)
+        return
       }
+      await addDoc(collection(db, 'doctors'), {
+        uid,
+        name:         u.name  || 'Doctor',
+        email:        u.email || '',
+        phone:        u.phone || '',
+        specialty:    '',
+        department:   '',
+        availability: 'Available',
+        schedule:     '',
+        about:        '',
+        experience:   '',
+        createdAt:    new Date().toISOString(),
+      })
     }
+  },
+
+  async linkDoctorToUser(doctorId, uid) {
+    await updateDoc(doc(db, 'doctors', doctorId), { uid })
+    logAudit('Linked', 'Doctor Profile', `doctorId:${doctorId} → uid:${uid}`)
   },
 
   async addMedicalRecord(data) {
