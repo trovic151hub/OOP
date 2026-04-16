@@ -21,6 +21,8 @@ import AuditLog from './pages/AuditLog'
 import Shifts from './pages/Shifts'
 import Reports from './pages/Reports'
 import MyProfile from './pages/MyProfile'
+import Rooms from './pages/Rooms'
+import LabResults from './pages/LabResults'
 
 function AppContent() {
   const [authUser, setAuthUser]     = useState(undefined)
@@ -95,6 +97,8 @@ function AppContent() {
       case 'billing':     return <Billing currentUser={currentUser} />
       case 'shifts':      return <Shifts currentUser={currentUser} />
       case 'my-profile':  return <MyProfile currentUser={currentUser} />
+      case 'rooms':       return <Rooms currentUser={currentUser} />
+      case 'lab-results': return <LabResults currentUser={currentUser} />
       case 'reports':     return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
       case 'auditlog':    return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
       case 'users':       return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />

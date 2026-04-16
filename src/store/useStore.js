@@ -17,6 +17,8 @@ const state = {
   medicalRecords: [],
   billing:        [],
   shifts:         [],
+  rooms:          [],
+  labResults:     [],
   loading:        true,
 }
 
@@ -53,9 +55,11 @@ export function initSubscriptions() {
   const qR  = query(collection(db, 'medicalRecords'),  orderBy('date', 'desc'))
   const qB  = query(collection(db, 'billing'),         orderBy('createdAt', 'desc'))
   const qS  = query(collection(db, 'shifts'),          orderBy('createdAt', 'asc'))
+  const qRm = query(collection(db, 'rooms'),           orderBy('createdAt', 'desc'))
+  const qLr = query(collection(db, 'labResults'),      orderBy('date', 'desc'))
 
   let loaded = 0
-  function checkAll() { if (++loaded >= 10) { state.loading = false; notify() } }
+  function checkAll() { if (++loaded >= 12) { state.loading = false; notify() } }
 
   _unsubs.push(
     onSnapshot(qP,  snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
@@ -68,6 +72,8 @@ export function initSubscriptions() {
     onSnapshot(qR,  snap => { state.medicalRecords = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
     onSnapshot(qB,  snap => { state.billing        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
     onSnapshot(qS,  snap => { state.shifts         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qRm, snap => { state.rooms          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qLr, snap => { state.labResults     = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
   )
 }
 
@@ -77,7 +83,7 @@ export function clearSubscriptions() {
   Object.assign(state, {
     patients: [], doctors: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
-    billing: [], shifts: [], loading: true,
+    billing: [], shifts: [], rooms: [], labResults: [], loading: true,
   })
   notify()
 }
@@ -271,6 +277,33 @@ export const store = {
     logAudit('Linked', 'Doctor Profile', `doctorId:${doctorId} → uid:${uid}`)
   },
 
+  async addRoom(data) {
+    const ref = await addDoc(collection(db, 'rooms'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Room', data.roomNumber || data.name)
+    return ref
+  },
+  async updateRoom(id, data) {
+    await updateDoc(doc(db, 'rooms', id), stripMeta(data))
+    logAudit('Updated', 'Room', data.roomNumber || data.name)
+  },
+  async deleteRoom(id, label) {
+    await deleteDoc(doc(db, 'rooms', id))
+    logAudit('Deleted', 'Room', label || id)
+  },
+
+  async addLabResult(data) {
+    const ref = await addDoc(collection(db, 'labResults'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Lab Result', `${data.testName} - ${data.patientName}`)
+    return ref
+  },
+  async updateLabResult(id, data) {
+    await updateDoc(doc(db, 'labResults', id), stripMeta(data))
+  },
+  async deleteLabResult(id) {
+    await deleteDoc(doc(db, 'labResults', id))
+    logAudit('Deleted', 'Lab Result', id)
+  },
+
   async addMedicalRecord(data) {
     return addDoc(collection(db, 'medicalRecords'), { ...data, createdAt: new Date().toISOString() })
   },
@@ -323,6 +356,8 @@ export function useStore() {
     medicalRecords: state.medicalRecords,
     billing:        state.billing,
     shifts:         state.shifts,
+    rooms:          state.rooms,
+    labResults:     state.labResults,
     loading:        state.loading,
   }
 }

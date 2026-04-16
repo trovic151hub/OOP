@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Calendar, Filter, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Calendar, Filter, Download, UserCheck, PlayCircle, CheckCheck, X as XIcon, Stethoscope } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
@@ -13,6 +13,14 @@ import { exportAppointments } from '../utils/exportCSV'
 
 const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled' }
 const APPT_TYPES = ['Consultation','Follow-up','Surgery','Telemedicine','Check-up']
+
+const STATUS_ACTIONS = {
+  'Scheduled':   { label: 'Check In',    icon: UserCheck,  next: 'Checked In',  color: 'bg-violet-50 text-violet-600 hover:bg-violet-100 border-violet-200' },
+  'Checked In':  { label: 'Start',       icon: PlayCircle, next: 'In Progress',  color: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200' },
+  'In Progress': { label: 'Complete',    icon: CheckCheck, next: 'Completed',    color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200' },
+  'Completed':   null,
+  'Cancelled':   null,
+}
 
 function AppointmentForm({ form, setForm, patients, doctors }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -67,24 +75,38 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
 export default function Appointments({ currentUser }) {
   const { appointments, patients, doctors, loading } = useStore()
   const showToast = useToast()
-  const [search, setSearch]         = useState('')
+
+  const [search, setSearch]             = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
-  const [filterType, setFilterType] = useState('All')
-  const [modal, setModal]           = useState(false)
-  const [editId, setEditId]         = useState(null)
-  const [form, setForm]             = useState(EMPTY_FORM)
-  const [confirmId, setConfirmId]   = useState(null)
+  const [filterType, setFilterType]     = useState('All')
+  const [myOnly, setMyOnly]             = useState(currentUser?.role === 'Doctor')
+  const [modal, setModal]               = useState(false)
+  const [editId, setEditId]             = useState(null)
+  const [form, setForm]                 = useState(EMPTY_FORM)
+  const [confirmId, setConfirmId]       = useState(null)
   const [confirmLabel, setConfirmLabel] = useState('')
 
-  const filtered = appointments.filter(a => {
+  const isDoctor = currentUser?.role === 'Doctor'
+  const linkedDoctor = isDoctor ? doctors.find(d => d.uid === currentUser?.uid) : null
+  const myDoctorName = linkedDoctor?.name || ''
+
+  const visibleAppts = myOnly && myDoctorName
+    ? appointments.filter(a => a.doctorName === myDoctorName)
+    : appointments
+
+  const filtered = visibleAppts.filter(a => {
     const q = search.toLowerCase()
     const matchSearch = a.patientName?.toLowerCase().includes(q) || a.doctorName?.toLowerCase().includes(q) || a.notes?.toLowerCase().includes(q)
     const matchStatus = filterStatus === 'All' || a.status === filterStatus
-    const matchType = filterType === 'All' || a.type === filterType
+    const matchType   = filterType === 'All' || a.type === filterType
     return matchSearch && matchStatus && matchType
   })
 
-  function openAdd() { setForm(EMPTY_FORM); setEditId(null); setModal(true) }
+  function openAdd() {
+    setForm({ ...EMPTY_FORM, doctorName: isDoctor ? myDoctorName : '' })
+    setEditId(null)
+    setModal(true)
+  }
   function openEdit(a) { setForm({ ...EMPTY_FORM, ...a }); setEditId(a.id); setModal(true) }
 
   function handleSubmit() {
@@ -95,22 +117,41 @@ export default function Appointments({ currentUser }) {
     setModal(false)
   }
 
-  function handleCycleStatus(a) {
+  function advanceStatus(a) {
     const next = cycleStatus(a.status)
+    if (next === a.status) return
     store.updateAppointment(a.id, { status: next })
-    showToast(`Status changed to ${next}.`, 'info')
+    showToast(`${a.patientName} → ${next}`, 'info')
+  }
+
+  function cancelAppt(a) {
+    store.updateAppointment(a.id, { status: 'Cancelled' })
+    showToast(`Appointment cancelled.`, 'info')
   }
 
   if (loading) return <SkeletonTable rows={6} cols={7} />
 
+  const statusCounts = APPOINTMENT_STATUSES.reduce((acc, s) => {
+    acc[s] = appointments.filter(a => a.status === s).length
+    return acc
+  }, {})
+
+  const STATUS_COLORS = {
+    'Scheduled':   'text-teal-600 bg-teal-50',
+    'Checked In':  'text-violet-600 bg-violet-50',
+    'In Progress': 'text-blue-600 bg-blue-50',
+    'Completed':   'text-emerald-600 bg-emerald-50',
+    'Cancelled':   'text-red-500 bg-red-50',
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Appointments</h2>
           <p className="text-sm text-slate-400 mt-0.5">{appointments.length} total appointments</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportAppointments(appointments)} className="btn-ghost text-xs">
             <Download size={13} /> Export CSV
           </button>
@@ -120,15 +161,13 @@ export default function Appointments({ currentUser }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
         {APPOINTMENT_STATUSES.map(s => {
-          const count = appointments.filter(a => a.status === s).length
-          const colors = { Scheduled:'text-teal-600 bg-teal-50', Ongoing:'text-blue-600 bg-blue-50', Completed:'text-emerald-600 bg-emerald-50', Cancelled:'text-red-500 bg-red-50' }
-          const [tc, bc] = (colors[s] || 'text-slate-600 bg-slate-50').split(' ')
+          const [tc, bc] = (STATUS_COLORS[s] || 'text-slate-600 bg-slate-50').split(' ')
           return (
             <div key={s} className="card p-4">
               <p className="text-xs font-semibold text-slate-400 mb-1">{s}</p>
-              <p className={`text-2xl font-extrabold ${tc}`}>{count}</p>
+              <p className={`text-2xl font-extrabold ${tc}`}>{statusCounts[s]}</p>
             </div>
           )
         })}
@@ -136,7 +175,16 @@ export default function Appointments({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder="Search by patient or doctor…" className="flex-1 min-w-48" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isDoctor && (
+            <button
+              onClick={() => setMyOnly(v => !v)}
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border transition-colors ${myOnly ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Stethoscope size={12} />
+              {myOnly ? 'My Appointments' : 'All Appointments'}
+            </button>
+          )}
           <Filter size={14} className="text-slate-400" />
           <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
             <option value="All">All Status</option>
@@ -155,19 +203,18 @@ export default function Appointments({ currentUser }) {
             <thead className="bg-slate-50">
               <tr>
                 <th className="table-th">Patient</th>
-                <th className="table-th">Phone</th>
                 <th className="table-th">Doctor</th>
                 <th className="table-th">Type</th>
-                <th className="table-th">Notes</th>
                 <th className="table-th">Date &amp; Time</th>
                 <th className="table-th">Status</th>
-                <th className="table-th text-right">Actions</th>
+                <th className="table-th">Quick Action</th>
+                <th className="table-th text-right">Edit / Del</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center">
+                  <td colSpan={7} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
                       <Calendar size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No appointments yet'}</p>
@@ -178,6 +225,8 @@ export default function Appointments({ currentUser }) {
               ) : filtered.map(a => {
                 const pat = patients.find(p => p.name === a.patientName)
                 const doc = doctors.find(d => d.name === a.doctorName)
+                const action = STATUS_ACTIONS[a.status]
+                const ActionIcon = action?.icon
                 return (
                   <tr key={a.id} className="table-row">
                     <td className="table-td">
@@ -185,23 +234,44 @@ export default function Appointments({ currentUser }) {
                         <Avatar name={a.patientName} size="sm" />
                         <div>
                           <p className="font-semibold text-slate-800 text-sm">{a.patientName}</p>
-                          <p className="text-xs text-slate-400">#{a.id?.slice(-6).toUpperCase()}</p>
+                          <p className="text-xs text-slate-400">{pat?.phone || '—'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="table-td text-slate-500 text-xs">{pat?.phone || '—'}</td>
                     <td className="table-td">
                       <p className="text-sm font-medium text-slate-700">{a.doctorName}</p>
                       <p className="text-xs text-slate-400">{doc?.specialty || '—'}</p>
                     </td>
-                    <td className="table-td text-slate-500">{a.type || '—'}</td>
-                    <td className="table-td text-slate-400 text-xs max-w-32 truncate">{a.notes ? `📋 ${a.notes}` : '—'}</td>
+                    <td className="table-td text-slate-500 text-sm">{a.type || '—'}</td>
                     <td className="table-td text-slate-600 text-xs whitespace-nowrap">
                       {a.date ? formatDate(a.date) : '—'}
                       {a.timeStart && <><br /><span className="text-slate-400">{a.timeStart}{a.timeEnd ? ` – ${a.timeEnd}` : ''}</span></>}
                     </td>
                     <td className="table-td">
-                      <Badge status={a.status} clickable onClick={() => handleCycleStatus(a)} />
+                      <Badge status={a.status} />
+                    </td>
+                    <td className="table-td">
+                      <div className="flex items-center gap-1">
+                        {action ? (
+                          <button
+                            onClick={() => advanceStatus(a)}
+                            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${action.color}`}
+                          >
+                            <ActionIcon size={11} /> {action.label}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-300">—</span>
+                        )}
+                        {(a.status === 'Scheduled' || a.status === 'Checked In') && (
+                          <button
+                            onClick={() => cancelAppt(a)}
+                            title="Cancel appointment"
+                            className="p-1.5 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-400 transition-colors"
+                          >
+                            <XIcon size={12} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="table-td text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -221,7 +291,7 @@ export default function Appointments({ currentUser }) {
         </div>
         {filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
-            Showing {filtered.length} of {appointments.length} appointments · Click a status badge to cycle it
+            Showing {filtered.length} of {visibleAppts.length} appointments · Use Quick Action to advance status
           </div>
         )}
       </div>

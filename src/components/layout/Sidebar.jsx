@@ -2,7 +2,8 @@ import React from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
-  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2, UserCircle
+  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2,
+  UserCircle, BedDouble, FlaskConical
 } from 'lucide-react'
 import { store } from '../../store/useStore'
 
@@ -13,6 +14,8 @@ const ALL_NAV = [
   { id: 'patients',     label: 'Patients',        icon: Users,           roles: ['Admin','Doctor','Receptionist'] },
   { id: 'doctors',      label: 'Doctors',         icon: Stethoscope,     roles: ['Admin','Receptionist'] },
   { id: 'departments',  label: 'Departments',     icon: Building2,       roles: ['Admin','Receptionist'] },
+  { id: 'rooms',        label: 'Rooms & Beds',    icon: BedDouble,       roles: ['Admin','Receptionist'] },
+  { id: 'lab-results',  label: 'Lab Results',     icon: FlaskConical,    roles: ['Admin','Doctor','Receptionist'] },
   { id: 'calendar',     label: 'Calendar',        icon: CalendarDays,    roles: ['Admin','Doctor','Receptionist'] },
   { id: 'shifts',       label: 'Shifts',          icon: Clock,           roles: ['Admin','Doctor','Receptionist'] },
   { id: 'inventory',    label: 'Inventory',       icon: Package,         roles: ['Admin'] },

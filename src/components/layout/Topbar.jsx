@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, Bell, Menu, X, AlertTriangle, Package, Calendar, MessageSquare, ChevronRight } from 'lucide-react'
+import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import Avatar from '../ui/Avatar'
 
@@ -14,10 +14,12 @@ const PAGE_LABELS = {
   messages:     'Messages',
   billing:      'Billing',
   shifts:       'Shifts',
-  'my-profile':  'My Profile',
-  reports:       'Reports & Analytics',
-  auditlog:      'Audit Log',
-  users:         'User Management',
+  'my-profile':   'My Profile',
+  rooms:          'Rooms & Beds',
+  'lab-results':  'Lab Results',
+  reports:        'Reports & Analytics',
+  auditlog:       'Audit Log',
+  users:          'User Management',
 }
 
 function useDebounce(value, delay = 300) {
@@ -30,7 +32,7 @@ function useDebounce(value, delay = 300) {
 }
 
 export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle }) {
-  const { patients, doctors, appointments, inventory, messages } = useStore()
+  const { patients, doctors, appointments, inventory, messages, labResults } = useStore()
   const [search, setSearch]             = useState('')
   const [searchOpen, setSearchOpen]     = useState(false)
   const [notifOpen, setNotifOpen]       = useState(false)
@@ -61,9 +63,11 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     if (q <= r) return 'Low Stock'
     return 'In Stock'
   }
-  const lowStockItems = inventory.filter(i => getStockStatus(i.quantity, i.reorderLevel) !== 'In Stock')
-  const recentMessages = messages.slice(-3).reverse()
-  const totalNotifs = upcomingToday.length + lowStockItems.length
+  const lowStockItems    = inventory.filter(i => getStockStatus(i.quantity, i.reorderLevel) !== 'In Stock')
+  const checkedInPats    = appointments.filter(a => a.status === 'Checked In' && a.date === today)
+  const abnormalLabs     = labResults.filter(l => l.status === 'Abnormal')
+  const recentMessages   = messages.slice(-3).reverse()
+  const totalNotifs      = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
 
   function markRead() {
     const now = new Date().toISOString()
@@ -200,6 +204,44 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
                         <p className="text-xs text-slate-400 truncate">Dr. {a.doctorName} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {checkedInPats.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-[10px] font-bold text-violet-400 uppercase tracking-wide bg-violet-50">
+                    Patients Checked In — Waiting
+                  </div>
+                  {checkedInPats.slice(0, 4).map(a => (
+                    <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('appointments'); setNotifOpen(false) }}>
+                      <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <UserCheck size={13} className="text-violet-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
+                        <p className="text-xs text-violet-600">Checked in · Waiting for {a.doctorName}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {abnormalLabs.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-[10px] font-bold text-red-400 uppercase tracking-wide bg-red-50">
+                    Abnormal Lab Results
+                  </div>
+                  {abnormalLabs.slice(0, 3).map(l => (
+                    <div key={l.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('lab-results'); setNotifOpen(false) }}>
+                      <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <FlaskConical size={13} className="text-red-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">{l.patientName}</p>
+                        <p className="text-xs text-red-500">{l.testName} — Abnormal</p>
                       </div>
                     </div>
                   ))}

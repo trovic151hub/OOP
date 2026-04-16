@@ -1,5 +1,9 @@
 import React, { useEffect, useRef } from 'react'
-import { Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock, CheckCircle, Building2, Package } from 'lucide-react'
+import {
+  Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock,
+  CheckCircle, Building2, Package, AlertTriangle, DollarSign,
+  BedDouble, FlaskConical, UserCheck
+} from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell, Legend
@@ -30,6 +34,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
     purple: { bg: 'bg-purple-50', icon: 'text-purple-600', border: 'border-purple-100' },
     amber:  { bg: 'bg-amber-50',  icon: 'text-amber-600',  border: 'border-amber-100' },
     emerald:{ bg: 'bg-emerald-50',icon: 'text-emerald-600',border: 'border-emerald-100' },
+    red:    { bg: 'bg-red-50',    icon: 'text-red-500',    border: 'border-red-100' },
   }
   const c = colors[color] || colors.teal
 
@@ -65,30 +70,57 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
-export default function Dashboard({ onNavigate, currentUser }) {
-  const { patients, doctors, appointments, departments, inventory } = useStore()
+function fmt(n) { return n >= 1000 ? `$${(n/1000).toFixed(1)}k` : `$${n}` }
 
-  const today = new Date().toISOString().slice(0, 10)
-  const todayAppts = appointments.filter(a => a.date === today)
-  const recentPatients = [...patients].slice(0, 5)
-  const upcomingAppts = appointments.filter(a => a.status === 'Scheduled' || a.status === 'Ongoing').slice(0, 5)
-  const lowStock = inventory.filter(i => parseInt(i.quantity) <= parseInt(i.reorderLevel || 0))
+export default function Dashboard({ onNavigate, currentUser }) {
+  const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults } = useStore()
+
+  const today     = new Date().toISOString().slice(0, 10)
+  const isDoctor  = currentUser?.role === 'Doctor'
+  const linkedDoc = isDoctor ? doctors.find(d => d.uid === currentUser?.uid) : null
+
+  const myAppointments = linkedDoc
+    ? appointments.filter(a => a.doctorName === linkedDoc.name)
+    : appointments
+
+  const todayAppts = myAppointments.filter(a => a.date === today)
+  const myPatientNames = [...new Set(myAppointments.map(a => a.patientName))]
+  const myPatients = isDoctor ? patients.filter(p => myPatientNames.includes(p.name)) : patients
+
+  const recentPatients = [...myPatients].slice(0, 5)
+  const upcomingAppts  = myAppointments.filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress').slice(0, 5)
+
+  const lowStock     = inventory.filter(i => parseInt(i.quantity) <= parseInt(i.reorderLevel || 0))
+  const checkedIn    = appointments.filter(a => a.status === 'Checked In').length
+  const inProgress   = appointments.filter(a => a.status === 'In Progress').length
+
+  const totalRevenue = billing.reduce((s, b) => s + (parseFloat(b.total) || 0), 0)
+  const paidRevenue  = billing.filter(b => b.status === 'Paid').reduce((s, b) => s + (parseFloat(b.total) || 0), 0)
+  const unpaid       = billing.filter(b => b.status !== 'Paid').length
+
+  const vacantRooms  = rooms.filter(r => r.status === 'Vacant').length
+  const occupiedRooms= rooms.filter(r => r.status === 'Occupied').length
+  const pendingLabs  = labResults.filter(l => l.status === 'Pending').length
+  const abnormalLabs = labResults.filter(l => l.status === 'Abnormal').length
 
   const apptStatusData = [
-    { name: 'Scheduled', value: appointments.filter(a => a.status === 'Scheduled').length,  fill: '#0d9488' },
-    { name: 'Ongoing',   value: appointments.filter(a => a.status === 'Ongoing').length,    fill: '#3b82f6' },
-    { name: 'Completed', value: appointments.filter(a => a.status === 'Completed').length,  fill: '#10b981' },
-    { name: 'Cancelled', value: appointments.filter(a => a.status === 'Cancelled').length,  fill: '#ef4444' },
+    { name: 'Scheduled',   value: appointments.filter(a => a.status === 'Scheduled').length,    fill: '#0d9488' },
+    { name: 'Checked In',  value: appointments.filter(a => a.status === 'Checked In').length,   fill: '#8b5cf6' },
+    { name: 'In Progress', value: appointments.filter(a => a.status === 'In Progress').length,  fill: '#3b82f6' },
+    { name: 'Completed',   value: appointments.filter(a => a.status === 'Completed').length,    fill: '#10b981' },
+    { name: 'Cancelled',   value: appointments.filter(a => a.status === 'Cancelled').length,    fill: '#ef4444' },
   ]
 
   const last6Months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(); d.setMonth(d.getMonth() - (5 - i))
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const key   = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const label = d.toLocaleDateString('en-US', { month: 'short' })
+    const rev   = billing.filter(b => b.createdAt?.startsWith(key)).reduce((s, b) => s + (parseFloat(b.total) || 0), 0)
     return {
       month: label,
       Patients:     patients.filter(p => p.createdAt?.startsWith(key)).length,
       Appointments: appointments.filter(a => a.createdAt?.startsWith(key)).length,
+      Revenue:      Math.round(rev),
     }
   })
 
@@ -97,7 +129,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
     { name: 'Admitted',     value: patients.filter(p => p.status === 'Admitted').length,     fill: '#0d9488' },
     { name: 'In Treatment', value: patients.filter(p => p.status === 'In Treatment').length, fill: '#3b82f6' },
     { name: 'Discharged',   value: patients.filter(p => p.status === 'Discharged').length,   fill: '#94a3b8' },
-    { name: 'Critical',     value: patients.filter(p => p.status === 'Critical').length,      fill: '#ef4444' },
+    { name: 'Critical',     value: patients.filter(p => p.status === 'Critical').length,     fill: '#ef4444' },
   ].filter(d => d.value > 0)
 
   const greeting = () => {
@@ -111,23 +143,36 @@ export default function Dashboard({ onNavigate, currentUser }) {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-800">Dashboard</h2>
-        <p className="text-sm text-slate-400 mt-0.5">{greeting()}, {currentUser?.name?.split(' ')[0] || 'there'}! Here's what's happening today.</p>
+        <p className="text-sm text-slate-400 mt-0.5">
+          {greeting()}, {currentUser?.name?.split(' ')[0] || 'there'}!{' '}
+          {isDoctor ? `Here's your schedule for today.` : `Here's what's happening today.`}
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-        <StatCard label="Patients"    value={patients.length}     sub="Registered" icon={Users}       color="blue"    trend={{ up: true, label: '+12%' }} />
-        <StatCard label="Doctors"     value={doctors.length}      sub="On staff"   icon={Stethoscope} color="purple"  trend={{ up: true, label: '+1.5%' }} />
-        <StatCard label="Appointments" value={appointments.length} sub="Total"     icon={Calendar}    color="teal"    trend={{ up: true, label: '+8%' }} />
-        <StatCard label="Departments" value={departments.length}   sub="Active"    icon={Building2}   color="amber" />
-        <StatCard label="Inventory"   value={inventory.length}     sub={`${lowStock.length} low stock`} icon={Package} color="emerald" />
-      </div>
+      {isDoctor ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <StatCard label="My Patients"      value={myPatients.length}  sub="All time"      icon={Users}     color="blue" />
+          <StatCard label="My Appointments"  value={myAppointments.length} sub="All time"   icon={Calendar}  color="teal" />
+          <StatCard label="Today's Schedule" value={todayAppts.length}  sub="Today"         icon={Clock}     color="purple" />
+          <StatCard label="Lab Results"      value={labResults.filter(l => l.orderedBy === linkedDoc?.name).length} sub={`${labResults.filter(l => l.status === 'Pending' && l.orderedBy === linkedDoc?.name).length} pending`} icon={FlaskConical} color="amber" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={{ up: true, label: '+12%' }} />
+          <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={{ up: true, label: '+1.5%' }} />
+          <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={{ up: true, label: '+8%' }} />
+          <StatCard label="Revenue"     value={Math.round(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={DollarSign} color="emerald" />
+          <StatCard label="Rooms"       value={rooms.length}        sub={`${vacantRooms} vacant · ${occupiedRooms} occupied`} icon={BedDouble}  color="amber" />
+          <StatCard label="Lab Results" value={labResults.length}   sub={`${pendingLabs} pending · ${abnormalLabs} abnormal`} icon={FlaskConical} color="red" />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Today's Appts", value: todayAppts.length,                                        icon: Calendar,    color: 'bg-teal-50 text-teal-600' },
-          { label: 'Completed',     value: todayAppts.filter(a => a.status === 'Completed').length,  icon: CheckCircle, color: 'bg-emerald-50 text-emerald-600' },
-          { label: 'Ongoing',       value: todayAppts.filter(a => a.status === 'Ongoing').length,    icon: Clock,       color: 'bg-blue-50 text-blue-600' },
-          { label: 'Cancelled',     value: todayAppts.filter(a => a.status === 'Cancelled').length,  icon: TrendingDown,color: 'bg-red-50 text-red-500' },
+          { label: "Today's Appts", value: todayAppts.length,                                                color: 'bg-teal-50 text-teal-600',     icon: Calendar },
+          { label: 'Checked In',   value: isDoctor ? todayAppts.filter(a=>a.status==='Checked In').length : checkedIn,   color: 'bg-violet-50 text-violet-600', icon: UserCheck },
+          { label: 'In Progress',  value: isDoctor ? todayAppts.filter(a=>a.status==='In Progress').length : inProgress,  color: 'bg-blue-50 text-blue-600',    icon: Clock },
+          { label: 'Completed',    value: todayAppts.filter(a => a.status === 'Completed').length,          color: 'bg-emerald-50 text-emerald-600', icon: CheckCircle },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="card p-4 flex items-center gap-3">
             <div className={`w-9 h-9 rounded-lg ${color.split(' ')[0]} flex items-center justify-center flex-shrink-0`}>
@@ -141,7 +186,24 @@ export default function Dashboard({ onNavigate, currentUser }) {
         ))}
       </div>
 
-      {/* Charts */}
+      {lowStock.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-bold text-amber-700 mb-1">{lowStock.length} Low Stock Alert{lowStock.length !== 1 ? 's' : ''}</p>
+            <div className="flex flex-wrap gap-2">
+              {lowStock.slice(0, 6).map(i => (
+                <span key={i.id} className="text-xs bg-white border border-amber-200 text-amber-700 font-semibold px-2 py-0.5 rounded-lg">
+                  {i.name} ({i.quantity} {i.unit})
+                </span>
+              ))}
+              {lowStock.length > 6 && <span className="text-xs text-amber-500">+{lowStock.length - 6} more</span>}
+            </div>
+          </div>
+          <button onClick={() => onNavigate('inventory')} className="text-xs text-amber-600 font-bold hover:underline flex-shrink-0">View →</button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         <div className="card p-5 lg:col-span-2">
           <p className="text-sm font-bold text-slate-700 mb-4">Activity — Last 6 Months</p>
@@ -175,55 +237,55 @@ export default function Dashboard({ onNavigate, currentUser }) {
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={apptStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                <Pie data={apptStatusData.filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
                   {apptStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                 </Pie>
                 <Tooltip formatter={(v, n) => [v, n]} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-        <div className="card p-5 lg:col-span-2">
-          <p className="text-sm font-bold text-slate-700 mb-4">Appointment Status Breakdown</p>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={apptStatusData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="value" name="Count" radius={[4, 4, 0, 0]}>
-                {apptStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {patientStatusData.length > 0 ? (
-          <div className="card p-5">
-            <p className="text-sm font-bold text-slate-700 mb-4">Patient Status</p>
+      {!isDoctor && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+          <div className="card p-5 lg:col-span-2">
+            <p className="text-sm font-bold text-slate-700 mb-4">Revenue — Last 6 Months</p>
             <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie data={patientStatusData} cx="50%" cy="50%" outerRadius={65} paddingAngle={2} dataKey="value">
-                  {patientStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-                </Pie>
-                <Tooltip formatter={(v, n) => [v, n]} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
+              <BarChart data={last6Months} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<ChartTooltip />} formatter={(v) => [`$${v}`, 'Revenue']} />
+                <Bar dataKey="Revenue" name="Revenue" fill="#0d9488" radius={[4,4,0,0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
-        ) : (
-          <div className="card p-5 flex items-center justify-center text-slate-300 text-sm">No patient data</div>
-        )}
-      </div>
+
+          {patientStatusData.length > 0 ? (
+            <div className="card p-5">
+              <p className="text-sm font-bold text-slate-700 mb-4">Patient Status</p>
+              <ResponsiveContainer width="100%" height={160}>
+                <PieChart>
+                  <Pie data={patientStatusData} cx="50%" cy="50%" outerRadius={65} paddingAngle={2} dataKey="value">
+                    {patientStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                  </Pie>
+                  <Tooltip formatter={(v, n) => [v, n]} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="card p-5 flex items-center justify-center text-slate-300 text-sm">No patient data</div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <p className="text-sm font-bold text-slate-700">Recent Patients</p>
+            <p className="text-sm font-bold text-slate-700">{isDoctor ? 'My Patients' : 'Recent Patients'}</p>
             <button onClick={() => onNavigate('patients')} className="text-xs text-teal-600 font-semibold hover:underline">View all</button>
           </div>
           {recentPatients.length === 0 ? (
@@ -248,7 +310,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
 
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <p className="text-sm font-bold text-slate-700">Upcoming Appointments</p>
+            <p className="text-sm font-bold text-slate-700">{isDoctor ? 'My Schedule' : 'Upcoming Appointments'}</p>
             <button onClick={() => onNavigate('appointments')} className="text-xs text-teal-600 font-semibold hover:underline">View all</button>
           </div>
           {upcomingAppts.length === 0 ? (
@@ -262,7 +324,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
                     <div>
                       <p className="text-sm font-semibold text-slate-700">{a.patientName}</p>
                       <p className="text-xs text-slate-400">
-                        {a.doctorName} · {a.date ? formatDate(a.date) : 'No date'}
+                        {isDoctor ? '' : `${a.doctorName} · `}{a.date ? formatDate(a.date) : 'No date'}
                         {a.timeStart ? ` · ${a.timeStart}` : ''}
                       </p>
                     </div>
