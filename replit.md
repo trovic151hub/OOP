@@ -16,7 +16,7 @@ A full-featured hospital management system built with React + Vite + Tailwind CS
 | File | Purpose |
 |------|---------|
 | `src/firebase.js` | Firebase config & initialization |
-| `src/store/useStore.js` | Global state + 10 Firestore subscriptions + CRUD + audit logging |
+| `src/store/useStore.js` | Global state + 18 Firestore subscriptions + CRUD + audit logging |
 | `src/App.jsx` | Auth flow, routing, user profile fetch, mobile sidebar state |
 | `src/components/layout/Sidebar.jsx` | Role-based navigation (12 nav items, mobile drawer) |
 | `src/components/layout/Topbar.jsx` | Global search dropdown, notifications panel, mobile menu |

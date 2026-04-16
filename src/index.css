@@ -286,3 +286,57 @@ body {
     display: none !important;
   }
 }
+
+/* ─── Mobile / Tablet Improvements ─── */
+
+/* Safe area for iPhone home indicator */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 767px) {
+  .btn-primary,
+  .btn-ghost {
+    min-height: 44px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .input-field {
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS auto-zoom */
+  }
+
+  select.input-field {
+    font-size: 16px;
+  }
+
+  textarea.input-field {
+    font-size: 16px;
+  }
+
+  /* Main content bottom padding for bottom nav */
+  main {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Table cells: tighten on mobile */
+  .table-th,
+  .table-td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    white-space: nowrap;
+  }
+
+  /* Cards take full width on mobile */
+  .card {
+    border-radius: 12px;
+  }
+
+  /* Modal full-width on mobile */
+  [role="dialog"] {
+    margin: 0.5rem;
+    max-height: calc(100dvh - 1rem);
+  }
+}

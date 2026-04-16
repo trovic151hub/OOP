@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import {
   Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock,
   CheckCircle, Building2, Package, AlertTriangle, DollarSign,
-  BedDouble, FlaskConical, UserCheck
+  BedDouble, FlaskConical, UserCheck, Bell
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -89,6 +89,14 @@ export default function Dashboard({ onNavigate, currentUser }) {
 
   const recentPatients = [...myPatients].slice(0, 5)
   const upcomingAppts  = myAppointments.filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress').slice(0, 5)
+
+  const next7Days = new Date(); next7Days.setDate(next7Days.getDate() + 7)
+  const next7Str  = next7Days.toISOString().slice(0, 10)
+
+  const followUps = appointments.filter(a => a.requiresFollowUp && a.followUpDate)
+  const overdueFollowUps = followUps.filter(a => a.followUpDate < today)
+  const todayFollowUps   = followUps.filter(a => a.followUpDate === today)
+  const upcomingFollowUps = followUps.filter(a => a.followUpDate > today && a.followUpDate <= next7Str)
 
   const lowStock     = inventory.filter(i => parseInt(i.quantity) <= parseInt(i.reorderLevel || 0))
   const checkedIn    = appointments.filter(a => a.status === 'Checked In').length
@@ -185,6 +193,31 @@ export default function Dashboard({ onNavigate, currentUser }) {
           </div>
         ))}
       </div>
+
+      {(overdueFollowUps.length > 0 || todayFollowUps.length > 0 || upcomingFollowUps.length > 0) && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
+          <Bell size={16} className="text-violet-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-xs font-bold text-violet-700">Follow-up Reminders</p>
+              {overdueFollowUps.length > 0 && <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded-full">{overdueFollowUps.length} overdue</span>}
+              {todayFollowUps.length > 0 && <span className="text-[10px] bg-violet-100 text-violet-700 font-bold px-1.5 py-0.5 rounded-full">{todayFollowUps.length} today</span>}
+              {upcomingFollowUps.length > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-full">{upcomingFollowUps.length} this week</span>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[...overdueFollowUps, ...todayFollowUps, ...upcomingFollowUps].slice(0, 6).map(a => (
+                <span key={a.id} className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${a.followUpDate < today ? 'bg-red-50 border-red-200 text-red-700' : a.followUpDate === today ? 'bg-violet-100 border-violet-300 text-violet-800' : 'bg-white border-violet-200 text-violet-700'}`}>
+                  {a.patientName} ({a.followUpDate})
+                </span>
+              ))}
+              {(overdueFollowUps.length + todayFollowUps.length + upcomingFollowUps.length) > 6 && (
+                <span className="text-xs text-violet-400">+{(overdueFollowUps.length + todayFollowUps.length + upcomingFollowUps.length) - 6} more</span>
+              )}
+            </div>
+          </div>
+          <button onClick={() => onNavigate('appointments')} className="text-xs text-violet-600 font-bold hover:underline flex-shrink-0">View →</button>
+        </div>
+      )}
 
       {lowStock.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">

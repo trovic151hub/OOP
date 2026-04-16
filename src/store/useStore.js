@@ -6,6 +6,21 @@ import {
 import { signOut } from 'firebase/auth'
 import { db, auth } from '../firebase'
 
+const DEFAULT_SETTINGS = {
+  hospitalName: 'MedCore Hospital',
+  tagline: 'Excellence in Healthcare',
+  address: '',
+  phone: '',
+  email: '',
+  website: '',
+  timezone: 'UTC',
+  currency: 'USD',
+  workingHoursStart: '08:00',
+  workingHoursEnd: '18:00',
+  appointmentDuration: 30,
+  logo: '',
+}
+
 const state = {
   patients:       [],
   doctors:        [],
@@ -21,6 +36,10 @@ const state = {
   labResults:     [],
   prescriptions:  [],
   expenses:       [],
+  documents:      [],
+  claims:         [],
+  pharmacyOrders: [],
+  settings:       { ...DEFAULT_SETTINGS },
   loading:        true,
 }
 
@@ -61,25 +80,33 @@ export function initSubscriptions() {
   const qLr = query(collection(db, 'labResults'),      orderBy('date', 'desc'))
   const qRx = query(collection(db, 'prescriptions'),   orderBy('date', 'desc'))
   const qEx = query(collection(db, 'expenses'),        orderBy('date', 'desc'))
+  const qDoc = query(collection(db, 'documents'),      orderBy('date', 'desc'))
+  const qCl  = query(collection(db, 'claims'),         orderBy('submittedDate', 'desc'))
+  const qPh  = query(collection(db, 'pharmacyOrders'), orderBy('createdAt', 'desc'))
+  const sRef  = doc(db, 'settings', 'hospital')
 
   let loaded = 0
-  function checkAll() { if (++loaded >= 14) { state.loading = false; notify() } }
+  function checkAll() { if (++loaded >= 18) { state.loading = false; notify() } }
 
   _unsubs.push(
-    onSnapshot(qP,  snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qD,  snap => { state.doctors        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qA,  snap => { state.appointments   = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qDe, snap => { state.departments    = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qI,  snap => { state.inventory      = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qM,  snap => { state.messages       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qU,  snap => { state.users          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qR,  snap => { state.medicalRecords = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qB,  snap => { state.billing        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qS,  snap => { state.shifts         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qRm, snap => { state.rooms          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qLr, snap => { state.labResults     = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qRx, snap => { state.prescriptions  = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qEx, snap => { state.expenses       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qP,   snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qD,   snap => { state.doctors        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qA,   snap => { state.appointments   = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qDe,  snap => { state.departments    = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qI,   snap => { state.inventory      = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qM,   snap => { state.messages       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qU,   snap => { state.users          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qR,   snap => { state.medicalRecords = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qB,   snap => { state.billing        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qS,   snap => { state.shifts         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qRm,  snap => { state.rooms          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qLr,  snap => { state.labResults     = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qRx,  snap => { state.prescriptions  = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qEx,  snap => { state.expenses       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qDoc, snap => { state.documents      = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qCl,  snap => { state.claims         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(qPh,  snap => { state.pharmacyOrders = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
+    onSnapshot(sRef, snap => { state.settings = snap.exists() ? { ...DEFAULT_SETTINGS, ...snap.data() } : { ...DEFAULT_SETTINGS }; checkAll(); notify() }, console.error),
   )
 }
 
@@ -90,7 +117,8 @@ export function clearSubscriptions() {
     patients: [], doctors: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
-    prescriptions: [], expenses: [], loading: true,
+    prescriptions: [], expenses: [], documents: [], claims: [],
+    pharmacyOrders: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
   })
   notify()
 }
@@ -127,6 +155,11 @@ export const store = {
   async logout() {
     clearSubscriptions()
     await signOut(auth)
+  },
+
+  async updateSettings(data) {
+    await setDoc(doc(db, 'settings', 'hospital'), data, { merge: true })
+    logAudit('Updated', 'Settings', 'Hospital Settings')
   },
 
   async addPatient(data) {
@@ -371,6 +404,47 @@ export const store = {
     await deleteDoc(doc(db, 'expenses', id))
     logAudit('Deleted', 'Expense', id)
   },
+
+  async addDocument(data) {
+    const ref = await addDoc(collection(db, 'documents'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Document', `${data.title} - ${data.patientName}`)
+    return ref
+  },
+  async updateDocument(id, data) {
+    await updateDoc(doc(db, 'documents', id), stripMeta(data))
+    logAudit('Updated', 'Document', data.title)
+  },
+  async deleteDocument(id) {
+    await deleteDoc(doc(db, 'documents', id))
+    logAudit('Deleted', 'Document', id)
+  },
+
+  async addClaim(data) {
+    const ref = await addDoc(collection(db, 'claims'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Claim', `${data.patientName} - ${data.insuranceProvider}`)
+    return ref
+  },
+  async updateClaim(id, data) {
+    await updateDoc(doc(db, 'claims', id), stripMeta(data))
+    logAudit('Updated', 'Claim', data.patientName)
+  },
+  async deleteClaim(id) {
+    await deleteDoc(doc(db, 'claims', id))
+    logAudit('Deleted', 'Claim', id)
+  },
+
+  async addPharmacyOrder(data) {
+    const ref = await addDoc(collection(db, 'pharmacyOrders'), { ...data, createdAt: new Date().toISOString() })
+    logAudit('Added', 'Pharmacy Order', data.patientName)
+    return ref
+  },
+  async updatePharmacyOrder(id, data) {
+    await updateDoc(doc(db, 'pharmacyOrders', id), stripMeta(data))
+  },
+  async deletePharmacyOrder(id) {
+    await deleteDoc(doc(db, 'pharmacyOrders', id))
+    logAudit('Deleted', 'Pharmacy Order', id)
+  },
 }
 
 export function useStore() {
@@ -396,6 +470,10 @@ export function useStore() {
     labResults:     state.labResults,
     prescriptions:  state.prescriptions,
     expenses:       state.expenses,
+    documents:      state.documents,
+    claims:         state.claims,
+    pharmacyOrders: state.pharmacyOrders,
+    settings:       state.settings,
     loading:        state.loading,
   }
 }

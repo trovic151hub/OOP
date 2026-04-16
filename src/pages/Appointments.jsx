@@ -11,7 +11,7 @@ import { useToast } from '../context/ToastContext'
 import { formatDate, APPOINTMENT_STATUSES, cycleStatus } from '../utils/helpers'
 import { exportAppointments } from '../utils/exportCSV'
 
-const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled' }
+const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled', requiresFollowUp: false, followUpDate: '', followUpNotes: '' }
 const APPT_TYPES = ['Consultation','Follow-up','Surgery','Telemedicine','Check-up']
 
 const STATUS_ACTIONS = {
@@ -67,6 +67,29 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
       <div>
         <label className="label">Notes / Reason</label>
         <textarea className="input-field resize-none" rows={2} placeholder="Reason for visit, symptoms…" value={form.notes} onChange={set('notes')} />
+      </div>
+      <div className="border border-dashed border-teal-200 rounded-xl p-4 bg-teal-50/40">
+        <label className="flex items-center gap-2.5 cursor-pointer mb-3">
+          <input
+            type="checkbox"
+            className="w-4 h-4 accent-teal-600 cursor-pointer"
+            checked={!!form.requiresFollowUp}
+            onChange={e => setForm(f => ({ ...f, requiresFollowUp: e.target.checked, followUpDate: e.target.checked ? f.followUpDate : '' }))}
+          />
+          <span className="text-sm font-semibold text-slate-700">Requires Follow-up</span>
+        </label>
+        {form.requiresFollowUp && (
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="label">Follow-up Date</label>
+              <input className="input-field" type="date" value={form.followUpDate} onChange={set('followUpDate')} />
+            </div>
+            <div>
+              <label className="label">Follow-up Instructions</label>
+              <textarea className="input-field resize-none" rows={2} placeholder="What should happen at the follow-up…" value={form.followUpNotes} onChange={set('followUpNotes')} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
