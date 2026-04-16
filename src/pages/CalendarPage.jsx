@@ -63,7 +63,7 @@ export default function CalendarPage({ onNavigate }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Calendar</h2>
           <p className="text-sm text-slate-400">Visual overview of appointment schedule</p>

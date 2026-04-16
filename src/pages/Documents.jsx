@@ -36,7 +36,7 @@ function DocumentForm({ form, setForm, patients }) {
         <label className="label">Document Title <span className="text-red-400">*</span></label>
         <input className="input-field" placeholder="e.g. CBC Blood Test — Jan 2025" value={form.title} onChange={set('title')} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Document Type</label>
           <select className="input-field" value={form.type} onChange={set('type')}>

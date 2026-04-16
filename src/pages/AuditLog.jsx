@@ -65,7 +65,7 @@ export default function AuditLog() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Audit Log</h2>
           <p className="text-sm text-slate-400 mt-0.5">{logs.length} total activity records</p>

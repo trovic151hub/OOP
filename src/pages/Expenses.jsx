@@ -23,7 +23,7 @@ function ExpenseForm({ form, setForm }) {
         <label className="label">Description <span className="text-red-400">*</span></label>
         <input className="input-field" placeholder="e.g., Monthly nurse salaries" value={form.description} onChange={set('description')} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Category</label>
           <select className="input-field" value={form.category} onChange={set('category')}>

@@ -55,7 +55,7 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
   function addMed() { setForm(f => ({ ...f, medications: [...f.medications, { name: '', dosage: '', frequency: 'Once daily', duration: '7 days' }] })) }
   return (
     <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
           <input className="input-field" list="rx-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />

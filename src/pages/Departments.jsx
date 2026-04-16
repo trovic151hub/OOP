@@ -14,7 +14,7 @@ function DeptForm({ form, setForm }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="label">Department Name <span className="text-red-400">*</span></label>
           <input className="input-field" placeholder="e.g. Cardiology" value={form.name} onChange={set('name')} />
@@ -87,7 +87,7 @@ export default function Departments({ currentUser }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Departments</h2>
           <p className="text-sm text-slate-400 mt-0.5">{departments.length} departments · {doctors.length} doctors on staff</p>

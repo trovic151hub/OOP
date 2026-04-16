@@ -14,7 +14,7 @@ function MedRecordForm({ form, setForm, doctors }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
           <input type="date" className="input-field" value={form.date} onChange={set('date')} />
@@ -278,7 +278,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
 
           {tab === 'billing' && (
             <div className="p-6 flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3 mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                 <div className="card p-4 text-center">
                   <p className="text-xl font-extrabold text-slate-800">${totalBilled.toFixed(2)}</p>
                   <p className="text-xs text-slate-400 mt-0.5">Total Billed</p>

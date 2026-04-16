@@ -19,7 +19,7 @@ function PatientForm({ form, setForm, departments }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="label">Full Name <span className="text-red-400">*</span></label>
           <input className="input-field" placeholder="e.g. John Smith" value={form.name} onChange={set('name')} />
@@ -119,7 +119,7 @@ export default function Patients({ currentUser }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Patients</h2>
           <p className="text-sm text-slate-400 mt-0.5">{patients.length} total patients registered</p>

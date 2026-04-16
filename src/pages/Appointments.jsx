@@ -50,7 +50,7 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
           <input className="input-field" type="time" value={form.timeEnd} onChange={set('timeEnd')} />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Appointment Type</label>
           <select className="input-field" value={form.type} onChange={set('type')}>

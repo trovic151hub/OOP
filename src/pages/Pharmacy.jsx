@@ -62,7 +62,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
           <input className="input-field" list="ph-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />
@@ -82,7 +82,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
         <label className="label">Instructions</label>
         <textarea className="input-field resize-none" rows={2} placeholder="e.g. Take with food, twice daily…" value={form.instructions} onChange={set('instructions')} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Status</label>
           <select className="input-field" value={form.status} onChange={set('status')}>

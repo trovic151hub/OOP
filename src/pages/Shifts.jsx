@@ -70,7 +70,7 @@ export default function Shifts({ currentUser }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Shift Schedule</h2>
           <p className="text-sm text-slate-400 mt-0.5">{totalShifts} shifts · {shiftedDoctors} doctors scheduled this week</p>

@@ -29,7 +29,7 @@ function LabForm({ form, setForm, patients, doctors }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-3 max-h-[65vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
           <input className="input-field" list="lab-patients" placeholder="Search patient…" value={form.patientName} onChange={set('patientName')} />

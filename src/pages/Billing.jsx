@@ -31,7 +31,7 @@ function InvoiceForm({ form, setForm, patients }) {
   })
   return (
     <div className="flex flex-col gap-4 max-h-[65vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="label">Patient <span className="text-red-400">*</span></label>
           <input className="input-field" placeholder="Patient name" value={form.patientName} onChange={e => {
@@ -170,12 +170,12 @@ export default function Billing({ currentUser }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Billing & Invoicing</h2>
           <p className="text-sm text-slate-400 mt-0.5">{billing.length} invoices</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportCSV(
             ['Patient','Description','Date','Subtotal','Discount','Total','Status'],
             billing.map(b => [b.patientName, b.description, b.date, b.subtotal, b.discount, b.total, b.status]),

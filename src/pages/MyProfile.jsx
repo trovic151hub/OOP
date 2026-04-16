@@ -226,7 +226,7 @@ export default function MyProfile({ currentUser }) {
             </div>
           ) : editingDoctor ? (
             <div className="p-6 flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Specialty</label>
                   <input className="input-field" list="spec-list" value={doctorForm.specialty} onChange={setDoc('specialty')} placeholder="e.g. Cardiology" />

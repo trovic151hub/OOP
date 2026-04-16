@@ -116,38 +116,46 @@ export default function Queue({ currentUser }) {
             const isInProgress = a.status === 'In Progress'
             return (
               <div key={a.id}
-                className={`card p-5 flex items-center gap-4 transition-all ${isInProgress ? 'border-blue-300 shadow-blue-50 shadow-md' : ''}`}>
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-sm font-extrabold text-slate-500">
-                  {idx + 1}
-                </div>
-
-                <Avatar name={a.patientName} size="md" />
-
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-800">{a.patientName}</p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Stethoscope size={11} /> {a.doctorName}
-                    </span>
-                    <span className="text-xs text-slate-400">{a.type}</span>
-                    {a.timeStart && <span className="text-xs text-slate-400">Appt: {a.timeStart}</span>}
+                className={`card p-4 sm:p-5 transition-all ${isInProgress ? 'border-blue-300 shadow-blue-50 shadow-md' : ''}`}>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-xs sm:text-sm font-extrabold text-slate-500">
+                    {idx + 1}
                   </div>
+                  <Avatar name={a.patientName} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-800 text-sm sm:text-base truncate">{a.patientName}</p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                      <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <Stethoscope size={11} /> {a.doctorName}
+                      </span>
+                      <span className="hidden sm:inline text-xs text-slate-400">{a.type}</span>
+                      {a.timeStart && <span className="hidden sm:inline text-xs text-slate-400">Appt: {a.timeStart}</span>}
+                    </div>
+                  </div>
+                  <div className="hidden sm:block text-center flex-shrink-0">
+                    <p className={`text-sm font-extrabold ${wColor}`}>{wait}</p>
+                    <p className="text-[10px] text-slate-400">Waiting</p>
+                  </div>
+                  <Badge status={a.status} />
+                  {meta && (
+                    <button
+                      onClick={() => advance(a)}
+                      className={`hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition-colors flex-shrink-0 ${meta.color}`}
+                    >
+                      <ActionIcon size={13} /> {meta.label}
+                    </button>
+                  )}
                 </div>
-
-                <div className="text-center flex-shrink-0">
-                  <p className={`text-sm font-extrabold ${wColor}`}>{wait}</p>
-                  <p className="text-[10px] text-slate-400">Waiting</p>
-                </div>
-
-                <Badge status={a.status} />
-
                 {meta && (
-                  <button
-                    onClick={() => advance(a)}
-                    className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition-colors flex-shrink-0 ${meta.color}`}
-                  >
-                    <ActionIcon size={13} /> {meta.label}
-                  </button>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 sm:hidden">
+                    <span className={`text-xs font-bold ${wColor}`}>{wait} waiting</span>
+                    <button
+                      onClick={() => advance(a)}
+                      className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl border transition-colors ${meta.color}`}
+                    >
+                      <ActionIcon size={13} /> {meta.label}
+                    </button>
+                  </div>
                 )}
               </div>
             )

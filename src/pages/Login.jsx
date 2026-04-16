@@ -89,7 +89,7 @@ export default function Login({ onSwitch }) {
     return (
       <div className="min-h-screen flex">
         {LeftPanel}
-        <div className="flex-1 flex items-center justify-center p-8 bg-white">
+        <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
               <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
@@ -126,7 +126,7 @@ export default function Login({ onSwitch }) {
   return (
     <div className="min-h-screen flex">
       {LeftPanel}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-extrabold text-slate-800 mb-2">Welcome Back to MedCore</h1>

@@ -67,6 +67,7 @@ body {
   border: none;
   cursor: pointer;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 .btn-primary:hover { background: #0f766e; }
 
@@ -83,6 +84,7 @@ body {
   border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 .btn-ghost:hover { background: #f8fafc; }
 
@@ -99,6 +101,7 @@ body {
   border: none;
   cursor: pointer;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 .btn-danger:hover { background: #b91c1c; }
 
@@ -287,56 +290,86 @@ body {
   }
 }
 
-/* ─── Mobile / Tablet Improvements ─── */
-
-/* Safe area for iPhone home indicator */
+/* ─── Safe area helpers ─── */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Improve touch targets on mobile */
+/* ─── Touch manipulation helper ─── */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* ───────────── MOBILE RESPONSIVE ───────────── */
 @media (max-width: 767px) {
+
+  /* ── Inputs: prevent iOS zoom + proper touch targets ── */
+  .input-field,
+  select.input-field,
+  textarea.input-field {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* ── Buttons: proper touch targets ── */
   .btn-primary,
-  .btn-ghost {
+  .btn-ghost,
+  .btn-danger {
     min-height: 44px;
     padding-left: 1rem;
     padding-right: 1rem;
   }
 
-  .input-field {
-    min-height: 44px;
-    font-size: 16px; /* Prevent iOS auto-zoom */
-  }
-
-  select.input-field {
-    font-size: 16px;
-  }
-
-  textarea.input-field {
-    font-size: 16px;
-  }
-
-  /* Main content bottom padding for bottom nav */
+  /* ── Main content: leave room for bottom nav ── */
   main {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Table cells: tighten on mobile */
-  .table-th,
-  .table-td {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+  /* ── Tables: tight padding + always horizontal scroll ── */
+  .table-th {
+    padding: 10px 10px;
     white-space: nowrap;
   }
 
-  /* Cards take full width on mobile */
+  .table-td {
+    padding: 12px 10px;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  /* ── Card: keep border-radius clean ── */
   .card {
     border-radius: 12px;
   }
 
-  /* Modal full-width on mobile */
-  [role="dialog"] {
-    margin: 0.5rem;
-    max-height: calc(100dvh - 1rem);
+  /* ── Page titles: slightly smaller ── */
+  h2.text-xl {
+    font-size: 1.1rem;
+  }
+}
+
+/* ─── Extra small screens (< 400px) ─── */
+@media (max-width: 399px) {
+  .btn-primary,
+  .btn-ghost,
+  .btn-danger {
+    font-size: 0.8rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .table-th,
+  .table-td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* ─── Tablet (768px – 1023px): sidebar + content ─── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .table-th,
+  .table-td {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }

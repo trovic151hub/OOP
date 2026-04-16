@@ -27,7 +27,7 @@ function RoomForm({ form, setForm, patients }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Room Number <span className="text-red-400">*</span></label>
           <input className="input-field" placeholder="e.g. 101, ICU-3" value={form.roomNumber} onChange={set('roomNumber')} />

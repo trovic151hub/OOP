@@ -27,7 +27,7 @@ function ClaimForm({ form, setForm, patients, billing }) {
         <input className="input-field" list="ins-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />
         <datalist id="ins-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Insurance Provider <span className="text-red-400">*</span></label>
           <input className="input-field" list="ins-providers" value={form.insuranceProvider} onChange={set('insuranceProvider')} />

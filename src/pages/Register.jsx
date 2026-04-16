@@ -81,7 +81,7 @@ export default function Register({ onSwitch }) {
         <p className="text-xs text-slate-400">Copyright © 2025 MedCore. All rights reserved.</p>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-extrabold text-slate-800 mb-2">Create Your MedCore Account</h1>
