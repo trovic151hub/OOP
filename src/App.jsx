@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase'
-import { initSubscriptions, clearSubscriptions, ensureUserProfile } from './store/useStore'
+import { initSubscriptions, clearSubscriptions, ensureUserProfile, store, useStore } from './store/useStore'
 import { ToastProvider } from './context/ToastContext'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
@@ -20,28 +20,34 @@ import Billing from './pages/Billing'
 import AuditLog from './pages/AuditLog'
 import Shifts from './pages/Shifts'
 import Reports from './pages/Reports'
+import MyProfile from './pages/MyProfile'
 
 function AppContent() {
-  const [authUser, setAuthUser]         = useState(undefined)
-  const [userProfile, setUserProfile]   = useState(null)
-  const [authPage, setAuthPage]         = useState('login')
-  const [activePage, setActivePage]     = useState('dashboard')
-  const [mobileOpen, setMobileOpen]     = useState(false)
+  const [authUser, setAuthUser]     = useState(undefined)
+  const [authPage, setAuthPage]     = useState('login')
+  const [activePage, setActivePage] = useState('dashboard')
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const { users } = useStore()
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async user => {
       setAuthUser(user)
       if (user) {
         initSubscriptions()
-        const profile = await ensureUserProfile(user)
-        setUserProfile(profile)
+        await ensureUserProfile(user)
       } else {
         clearSubscriptions()
-        setUserProfile(null)
       }
     })
     return unsub
   }, [])
+
+  useEffect(() => {
+    if (!authUser) return
+    store.updateLastSeen(authUser.uid)
+    const interval = setInterval(() => store.updateLastSeen(authUser.uid), 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [authUser])
 
   if (authUser === undefined) {
     return (
@@ -60,11 +66,15 @@ function AppContent() {
       : <Register onSwitch={() => setAuthPage('login')} />
   }
 
+  const userProfile = users.find(u => u.uid === authUser.uid)
   const currentUser = {
-    uid:   authUser.uid,
-    name:  userProfile?.name || authUser.displayName || authUser.email?.split('@')[0] || 'User',
-    email: authUser.email,
-    role:  userProfile?.role || 'Admin',
+    uid:      authUser.uid,
+    name:     userProfile?.name || authUser.displayName || authUser.email?.split('@')[0] || 'User',
+    email:    userProfile?.email || authUser.email,
+    role:     userProfile?.role || 'Receptionist',
+    phone:    userProfile?.phone || '',
+    bio:      userProfile?.bio || '',
+    lastSeen: userProfile?.lastSeen || '',
   }
 
   function navigate(page) {
@@ -74,20 +84,21 @@ function AppContent() {
 
   function renderPage() {
     switch (activePage) {
-      case 'dashboard':    return <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'patients':     return <Patients currentUser={currentUser} onNavigate={navigate} />
-      case 'doctors':      return <Doctors currentUser={currentUser} />
-      case 'appointments': return <Appointments currentUser={currentUser} />
-      case 'departments':  return <Departments currentUser={currentUser} />
-      case 'calendar':     return <CalendarPage onNavigate={navigate} />
-      case 'inventory':    return <Inventory currentUser={currentUser} />
-      case 'messages':     return <Messages currentUser={currentUser} />
-      case 'billing':      return <Billing currentUser={currentUser} />
-      case 'shifts':       return <Shifts currentUser={currentUser} />
-      case 'reports':      return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'auditlog':     return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      case 'users':        return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
-      default:             return <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'dashboard':   return <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'patients':    return <Patients currentUser={currentUser} onNavigate={navigate} />
+      case 'doctors':     return <Doctors currentUser={currentUser} />
+      case 'appointments':return <Appointments currentUser={currentUser} />
+      case 'departments': return <Departments currentUser={currentUser} />
+      case 'calendar':    return <CalendarPage onNavigate={navigate} />
+      case 'inventory':   return <Inventory currentUser={currentUser} />
+      case 'messages':    return <Messages currentUser={currentUser} />
+      case 'billing':     return <Billing currentUser={currentUser} />
+      case 'shifts':      return <Shifts currentUser={currentUser} />
+      case 'my-profile':  return <MyProfile currentUser={currentUser} />
+      case 'reports':     return currentUser.role === 'Admin' ? <Reports /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'auditlog':    return currentUser.role === 'Admin' ? <AuditLog /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      case 'users':       return currentUser.role === 'Admin' ? <UsersPage currentUser={currentUser} /> : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+      default:            return <Dashboard onNavigate={navigate} currentUser={currentUser} />
     }
   }
 

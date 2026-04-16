@@ -14,9 +14,10 @@ const PAGE_LABELS = {
   messages:     'Messages',
   billing:      'Billing',
   shifts:       'Shifts',
-  reports:      'Reports & Analytics',
-  auditlog:     'Audit Log',
-  users:        'User Management',
+  'my-profile':  'My Profile',
+  reports:       'Reports & Analytics',
+  auditlog:      'Audit Log',
+  users:         'User Management',
 }
 
 function useDebounce(value, delay = 300) {

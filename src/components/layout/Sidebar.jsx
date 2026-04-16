@@ -2,12 +2,13 @@ import React from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
-  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2
+  UserCog, DollarSign, ClipboardList, Clock, X, BarChart2, UserCircle
 } from 'lucide-react'
 import { store } from '../../store/useStore'
 
 const ALL_NAV = [
   { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'my-profile',   label: 'My Profile',      icon: UserCircle,      roles: ['Admin','Doctor','Receptionist'] },
   { id: 'appointments', label: 'Appointments',    icon: Calendar,        roles: ['Admin','Doctor','Receptionist'] },
   { id: 'patients',     label: 'Patients',        icon: Users,           roles: ['Admin','Doctor','Receptionist'] },
   { id: 'doctors',      label: 'Doctors',         icon: Stethoscope,     roles: ['Admin','Receptionist'] },

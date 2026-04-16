@@ -222,9 +222,42 @@ export const store = {
     })
   },
 
+  async updateUserProfile(uid, data) {
+    await updateDoc(doc(db, 'users', uid), data)
+    logAudit('Updated', 'User Profile', data.name || uid)
+  },
+
+  async updateLastSeen(uid) {
+    try {
+      await updateDoc(doc(db, 'users', uid), { lastSeen: new Date().toISOString() })
+    } catch (_) {}
+  },
+
   async updateUserRole(uid, role) {
     await updateDoc(doc(db, 'users', uid), { role })
     logAudit('Role Changed', 'User', `${uid} → ${role}`)
+    if (role === 'Doctor') {
+      const existing = await getDocs(query(collection(db, 'doctors'), where('uid', '==', uid)))
+      if (existing.empty) {
+        const userSnap = await getDoc(doc(db, 'users', uid))
+        if (userSnap.exists()) {
+          const u = userSnap.data()
+          await addDoc(collection(db, 'doctors'), {
+            uid:          uid,
+            name:         u.name || 'Doctor',
+            email:        u.email || '',
+            phone:        u.phone || '',
+            specialty:    '',
+            department:   '',
+            availability: 'Available',
+            schedule:     '',
+            about:        '',
+            experience:   '',
+            createdAt:    new Date().toISOString(),
+          })
+        }
+      }
+    }
   },
 
   async addMedicalRecord(data) {
