@@ -22,10 +22,10 @@ export default function Register({ onSwitch }) {
     if (!agreed) { showToast('Please agree to the Terms & Conditions.', 'error'); return }
     setLoading(true)
     try {
-      const existingUsers = await getDocs(collection(db, 'users'))
-      const isFirstUser = existingUsers.empty
       const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password)
       await updateProfile(user, { displayName: form.name })
+      const existingUsers = await getDocs(collection(db, 'users'))
+      const isFirstUser = existingUsers.empty
       await setDoc(doc(db, 'users', user.uid), {
         uid:       user.uid,
         name:      form.name,
@@ -35,11 +35,18 @@ export default function Register({ onSwitch }) {
       })
       showToast(isFirstUser ? 'Admin account created!' : 'Account created! Your admin will assign your role.', 'success')
     } catch (err) {
+      console.error('Registration error:', err.code, err.message)
       const msg = err.code === 'auth/email-already-in-use'
-        ? 'An account with this email already exists.'
+        ? 'This email is already registered. Try logging in instead.'
         : err.code === 'auth/invalid-email'
         ? 'Invalid email address.'
-        : 'Registration failed. Please try again.'
+        : err.code === 'auth/weak-password'
+        ? 'Password is too weak. Use at least 6 characters.'
+        : err.code === 'auth/operation-not-allowed'
+        ? 'Email/password sign-up is disabled. Check Firebase console.'
+        : err.code === 'permission-denied'
+        ? 'Database permission denied. Check Firestore security rules.'
+        : `Registration failed (${err.code || 'unknown'}). Please try again.`
       showToast(msg, 'error')
     } finally {
       setLoading(false)
