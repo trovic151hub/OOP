@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, Activity, UserPlus, Info } from 'lucide-react'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, setDoc, collection, getDocs } from 'firebase/firestore'
 import { auth, db } from '../firebase'
 import { useToast } from '../context/ToastContext'
 
@@ -22,16 +22,18 @@ export default function Register({ onSwitch }) {
     if (!agreed) { showToast('Please agree to the Terms & Conditions.', 'error'); return }
     setLoading(true)
     try {
+      const existingUsers = await getDocs(collection(db, 'users'))
+      const isFirstUser = existingUsers.empty
       const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password)
       await updateProfile(user, { displayName: form.name })
       await setDoc(doc(db, 'users', user.uid), {
         uid:       user.uid,
         name:      form.name,
         email:     form.email,
-        role:      'Admin',
+        role:      isFirstUser ? 'Admin' : 'Receptionist',
         createdAt: new Date().toISOString(),
       })
-      showToast('Account created successfully!', 'success')
+      showToast(isFirstUser ? 'Admin account created!' : 'Account created! Your admin will assign your role.', 'success')
     } catch (err) {
       const msg = err.code === 'auth/email-already-in-use'
         ? 'An account with this email already exists.'
@@ -106,6 +108,12 @@ export default function Register({ onSwitch }) {
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded" />
               I agree to the <span className="text-teal-600 font-semibold">Terms &amp; Conditions</span>
             </label>
+            <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-3.5 py-3 text-xs text-blue-700">
+              <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-500" />
+              <span>
+                <strong>Staff accounts</strong> start as Receptionist by default. The Admin can update your role from the User Management page after you log in.
+              </span>
+            </div>
             <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

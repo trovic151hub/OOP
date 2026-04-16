@@ -102,8 +102,7 @@ export default function UsersPage({ currentUser }) {
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
         <Shield size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
         <div className="text-xs text-amber-700">
-          <strong>Role permissions:</strong> Admins have full access. Doctors can manage patients and appointments. Receptionists can view doctors and manage appointments.
-          Click any role badge to change a user's access level.
+          <strong>How roles work:</strong> The first person to register becomes Admin (you). All other staff sign up and land as Receptionist by default. Click any role badge below to assign the correct role — Doctor or Receptionist — before they start using the system.
         </div>
       </div>
 

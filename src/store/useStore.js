@@ -91,11 +91,13 @@ export async function ensureUserProfile(firebaseUser) {
   const ref = doc(db, 'users', firebaseUser.uid)
   const snap = await getDoc(ref)
   if (!snap.exists()) {
+    const existingUsers = await getDocs(collection(db, 'users'))
+    const isFirstUser = existingUsers.empty
     await setDoc(ref, {
       uid:       firebaseUser.uid,
       name:      firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
       email:     firebaseUser.email,
-      role:      'Receptionist',
+      role:      isFirstUser ? 'Admin' : 'Receptionist',
       createdAt: new Date().toISOString(),
     })
   }
