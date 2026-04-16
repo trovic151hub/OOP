@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Building2, Clock, DollarSign, Save, Globe, Phone, Mail, CheckCircle } from 'lucide-react'
+import { Settings as SettingsIcon, Building2, Clock, DollarSign, Save, Globe, Phone, Mail, CheckCircle, Database, Loader2 } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
+import { seedDatabase } from '../utils/seedData'
 
 const TIMEZONES = ['UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London', 'Europe/Paris', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Singapore', 'Asia/Tokyo', 'Australia/Sydney', 'Africa/Nairobi', 'Africa/Lagos']
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'INR', 'NGN', 'KES', 'GHS', 'ZAR', 'CAD', 'AUD', 'SGD', 'JPY']
@@ -34,8 +35,16 @@ function Field({ label, required, children, full }) {
 export default function Settings() {
   const { settings } = useStore()
   const showToast = useToast()
-  const [form, setForm] = useState({ ...settings })
-  const [saved, setSaved] = useState(false)
+  const [form, setForm]       = useState({ ...settings })
+  const [saved, setSaved]     = useState(false)
+  const [seeding, setSeeding] = useState(false)
+
+  async function handleSeed() {
+    if (!window.confirm('This will add demo patients, doctors, appointments, billing, inventory and more to your database.\n\nExisting data will NOT be overwritten. Continue?')) return
+    setSeeding(true)
+    await seedDatabase(showToast)
+    setSeeding(false)
+  }
 
   useEffect(() => { setForm({ ...settings }) }, [settings])
 
@@ -164,6 +173,30 @@ export default function Settings() {
             <textarea className="input-field resize-none" rows={2} placeholder="e.g. Thank you for choosing us. Payment is due within 30 days." value={form.invoiceNotes || ''} onChange={set('invoiceNotes')} />
           </Field>
         </Section>
+
+        <div className="card p-6 border-2 border-dashed border-teal-200 bg-teal-50/40">
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+              <Database size={17} className="text-teal-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 mb-0.5">Load Demo Data</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Populate all sections — patients, doctors, appointments, billing, inventory, lab results, pharmacy, shifts, claims, prescriptions, rooms and documents — with realistic sample data so you can explore every feature immediately.
+                Existing records are never overwritten.
+              </p>
+            </div>
+            <button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="btn-primary bg-teal-600 hover:bg-teal-700 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {seeding
+                ? <><Loader2 size={14} className="animate-spin" /> Loading…</>
+                : <><Database size={14} /> Load Demo Data</>}
+            </button>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <button onClick={handleSave} className={`btn-primary ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
