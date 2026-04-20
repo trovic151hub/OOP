@@ -62,12 +62,22 @@ function AppContent() {
     return () => clearInterval(interval)
   }, [authUser])
 
-  if (authUser === undefined) {
+  if (authUser === undefined || (authUser && loading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-3 text-slate-400">
-          <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm">Loading MedCore…</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center shadow-lg">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+              <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="rgba(255,255,255,0.2)" />
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full bg-teal-500 rounded-full" style={{ width: '60%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            </div>
+            <p className="text-sm font-medium text-slate-500">Loading MedCore…</p>
+          </div>
         </div>
       </div>
     )
@@ -77,27 +87,6 @@ function AppContent() {
     return authPage === 'login'
       ? <Login onSwitch={() => setAuthPage('register')} />
       : <Register onSwitch={() => setAuthPage('login')} />
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4 text-slate-400">
-          <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center shadow-lg">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="rgba(255,255,255,0.2)" />
-              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-teal-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" style={{ width: '60%', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            </div>
-            <p className="text-sm font-medium text-slate-500">Loading your dashboard…</p>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   const userProfile = users.find(u => u.uid === authUser.uid)
