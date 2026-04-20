@@ -35,6 +35,19 @@ const EMPTY_FORM = {
   prescriptionId: '', pharmacistName: '', dispensedAt: '', notes: '',
 }
 
+function medsToString(meds) {
+  if (!meds) return ''
+  if (typeof meds === 'string') return meds
+  if (Array.isArray(meds)) {
+    return meds.map(m => {
+      if (typeof m === 'string') return m
+      if (m.qty !== undefined) return `${m.name} × ${m.qty}`
+      return [m.name, m.dosage, m.frequency, m.duration].filter(Boolean).join(' ')
+    }).join(', ')
+  }
+  return String(meds)
+}
+
 function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -46,7 +59,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
       prescriptionId: id,
       patientName:  rx.patientName  || f.patientName,
       doctorName:   rx.doctorName   || f.doctorName,
-      medications:  rx.medications  || f.medications,
+      medications:  medsToString(rx.medications) || f.medications,
       instructions: rx.instructions || f.instructions,
     }))
   }
@@ -58,7 +71,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
         <select className="input-field text-sm" value={form.prescriptionId} onChange={e => { set('prescriptionId')(e); loadPrescription(e.target.value) }}>
           <option value="">— Select prescription —</option>
           {prescriptions.filter(p => p.status === 'Active').map(p => (
-            <option key={p.id} value={p.id}>{p.patientName} – {(p.medications || '').slice(0, 40)}</option>
+            <option key={p.id} value={p.id}>{p.patientName} – {medsToString(p.medications).slice(0, 40)}</option>
           ))}
         </select>
       </div>
@@ -115,7 +128,7 @@ export default function Pharmacy({ currentUser }) {
 
   const filtered = pharmacyOrders.filter(o => {
     const q = search.toLowerCase()
-    const matchQ = o.patientName?.toLowerCase().includes(q) || o.medications?.toLowerCase().includes(q) || o.doctorName?.toLowerCase().includes(q)
+    const matchQ = o.patientName?.toLowerCase().includes(q) || medsToString(o.medications).toLowerCase().includes(q) || o.doctorName?.toLowerCase().includes(q)
     const matchS = filterStatus === 'All' || o.status === filterStatus
     return matchQ && matchS
   })
@@ -123,11 +136,11 @@ export default function Pharmacy({ currentUser }) {
   const counts = ORDER_STATUSES.reduce((acc, s) => { acc[s] = pharmacyOrders.filter(o => o.status === s).length; return acc }, {})
 
   function openAdd()   { setForm({ ...EMPTY_FORM }); setEditId(null); setModal(true) }
-  function openEdit(o) { setForm({ ...EMPTY_FORM, ...o }); setEditId(o.id); setModal(true) }
+  function openEdit(o) { setForm({ ...EMPTY_FORM, ...o, medications: medsToString(o.medications) }); setEditId(o.id); setModal(true) }
 
   function handleSubmit() {
     if (!form.patientName.trim())  { showToast('Patient is required.', 'error'); return }
-    if (!form.medications.trim())  { showToast('Medications are required.', 'error'); return }
+    if (!medsToString(form.medications).trim())  { showToast('Medications are required.', 'error'); return }
     if (editId) { store.updatePharmacyOrder(editId, form); showToast('Order updated.') }
     else        { store.addPharmacyOrder(form); showToast('Pharmacy order created.') }
     setModal(false)
@@ -153,7 +166,7 @@ export default function Pharmacy({ currentUser }) {
   function exportCSV() {
     const rows = [
       ['Patient','Doctor','Medications','Status','Pharmacist','Dispensed At','Created'],
-      ...filtered.map(o => [o.patientName, o.doctorName, o.medications, o.status, o.pharmacistName, o.dispensedAt, o.createdAt?.slice(0,10)]),
+      ...filtered.map(o => [o.patientName, o.doctorName, medsToString(o.medications), o.status, o.pharmacistName, o.dispensedAt, o.createdAt?.slice(0,10)]),
     ]
     const csv = rows.map(r => r.map(x => `"${x||''}"`).join(',')).join('\n')
     const a = document.createElement('a'); a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`; a.download = 'pharmacy_orders.csv'; a.click()
@@ -234,7 +247,7 @@ export default function Pharmacy({ currentUser }) {
                     </td>
                     <td className="table-td text-sm text-slate-500">{o.doctorName || '—'}</td>
                     <td className="table-td max-w-xs">
-                      <p className="text-xs text-slate-700 font-medium line-clamp-2">{o.medications}</p>
+                      <p className="text-xs text-slate-700 font-medium line-clamp-2">{medsToString(o.medications)}</p>
                       {o.instructions && <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{o.instructions}</p>}
                     </td>
                     <td className="table-td">
