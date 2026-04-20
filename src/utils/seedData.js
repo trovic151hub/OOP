@@ -11,6 +11,9 @@ function todayStr() { return new Date().toISOString().slice(0, 10) }
 function ts(offsetDays = 0) {
   const d = new Date(); d.setDate(d.getDate() - offsetDays); return d.toISOString()
 }
+function minsAgo(n) {
+  return new Date(Date.now() - n * 60000).toISOString()
+}
 function getWeekStart() {
   const d = new Date()
   const day = d.getDay()
@@ -122,17 +125,17 @@ export async function seedDatabase(showToast) {
     await clearCollection('appointments')
       await addMany('appointments', [
         // ── TODAY — Checked In ──
-        { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',     type: 'Follow-up',        date: t, timeStart: '07:30', timeEnd: '08:00', status: 'Checked In',  notes: 'BP medication review and ECG.',                         requiresFollowUp: false, createdAt: ts(1) },
-        { patientName: 'Fatima Al-Hassan',   doctorName: 'Dr. Adaeze Nwosu',   type: 'Follow-up',        date: t, timeStart: '08:00', timeEnd: '08:30', status: 'Checked In',  notes: 'Hypertensive crisis — BP monitoring post IV therapy.',   requiresFollowUp: true, followUpDate: daysFromNow(2), createdAt: ts(1) },
-        { patientName: 'Yetunde Okafor',     doctorName: 'Dr. Adaeze Nwosu',   type: 'Consultation',     date: t, timeStart: '08:30', timeEnd: '09:00', status: 'Checked In',  notes: 'Typhoid review — day 3 of ciprofloxacin.',              requiresFollowUp: false, createdAt: ts(2) },
-        { patientName: 'Ifeoma Adeleke',     doctorName: 'Dr. James Okonkwo',  type: 'Routine Check-up', date: t, timeStart: '09:00', timeEnd: '09:30', status: 'Checked In',  notes: 'Paediatric asthma review. Growth chart update.',        requiresFollowUp: false, createdAt: ts(3) },
-        { patientName: 'Ngozi Eze',          doctorName: 'Dr. Kemi Oladapo',   type: 'Antenatal',        date: t, timeStart: '09:30', timeEnd: '10:00', status: 'Checked In',  notes: '28-week antenatal visit. GDM monitoring.',             requiresFollowUp: true, followUpDate: daysFromNow(14), createdAt: ts(2) },
+        { patientName: 'Marcus Johnson',     doctorName: 'Dr. Sarah Chen',     type: 'Follow-up',        date: t, timeStart: '07:30', timeEnd: '08:00', status: 'Checked In',  checkedInAt: minsAgo(38), notes: 'BP medication review and ECG.',                         requiresFollowUp: false, createdAt: ts(1) },
+        { patientName: 'Fatima Al-Hassan',   doctorName: 'Dr. Adaeze Nwosu',   type: 'Follow-up',        date: t, timeStart: '08:00', timeEnd: '08:30', status: 'Checked In',  checkedInAt: minsAgo(24), notes: 'Hypertensive crisis — BP monitoring post IV therapy.',   requiresFollowUp: true, followUpDate: daysFromNow(2), createdAt: ts(1) },
+        { patientName: 'Yetunde Okafor',     doctorName: 'Dr. Adaeze Nwosu',   type: 'Consultation',     date: t, timeStart: '08:30', timeEnd: '09:00', status: 'Checked In',  checkedInAt: minsAgo(17), notes: 'Typhoid review — day 3 of ciprofloxacin.',              requiresFollowUp: false, createdAt: ts(2) },
+        { patientName: 'Ifeoma Adeleke',     doctorName: 'Dr. James Okonkwo',  type: 'Routine Check-up', date: t, timeStart: '09:00', timeEnd: '09:30', status: 'Checked In',  checkedInAt: minsAgo(9),  notes: 'Paediatric asthma review. Growth chart update.',        requiresFollowUp: false, createdAt: ts(3) },
+        { patientName: 'Ngozi Eze',          doctorName: 'Dr. Kemi Oladapo',   type: 'Antenatal',        date: t, timeStart: '09:30', timeEnd: '10:00', status: 'Checked In',  checkedInAt: minsAgo(4),  notes: '28-week antenatal visit. GDM monitoring.',             requiresFollowUp: true, followUpDate: daysFromNow(14), createdAt: ts(2) },
 
         // ── TODAY — In Progress ──
-        { patientName: 'Chidera Nwachukwu',  doctorName: 'Dr. Michael Torres', type: 'Emergency',        date: t, timeStart: '07:00', timeEnd: '08:00', status: 'In Progress', notes: 'Severe pneumonia — resuscitation and stabilisation.',   requiresFollowUp: false, createdAt: ts(1) },
-        { patientName: 'Samuel Mensah',      doctorName: 'Dr. Sarah Chen',     type: 'ICU Round',        date: t, timeStart: '08:00', timeEnd: '08:30', status: 'In Progress', notes: 'Cardiac arrhythmia monitoring — ICU ward round.',       requiresFollowUp: false, createdAt: ts(1) },
-        { patientName: 'Taiwo Adeyemi',      doctorName: 'Dr. Adaeze Nwosu',   type: 'Follow-up',        date: t, timeStart: '09:00', timeEnd: '09:30', status: 'In Progress', notes: 'Sickle cell crisis — pain scoring and fluid balance.',  requiresFollowUp: true, followUpDate: daysFromNow(1), createdAt: ts(1) },
-        { patientName: 'Damilola Ogunleye',  doctorName: 'Dr. Sarah Chen',     type: 'Post-procedure',   date: t, timeStart: '10:00', timeEnd: '10:30', status: 'In Progress', notes: 'Post-PCI round — vitals, ECG and wound check.',        requiresFollowUp: false, createdAt: ts(1) },
+        { patientName: 'Chidera Nwachukwu',  doctorName: 'Dr. Michael Torres', type: 'Emergency',        date: t, timeStart: '07:00', timeEnd: '08:00', status: 'In Progress', checkedInAt: minsAgo(52), startedAt: minsAgo(45), notes: 'Severe pneumonia — resuscitation and stabilisation.',   requiresFollowUp: false, createdAt: ts(1) },
+        { patientName: 'Samuel Mensah',      doctorName: 'Dr. Sarah Chen',     type: 'ICU Round',        date: t, timeStart: '08:00', timeEnd: '08:30', status: 'In Progress', checkedInAt: minsAgo(33), startedAt: minsAgo(20), notes: 'Cardiac arrhythmia monitoring — ICU ward round.',       requiresFollowUp: false, createdAt: ts(1) },
+        { patientName: 'Taiwo Adeyemi',      doctorName: 'Dr. Adaeze Nwosu',   type: 'Follow-up',        date: t, timeStart: '09:00', timeEnd: '09:30', status: 'In Progress', checkedInAt: minsAgo(28), startedAt: minsAgo(12), notes: 'Sickle cell crisis — pain scoring and fluid balance.',  requiresFollowUp: true, followUpDate: daysFromNow(1), createdAt: ts(1) },
+        { patientName: 'Damilola Ogunleye',  doctorName: 'Dr. Sarah Chen',     type: 'Post-procedure',   date: t, timeStart: '10:00', timeEnd: '10:30', status: 'In Progress', checkedInAt: minsAgo(15), startedAt: minsAgo(7),  notes: 'Post-PCI round — vitals, ECG and wound check.',        requiresFollowUp: false, createdAt: ts(1) },
 
         // ── TODAY — Completed ──
         { patientName: 'Henry Wilson',       doctorName: 'Dr. Michael Torres', type: 'ICU Round',        date: t, timeStart: '07:00', timeEnd: '07:30', status: 'Completed',   notes: 'COPD: SpO2 improving on O2 therapy. ABG repeat ordered.', requiresFollowUp: false, createdAt: ts(1) },
