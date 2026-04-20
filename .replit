@@ -75,7 +75,8 @@ externalPort = 8008
 
 [deployment]
 deploymentTarget = "static"
-publicDir = "."
+publicDir = "dist"
+build = ["npm", "run", "build"]
 
 [userenv]
 
