@@ -40,7 +40,7 @@ function AppContent() {
   const [authPage, setAuthPage]     = useState('login')
   const [activePage, setActivePage] = useState('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { users, loading } = useStore()
+  const { users, loading, loadedCount, totalCount } = useStore()
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async user => {
@@ -63,6 +63,7 @@ function AppContent() {
   }, [authUser])
 
   if (authUser === undefined || (authUser && loading)) {
+    const pct = authUser ? Math.round((loadedCount / totalCount) * 100) : 0
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
@@ -74,9 +75,14 @@ function AppContent() {
           </div>
           <div className="flex flex-col items-center gap-2">
             <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-teal-500 rounded-full" style={{ width: '60%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div
+                className="h-full bg-teal-500 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${pct}%` }}
+              />
             </div>
-            <p className="text-sm font-medium text-slate-500">Loading MedCore…</p>
+            <p className="text-sm font-medium text-slate-500">
+              {authUser ? `Loading… ${pct}%` : 'Connecting…'}
+            </p>
           </div>
         </div>
       </div>

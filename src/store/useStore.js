@@ -21,6 +21,8 @@ const DEFAULT_SETTINGS = {
   logo: '',
 }
 
+const TOTAL_SUBSCRIPTIONS = 18
+
 const state = {
   patients:       [],
   doctors:        [],
@@ -41,6 +43,7 @@ const state = {
   pharmacyOrders: [],
   settings:       { ...DEFAULT_SETTINGS },
   loading:        true,
+  loadedCount:    0,
 }
 
 let _listeners = []
@@ -86,7 +89,12 @@ export function initSubscriptions() {
   const sRef  = doc(db, 'settings', 'hospital')
 
   let loaded = 0
-  function checkAll() { if (++loaded >= 18) { state.loading = false; notify() } }
+  function checkAll() {
+    loaded++
+    state.loadedCount = loaded
+    if (loaded >= TOTAL_SUBSCRIPTIONS) { state.loading = false }
+    notify()
+  }
 
   _unsubs.push(
     onSnapshot(qP,   snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
@@ -118,7 +126,7 @@ export function clearSubscriptions() {
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
     prescriptions: [], expenses: [], documents: [], claims: [],
-    pharmacyOrders: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
+    pharmacyOrders: [], settings: { ...DEFAULT_SETTINGS }, loading: true, loadedCount: 0,
   })
   notify()
 }
@@ -475,5 +483,7 @@ export function useStore() {
     pharmacyOrders: state.pharmacyOrders,
     settings:       state.settings,
     loading:        state.loading,
+    loadedCount:    state.loadedCount,
+    totalCount:     TOTAL_SUBSCRIPTIONS,
   }
 }
