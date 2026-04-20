@@ -35,18 +35,28 @@ import StaffPerformance from './pages/StaffPerformance'
 import Pharmacy from './pages/Pharmacy'
 import Settings from './pages/Settings'
 
-function LoadingScreen({ realPct, connected }) {
+function LoadingScreen({ realPct, connected, onComplete }) {
   const [displayPct, setDisplayPct] = useState(0)
 
   useEffect(() => {
     const id = setInterval(() => {
       setDisplayPct(prev => {
-        if (prev >= realPct) return prev
-        return Math.min(prev + 3, realPct)
+        const target = realPct
+        if (prev >= 100) return 100
+        if (prev >= target && target < 100) return prev
+        const next = Math.min(prev + 2, target)
+        return next
       })
-    }, 50)
+    }, 40)
     return () => clearInterval(id)
   }, [realPct])
+
+  useEffect(() => {
+    if (displayPct >= 100) {
+      const t = setTimeout(onComplete, 150)
+      return () => clearTimeout(t)
+    }
+  }, [displayPct, onComplete])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -61,7 +71,7 @@ function LoadingScreen({ realPct, connected }) {
           <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-teal-500 rounded-full"
-              style={{ width: `${displayPct}%`, transition: 'width 80ms linear' }}
+              style={{ width: `${displayPct}%`, transition: 'width 60ms linear' }}
             />
           </div>
           <p className="text-sm font-medium text-slate-500">
@@ -78,6 +88,7 @@ function AppContent() {
   const [authPage, setAuthPage]     = useState('login')
   const [activePage, setActivePage] = useState('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [animDone, setAnimDone]     = useState(false)
   const { users, loading, loadedCount, totalCount } = useStore()
 
   useEffect(() => {
@@ -88,6 +99,7 @@ function AppContent() {
         await ensureUserProfile(user)
       } else {
         clearSubscriptions()
+        setAnimDone(false)
       }
     })
     return unsub
@@ -100,9 +112,17 @@ function AppContent() {
     return () => clearInterval(interval)
   }, [authUser])
 
-  if (authUser === undefined || (authUser && loading)) {
-    const realPct = authUser ? Math.round((loadedCount / totalCount) * 100) : 0
-    return <LoadingScreen realPct={realPct} connected={!!authUser} />
+  const showLoading = authUser === undefined || (authUser && (!animDone))
+
+  if (showLoading) {
+    const realPct = authUser && !loading ? 100 : authUser ? Math.round((loadedCount / totalCount) * 100) : 0
+    return (
+      <LoadingScreen
+        realPct={realPct}
+        connected={!!authUser}
+        onComplete={() => setAnimDone(true)}
+      />
+    )
   }
 
   if (!authUser) {
