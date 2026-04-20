@@ -1,33 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useVideoPlayer({ durations }: { durations: Record<string, number> }) {
+export function useVideoPlayer({ durations, onComplete }: {
+  durations: Record<string, number>;
+  onComplete?: () => void;
+}) {
+  const keys = Object.keys(durations);
+  const sceneDurations = Object.values(durations);
   const [currentScene, setCurrentScene] = useState(0);
-  
-  useEffect(() => {
-    const sceneDurations = Object.values(durations);
-    
-    // Simulate recording start
-    window.startRecording?.();
-    
-    let timeout: NodeJS.Timeout;
-    const playScene = (index: number) => {
-      setCurrentScene(index);
-      
-      const isLastScene = index === sceneDurations.length - 1;
-      const nextIndex = isLastScene ? 0 : index + 1;
-      
-      timeout = setTimeout(() => {
-        if (isLastScene) {
-          window.stopRecording?.();
-        }
-        playScene(nextIndex);
-      }, sceneDurations[index]);
-    };
-    
+  const sceneRef = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const playScene = useCallback((index: number) => {
+    sceneRef.current = index;
+    setCurrentScene(index);
+    const isLast = index === sceneDurations.length - 1;
+
+    timeoutRef.current = setTimeout(() => {
+      if (isLast) {
+        onComplete?.();
+        playScene(0);
+      } else {
+        playScene(index + 1);
+      }
+    }, sceneDurations[index]);
+  }, [sceneDurations, onComplete]);
+
+  const reset = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     playScene(0);
-    
-    return () => clearTimeout(timeout);
-  }, [JSON.stringify(durations)]);
-  
-  return { currentScene };
+  }, [playScene]);
+
+  useEffect(() => {
+    playScene(0);
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, []);
+
+  return { currentScene, reset };
 }

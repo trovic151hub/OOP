@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVideoPlayer } from '@/lib/video/hooks';
 import { Scene1 } from './video_scenes/Scene1';
@@ -8,8 +8,10 @@ import { Scene4 } from './video_scenes/Scene4';
 import { Scene5 } from './video_scenes/Scene5';
 import { Scene6 } from './video_scenes/Scene6';
 import { Scene7 } from './video_scenes/Scene7';
+import { RecordButton } from './RecordButton';
 
 const SCENE_DURATIONS = { open: 3000, features1: 3500, features2: 3500, features3: 3500, admit: 4000, discharge: 4000, close: 4000 };
+const TOTAL_DURATION = Object.values(SCENE_DURATIONS).reduce((a, b) => a + b, 0);
 
 const scenePos = [
   { x: '10vw', y: '20vh', scale: 2, opacity: 0.8 },
@@ -22,30 +24,94 @@ const scenePos = [
 ];
 
 export default function VideoTemplate() {
-  const { currentScene } = useVideoPlayer({ durations: SCENE_DURATIONS });
+  const [isRecording, setIsRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordStartRef = useRef<number>(0);
+
+  const stopAndDownload = useCallback(() => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return;
+    mediaRecorderRef.current.stop();
+  }, []);
+
+  const { currentScene, reset } = useVideoPlayer({
+    durations: SCENE_DURATIONS,
+    onComplete: () => {
+      if (isRecording) stopAndDownload();
+    },
+  });
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 60 },
+        audio: false,
+      });
+
+      chunksRef.current = [];
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'medcore-promo.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsRecording(false);
+        setElapsed(0);
+        if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+      };
+
+      recorder.start(100);
+      recordStartRef.current = Date.now();
+      setIsRecording(true);
+      setElapsed(0);
+
+      elapsedTimerRef.current = setInterval(() => {
+        setElapsed(Date.now() - recordStartRef.current);
+      }, 200);
+
+      reset();
+    } catch {
+      alert('Screen capture was cancelled or is not supported in this browser.');
+    }
+  }, [reset]);
+
+  useEffect(() => {
+    return () => {
+      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+    };
+  }, []);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-slate-50 font-sans">
       {/* Persistent Background */}
       <div className="absolute inset-0">
-        <motion.div 
+        <motion.div
           className="absolute w-[80vw] h-[80vw] rounded-full opacity-10 blur-3xl"
           style={{ background: 'radial-gradient(circle, #0d9488, transparent)' }}
-          animate={{ 
-            x: ['-20%', '50%', '10%'], 
-            y: ['10%', '60%', '30%'], 
-            scale: [1, 1.2, 0.9] 
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }} 
+          animate={{ x: ['-20%', '50%', '10%'], y: ['10%', '60%', '30%'], scale: [1, 1.2, 0.9] }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <motion.div 
+        <motion.div
           className="absolute w-[60vw] h-[60vw] rounded-full opacity-10 blur-3xl right-0 bottom-0"
           style={{ background: 'radial-gradient(circle, #0f766e, transparent)' }}
-          animate={{ 
-            x: ['20%', '-30%', '5%'], 
-            y: ['-10%', '-40%', '-20%'] 
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }} 
+          animate={{ x: ['20%', '-30%', '5%'], y: ['-10%', '-40%', '-20%'] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
@@ -75,6 +141,14 @@ export default function VideoTemplate() {
         {currentScene === 5 && <Scene7 key="discharge" />}
         {currentScene === 6 && <Scene5 key="close" />}
       </AnimatePresence>
+
+      <RecordButton
+        totalDuration={TOTAL_DURATION}
+        onStartRecording={startRecording}
+        onStopRecording={stopAndDownload}
+        isRecording={isRecording}
+        elapsed={elapsed}
+      />
     </div>
   );
 }
