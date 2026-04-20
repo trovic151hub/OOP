@@ -35,6 +35,44 @@ import StaffPerformance from './pages/StaffPerformance'
 import Pharmacy from './pages/Pharmacy'
 import Settings from './pages/Settings'
 
+function LoadingScreen({ realPct, connected }) {
+  const [displayPct, setDisplayPct] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setDisplayPct(prev => {
+        if (prev >= realPct) return prev
+        return Math.min(prev + 3, realPct)
+      })
+    }, 50)
+    return () => clearInterval(id)
+  }, [realPct])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center shadow-lg">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+            <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="rgba(255,255,255,0.2)" />
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-teal-500 rounded-full"
+              style={{ width: `${displayPct}%`, transition: 'width 80ms linear' }}
+            />
+          </div>
+          <p className="text-sm font-medium text-slate-500">
+            {connected ? `Loading… ${displayPct}%` : 'Connecting…'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AppContent() {
   const [authUser, setAuthUser]     = useState(undefined)
   const [authPage, setAuthPage]     = useState('login')
@@ -63,30 +101,8 @@ function AppContent() {
   }, [authUser])
 
   if (authUser === undefined || (authUser && loading)) {
-    const pct = authUser ? Math.round((loadedCount / totalCount) * 100) : 0
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center shadow-lg">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="rgba(255,255,255,0.2)" />
-              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-40 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-teal-500 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-sm font-medium text-slate-500">
-              {authUser ? `Loading… ${pct}%` : 'Connecting…'}
-            </p>
-          </div>
-        </div>
-      </div>
-    )
+    const realPct = authUser ? Math.round((loadedCount / totalCount) * 100) : 0
+    return <LoadingScreen realPct={realPct} connected={!!authUser} />
   }
 
   if (!authUser) {
