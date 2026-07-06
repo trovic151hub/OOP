@@ -59,8 +59,8 @@ export async function register(req, res, next) {
 
     const token = signToken(user)
     setSessionCookie(res, token)
-    issueCsrfToken(res)
-    res.status(201).json({ user: toPublicUser(user) })
+    const csrfToken = issueCsrfToken(res)
+    res.status(201).json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
 }
 
@@ -77,8 +77,8 @@ export async function login(req, res, next) {
 
     const token = signToken(user)
     setSessionCookie(res, token)
-    issueCsrfToken(res)
-    res.json({ user: toPublicUser(user) })
+    const csrfToken = issueCsrfToken(res)
+    res.json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
 }
 
@@ -86,8 +86,8 @@ export async function me(req, res, next) {
   try {
     const user = await User.findById(req.user.id)
     if (!user) return res.status(401).json({ message: 'Not authenticated' })
-    issueCsrfToken(res)
-    res.json({ user: toPublicUser(user) })
+    const csrfToken = issueCsrfToken(res)
+    res.json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
 }
 

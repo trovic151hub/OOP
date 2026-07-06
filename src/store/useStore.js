@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api } from '../api/client'
+import { api, clearCsrfToken } from '../api/client'
 
 const DEFAULT_SETTINGS = {
   hospitalName: 'MedCore Hospital',
@@ -161,6 +161,7 @@ async function deleteItem(key, path, id) {
 export const store = {
   async logout() {
     try { await api.post('/auth/logout') } catch (_) {}
+    clearCsrfToken()
     clearSubscriptions()
   },
 
