@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical, Moon, Sun, Printer } from 'lucide-react'
 import { useStore, setPendingChatTarget } from '../../store/useStore'
 import { useTheme } from '../../context/ThemeContext'
@@ -46,7 +47,7 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
   return (
     <>
       {hasResults && (
-        <div className="absolute top-full mt-2 left-0 w-[min(320px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full mt-2 left-0 w-[min(320px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overscroll-contain max-h-[calc(100vh-8rem)] overflow-y-auto">
           {results.patients.length > 0 && (
             <div>
               <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Patients</div>
@@ -100,7 +101,7 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
         </div>
       )}
       {!hasResults && search.length >= 2 && (
-        <div className="absolute top-full mt-2 left-0 w-[min(288px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-50 px-4 py-6 text-center text-sm text-slate-400">
+        <div className="absolute top-full mt-2 left-0 w-[min(288px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] px-4 py-6 text-center text-sm text-slate-400">
           No results for "<strong>{search}</strong>"
         </div>
       )}
@@ -116,9 +117,11 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const [mobileSearch, setMobileSearch]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
   const [notifRead, setNotifRead]         = useState(() => localStorage.getItem('notifReadAt') || '')
+  const [notifPos, setNotifPos]           = useState(null)
   const searchRef     = useRef(null)
   const mSearchRef    = useRef(null)
   const notifRef      = useRef(null)
+  const notifPanelRef  = useRef(null)
   const mobileInputRef = useRef(null)
   const debounced     = useDebounce(search)
 
@@ -126,11 +129,23 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     const handler = e => {
       if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false)
       if (mSearchRef.current && !mSearchRef.current.contains(e.target)) setSearchOpen(false)
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
+      const insideBell  = notifRef.current?.contains(e.target)
+      const insidePanel = notifPanelRef.current?.contains(e.target)
+      if (!insideBell && !insidePanel) setNotifOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // The panel's own overscroll-contain stops scroll-chaining once you hit its
+  // internal scroll limits, but doesn't stop the page underneath from moving
+  // on the very first touch/scroll — so lock body scroll entirely while open.
+  useEffect(() => {
+    if (!notifOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prevOverflow }
+  }, [notifOpen])
 
   useEffect(() => {
     if (mobileSearch && mobileInputRef.current) {
@@ -166,7 +181,30 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     const now = new Date().toISOString()
     localStorage.setItem('notifReadAt', now)
     setNotifRead(now)
-    setNotifOpen(v => !v)
+    setNotifOpen(v => {
+      const next = !v
+      // Portaled to document.body (see below) to escape the header's own
+      // stacking context, so position has to be computed in viewport
+      // coordinates instead of relying on `absolute` positioning.
+      if (next && notifRef.current) {
+        const rect = notifRef.current.getBoundingClientRect()
+        const top = rect.bottom + 8
+        // Measure the actual rendered bottom nav (0 on desktop, where it's
+        // display:none) instead of guessing a fixed height — this also
+        // automatically accounts for env(safe-area-inset-bottom) on devices
+        // with a home indicator, since that's baked into its rendered size.
+        const bottomNav = document.querySelector('nav.safe-bottom')
+        const bottomNavHeight = bottomNav && getComputedStyle(bottomNav).display !== 'none'
+          ? bottomNav.getBoundingClientRect().height
+          : 0
+        setNotifPos({
+          top,
+          right: window.innerWidth - rect.right,
+          maxHeight: window.innerHeight - top - bottomNavHeight - 12,
+        })
+      }
+      return next
+    })
   }
 
   const searchResults = debounced.length >= 2 ? {
@@ -288,15 +326,19 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
             )}
           </button>
 
-          {notifOpen && (
-            <div className="absolute top-full right-0 mt-2 w-[min(320px,calc(100vw-1rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+          {notifOpen && notifPos && createPortal(
+            <div
+              ref={notifPanelRef}
+              style={{ top: notifPos.top, right: notifPos.right, maxHeight: notifPos.maxHeight }}
+              className="fixed w-[min(320px,calc(100vw-1rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overflow-hidden flex flex-col"
+            >
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
                 <p className="text-sm font-bold text-slate-700">Notifications</p>
                 <span className="text-xs text-slate-400">
                   {unreadCount > 0 ? `${unreadCount} unread` : taskCount > 0 ? `${taskCount} to review` : 'All caught up'}
                 </span>
               </div>
-              <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
+              <div className="overflow-y-auto overscroll-contain">
                 {upcomingToday.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">Upcoming Appointments</div>
@@ -387,7 +429,8 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                   </div>
                 )}
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 

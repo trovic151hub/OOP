@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
   CalendarDays, Package, MessageSquare, LogOut, Activity,
@@ -52,10 +52,26 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
   // always shown at full width regardless of the collapse toggle.
   const textCls = collapsed ? 'md:hidden' : ''
 
+  // Measure the actual rendered bottom nav (0/absent on desktop, where it's
+  // display:none) instead of guessing a fixed height — a static guess is
+  // always either too little (clips behind it) or too much (looks like a
+  // dead gap), and this also auto-adapts to env(safe-area-inset-bottom).
+  const [bottomPad, setBottomPad] = useState(16)
+  useEffect(() => {
+    function measure() {
+      const nav = document.querySelector('nav.safe-bottom')
+      const visible = nav && getComputedStyle(nav).display !== 'none'
+      setBottomPad(visible ? nav.getBoundingClientRect().height + 4 : 16)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
   return (
     <>
       <aside className={`
-        fixed top-0 left-0 h-full w-60 ${collapsed ? 'md:w-[72px]' : 'md:w-60'} bg-white border-r border-slate-200 flex flex-col z-30
+        fixed top-0 left-0 h-full w-60 ${collapsed ? 'md:w-[72px]' : 'md:w-60'} bg-white border-r border-slate-200 flex flex-col z-[56]
         transition-all duration-300 ease-in-out
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
@@ -79,7 +95,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-0.5">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto overscroll-contain flex flex-col gap-0.5">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -93,7 +109,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
           ))}
         </nav>
 
-        <div className="px-3 pb-4 border-t border-slate-100 pt-3 flex-shrink-0">
+        <div style={{ paddingBottom: bottomPad }} className="px-3 border-t border-slate-100 pt-3 flex-shrink-0">
           {currentUser && (
             <div className={`flex items-center gap-2.5 px-2 py-2 mb-2 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
 export default function Modal({ open, onClose, title, icon: Icon, accentColor = 'teal', children, maxWidth = 'max-w-lg' }) {
@@ -18,6 +18,22 @@ export default function Modal({ open, onClose, title, icon: Icon, accentColor = 
     return () => { document.body.style.overflow = '' }
   }, [open])
 
+  // Measure the actual rendered bottom nav (0 on desktop, where it's
+  // display:none) so the modal stops short of it on mobile instead of
+  // rendering underneath/behind it — same approach as the sidebar.
+  const [navHeight, setNavHeight] = useState(0)
+  useEffect(() => {
+    if (!open) return
+    function measure() {
+      const nav = document.querySelector('nav.safe-bottom')
+      const visible = nav && getComputedStyle(nav).display !== 'none'
+      setNavHeight(visible ? nav.getBoundingClientRect().height : 0)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [open])
+
   if (!open) return null
 
   const accent = {
@@ -29,13 +45,16 @@ export default function Modal({ open, onClose, title, icon: Icon, accentColor = 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
+      style={{ paddingBottom: navHeight }}
+      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={`
+      <div
+        style={{ maxHeight: `calc(92dvh - ${navHeight}px)` }}
+        className={`
         bg-white w-full sm:${maxWidth} overflow-hidden
         rounded-t-2xl sm:rounded-2xl shadow-2xl
-        max-h-[92dvh] sm:max-h-[90vh] flex flex-col
+        flex flex-col
       `}>
         <div className={`h-1 bg-gradient-to-r ${accent[accentColor] || accent.teal} flex-shrink-0`} />
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">

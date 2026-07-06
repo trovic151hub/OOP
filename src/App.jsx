@@ -151,6 +151,16 @@ function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
   const { users, currentUser: authUser, settings } = useStore()
 
+  // Lock background scroll while the mobile sidebar drawer is open, so
+  // content behind it can't be scrolled (matches the notification panel's
+  // scroll-lock behavior).
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prevOverflow }
+  }, [mobileOpen])
+
   useEffect(() => {
     document.title = settings?.hospitalName || 'MedCore'
   }, [settings?.hospitalName])
@@ -269,7 +279,7 @@ function AppContent() {
   return (
     <div className="flex min-h-screen bg-slate-100">
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/40 z-20 md:hidden" onClick={() => setMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black/40 z-[55] md:hidden" onClick={() => setMobileOpen(false)} />
       )}
       <Sidebar
         activePage={activePage}
