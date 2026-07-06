@@ -137,7 +137,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
       <button
         onClick={onToggleCollapse}
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className={`hidden md:flex fixed top-[68px] z-30 w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-300 transition-all duration-300 ease-in-out ${collapsed ? 'left-[60px]' : 'left-[228px]'}`}
+        className={`hidden md:flex fixed top-[68px] z-[57] w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm items-center justify-center text-slate-400 hover:text-teal-600 hover:border-teal-300 transition-all duration-300 ease-in-out ${collapsed ? 'left-[60px]' : 'left-[228px]'}`}
       >
         <ChevronLeft size={13} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
       </button>
