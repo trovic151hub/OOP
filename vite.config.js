@@ -12,5 +12,11 @@ export default defineConfig({
     port: 5000,
     allowedHosts: true,
     hmr: false,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
+    },
   }
 })

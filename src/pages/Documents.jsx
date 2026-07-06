@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, FileText, Search, Filter, ExternalLink, Download, FolderOpen } from 'lucide-react'
+import { Plus, Pencil, Trash2, FileText, Search, Filter, ExternalLink, Download, FolderOpen, X as XIcon, User } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import Avatar from '../components/ui/Avatar'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import Combobox from '../components/ui/Combobox'
+import DatePicker from '../components/ui/DatePicker'
 import { useToast } from '../context/ToastContext'
 import { formatDate } from '../utils/helpers'
 
@@ -17,6 +21,7 @@ const TYPE_COLORS = {
   'Prescription':     'bg-teal-50   text-teal-700   border-teal-200',
   'Insurance Card':   'bg-orange-50 text-orange-700 border-orange-200',
   'Referral Letter':  'bg-pink-50   text-pink-700   border-pink-200',
+  'Medical History':  'bg-indigo-50 text-indigo-700 border-indigo-200',
   'X-Ray':            'bg-slate-100 text-slate-700  border-slate-200',
   'Other':            'bg-slate-50  text-slate-600  border-slate-200',
 }
@@ -29,8 +34,7 @@ function DocumentForm({ form, setForm, patients }) {
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
       <div>
         <label className="label">Patient <span className="text-red-400">*</span></label>
-        <input className="input-field" list="doc-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />
-        <datalist id="doc-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+        <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
       </div>
       <div>
         <label className="label">Document Title <span className="text-red-400">*</span></label>
@@ -39,13 +43,11 @@ function DocumentForm({ form, setForm, patients }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Document Type</label>
-          <select className="input-field" value={form.type} onChange={set('type')}>
-            {DOC_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
+          <FormDropdown value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} options={DOC_TYPES.map(t => ({ value: t, label: t }))} />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input className="input-field" type="date" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
       </div>
       <div>
@@ -135,14 +137,37 @@ export default function Documents({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search documents…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search documents…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
-        <Filter size={14} className="text-slate-400" />
-        <select className="input-field !w-auto text-xs" value={filterPat} onChange={e => setFilterPat(e.target.value)}>
-          <option value="">All Patients</option>
-          {uniquePatients.sort().map(p => <option key={p}>{p}</option>)}
-        </select>
+        <FilterDropdown
+          icon={User}
+          value={filterPat}
+          onChange={setFilterPat}
+          options={[{ value: '', label: 'All Patients' }, ...uniquePatients.sort().map(p => ({ value: p, label: p }))]}
+        />
+        {(search || filterPat || filterType !== 'All') && (
+          <button
+            onClick={() => { setSearch(''); setFilterPat(''); setFilterType('All') }}
+            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (

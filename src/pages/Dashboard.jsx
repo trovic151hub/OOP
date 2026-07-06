@@ -12,7 +12,7 @@ import { useStore } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import NairaIcon from '../components/ui/NairaIcon'
-import { formatDate } from '../utils/helpers'
+import { formatDate, formatCompactCurrency, getCurrencySymbol } from '../utils/helpers'
 
 function StatCard({ label, value, sub, icon: Icon, color, trend }) {
   const ref = useRef(null)
@@ -76,10 +76,23 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
-function fmt(n) { return n >= 1000000 ? `₦${(n/1000000).toFixed(1)}m` : n >= 1000 ? `₦${(n/1000).toFixed(0)}k` : `₦${n}` }
+// Compares how many records were created in the last 30 days vs the 30 days
+// before that, so the dashboard's trend arrows reflect real data instead of
+// a fixed placeholder percentage.
+function trendFor(items, days = 30) {
+  const now = Date.now()
+  const cutoff1 = now - days * 86400000
+  const cutoff2 = now - 2 * days * 86400000
+  const recent = items.filter(i => i.createdAt && new Date(i.createdAt).getTime() > cutoff1).length
+  const prior  = items.filter(i => i.createdAt && new Date(i.createdAt).getTime() > cutoff2 && new Date(i.createdAt).getTime() <= cutoff1).length
+  if (prior === 0) return recent > 0 ? { up: true, label: `+${recent} new (30d)` } : null
+  const pct = Math.round(((recent - prior) / prior) * 100)
+  return { up: pct >= 0, label: `${pct >= 0 ? '+' : ''}${pct}% (30d)` }
+}
 
 export default function Dashboard({ onNavigate, currentUser }) {
-  const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults } = useStore()
+  const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults, settings } = useStore()
+  const fmt = (n) => formatCompactCurrency(n, settings?.currency)
 
   const today     = new Date().toISOString().slice(0, 10)
   const isDoctor  = currentUser?.role === 'Doctor'
@@ -94,7 +107,10 @@ export default function Dashboard({ onNavigate, currentUser }) {
   const myPatients = isDoctor ? patients.filter(p => myPatientNames.includes(p.name)) : patients
 
   const recentPatients = [...myPatients].slice(0, 5)
-  const upcomingAppts  = myAppointments.filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress').slice(0, 5)
+  const upcomingAppts  = myAppointments
+    .filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress')
+    .sort((a, b) => `${a.date || ''}T${a.timeStart || '00:00'}`.localeCompare(`${b.date || ''}T${b.timeStart || '00:00'}`))
+    .slice(0, 5)
 
   const next7Days = new Date(); next7Days.setDate(next7Days.getDate() + 7)
   const next7Str  = next7Days.toISOString().slice(0, 10)
@@ -172,11 +188,11 @@ export default function Dashboard({ onNavigate, currentUser }) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={{ up: true, label: '+12%' }} />
-          <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={{ up: true, label: '+1.5%' }} />
-          <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={{ up: true, label: '+8%' }} />
+          <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={trendFor(patients)} />
+          <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={trendFor(doctors)} />
+          <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={trendFor(appointments)} />
           <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={NairaIcon} color="emerald" />
-          <StatCard label="Rooms"       value={rooms.length}        sub={`${vacantRooms} vacant · ${occupiedRooms} occupied`} icon={BedDouble}  color="amber" />
+          <StatCard label="Rooms"       value={rooms.length}        sub={`${vacantRooms} vacant · ${occupiedRooms} occupied · ${settings?.bedCapacity || rooms.length} beds cap.`} icon={BedDouble}  color="amber" />
           <StatCard label="Lab Results" value={labResults.length}   sub={`${pendingLabs} pending · ${abnormalLabs} abnormal`} icon={FlaskConical} color="red" />
         </div>
       )}
@@ -222,6 +238,20 @@ export default function Dashboard({ onNavigate, currentUser }) {
             </div>
           </div>
           <button onClick={() => onNavigate('appointments')} className="text-xs text-violet-600 font-bold hover:underline flex-shrink-0">View →</button>
+        </div>
+      )}
+
+      {!isDoctor && settings?.maxPatientsPerDay > 0 && todayAppts.length >= settings.maxPatientsPerDay * 0.8 && (
+        <div className={`rounded-xl px-4 py-3 mb-6 flex items-start gap-3 ${todayAppts.length >= settings.maxPatientsPerDay ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'}`}>
+          <AlertTriangle size={16} className={`flex-shrink-0 mt-0.5 ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-500' : 'text-amber-500'}`} />
+          <div className="flex-1">
+            <p className={`text-xs font-bold ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-700' : 'text-amber-700'}`}>
+              {todayAppts.length >= settings.maxPatientsPerDay
+                ? `Daily patient capacity reached — ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`
+                : `Approaching daily capacity — ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`}
+            </p>
+          </div>
+          <button onClick={() => onNavigate('appointments')} className={`text-xs font-bold hover:underline flex-shrink-0 ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-600' : 'text-amber-600'}`}>View →</button>
         </div>
       )}
 
@@ -296,7 +326,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} formatter={(v) => [`₦${Number(v).toLocaleString('en-NG')}`, 'Revenue']} />
+                <Tooltip content={<ChartTooltip />} formatter={(v) => [`${getCurrencySymbol(settings?.currency)}${Number(v).toLocaleString('en-US')}`, 'Revenue']} />
                 <Bar dataKey="Revenue" name="Revenue" fill="#0d9488" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>

@@ -1,34 +1,51 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, LogIn, ArrowLeft, Mail } from 'lucide-react'
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
-import { auth } from '../firebase'
+import { Eye, EyeOff, Activity, LogIn, ArrowLeft, Mail, KeyRound } from 'lucide-react'
+import { api } from '../api/client'
+import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
 
+const urlResetToken = new URLSearchParams(window.location.search).get('resetToken')
+
 export default function Login({ onSwitch }) {
-  const [mode, setMode]           = useState('login') // 'login' | 'forgot'
+  const [mode, setMode]           = useState(urlResetToken ? 'reset' : 'login') // 'login' | 'forgot' | 'reset'
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
   const [resetEmail, setResetEmail] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPass, setShowPass]   = useState(false)
   const [remember, setRemember]   = useState(false)
   const [loading, setLoading]     = useState(false)
   const showToast = useToast()
+
+  async function handleResetPassword(e) {
+    e.preventDefault()
+    if (!newPassword || newPassword.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return }
+    if (newPassword !== confirmPassword) { showToast('Passwords do not match.', 'error'); return }
+    setLoading(true)
+    try {
+      await api.post(`/auth/reset-password/${urlResetToken}`, { password: newPassword })
+      showToast('Password updated. You can now log in.', 'success')
+      window.history.replaceState({}, '', window.location.pathname)
+      setMode('login')
+    } catch (err) {
+      showToast(err.message || 'This reset link is invalid or has expired.', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleLogin(e) {
     e.preventDefault()
     if (!email || !password) { showToast('Please fill in all fields.', 'error'); return }
     setLoading(true)
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      const { user } = await api.post('/auth/login', { email, password })
+      setCurrentUser(user)
+      initSubscriptions()
       showToast('Welcome back!', 'success')
     } catch (err) {
-      const msg =
-        err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
-          ? 'Invalid email or password.'
-          : err.code === 'auth/too-many-requests'
-          ? 'Too many attempts. Try again later.'
-          : 'Login failed. Please try again.'
-      showToast(msg, 'error')
+      showToast(err.message || 'Login failed. Please try again.', 'error')
     } finally {
       setLoading(false)
     }
@@ -39,15 +56,12 @@ export default function Login({ onSwitch }) {
     if (!resetEmail) { showToast('Please enter your email.', 'error'); return }
     setLoading(true)
     try {
-      await sendPasswordResetEmail(auth, resetEmail)
-      showToast('Reset link sent! Check your inbox.', 'success')
+      await api.post('/auth/forgot-password', { email: resetEmail })
+      showToast('If an account exists for that email, a reset link has been sent.', 'success')
       setMode('login')
       setResetEmail('')
     } catch (err) {
-      const msg = err.code === 'auth/user-not-found'
-        ? 'No account found with this email.'
-        : 'Failed to send reset email. Try again.'
-      showToast(msg, 'error')
+      showToast(err.message || 'Failed to send reset email. Try again.', 'error')
     } finally {
       setLoading(false)
     }
@@ -84,6 +98,49 @@ export default function Login({ onSwitch }) {
       <p className="text-xs text-slate-400">Copyright © 2025 MedCore. All rights reserved.</p>
     </div>
   )
+
+  if (mode === 'reset') {
+    return (
+      <div className="min-h-screen flex">
+        {LeftPanel}
+        <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white">
+          <div className="w-full max-w-md">
+            <div className="mb-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
+                <KeyRound size={26} className="text-teal-600" />
+              </div>
+              <h1 className="text-2xl font-extrabold text-slate-800 mb-2">Choose a New Password</h1>
+              <p className="text-sm text-slate-500">Enter and confirm your new password below.</p>
+            </div>
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+              <div>
+                <label className="label">New Password</label>
+                <input
+                  type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Min 6 characters"
+                  className="input-field" autoComplete="new-password"
+                />
+              </div>
+              <div>
+                <label className="label">Confirm New Password</label>
+                <input
+                  type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password"
+                  className="input-field" autoComplete="new-password"
+                />
+              </div>
+              <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
+                {loading
+                  ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <><KeyRound size={16} /> Update Password</>
+                }
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (mode === 'forgot') {
     return (

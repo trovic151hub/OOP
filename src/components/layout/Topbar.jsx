@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical, Moon, Sun, Printer } from 'lucide-react'
-import { useStore } from '../../store/useStore'
+import { useStore, setPendingChatTarget } from '../../store/useStore'
 import { useTheme } from '../../context/ThemeContext'
 import Avatar from '../ui/Avatar'
+import { withDrPrefix } from '../../utils/helpers'
 
 const PAGE_LABELS = {
   dashboard:          'Dashboard',
@@ -107,7 +108,7 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
   )
 }
 
-export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle }) {
+export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle, sidebarCollapsed }) {
   const { patients, doctors, appointments, inventory, messages, labResults } = useStore()
   const { dark, toggle: toggleDark } = useTheme()
   const [search, setSearch]               = useState('')
@@ -141,7 +142,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 
   const upcomingToday  = appointments.filter(a =>
-    (a.date === today || a.date === tomorrow) && (a.status === 'Scheduled' || a.status === 'Ongoing')
+    (a.date === today || a.date === tomorrow) && ['Scheduled', 'Checked In', 'In Progress'].includes(a.status)
   )
   function getStockStatus(qty, reorder) {
     const q = parseInt(qty) || 0; const r = parseInt(reorder) || 0
@@ -153,7 +154,13 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const checkedInPats  = appointments.filter(a => a.status === 'Checked In' && a.date === today)
   const abnormalLabs   = labResults.filter(l => l.status === 'Abnormal')
   const recentMessages = messages.slice(-3).reverse()
-  const totalNotifs    = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
+  const unreadMessages  = messages.filter(m => m.senderId !== currentUser?.uid && (!notifRead || m.createdAt > notifRead))
+  // These four are ongoing conditions, not discrete events — they have no
+  // "read" state and stay visible until whatever they describe changes (an
+  // appointment passes, stock is restocked, etc). Only messages are truly
+  // dismissible, so only they drive the bell's badge count.
+  const taskCount      = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
+  const unreadCount    = unreadMessages.length
 
   function markRead() {
     const now = new Date().toISOString()
@@ -177,7 +184,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   }
 
   return (
-    <header className="fixed top-0 left-0 md:left-60 right-0 h-16 bg-white border-b border-slate-200 flex items-center z-10 px-4 md:px-6">
+    <header className={`fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center z-10 px-4 md:px-6 transition-[left] duration-300 ease-in-out ${sidebarCollapsed ? 'md:left-[72px]' : 'md:left-60'}`}>
 
       {mobileSearch ? (
         <div ref={mSearchRef} className="flex-1 flex items-center gap-2 sm:hidden">
@@ -274,9 +281,9 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
             className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors relative"
           >
             <Bell size={16} />
-            {totalNotifs > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-teal-500 text-white text-[9px] font-bold flex items-center justify-center">
-                {totalNotifs > 9 ? '9+' : totalNotifs}
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
@@ -285,7 +292,9 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
             <div className="absolute top-full right-0 mt-2 w-[min(320px,calc(100vw-1rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                 <p className="text-sm font-bold text-slate-700">Notifications</p>
-                <span className="text-xs text-slate-400">{totalNotifs} alerts</span>
+                <span className="text-xs text-slate-400">
+                  {unreadCount > 0 ? `${unreadCount} unread` : taskCount > 0 ? `${taskCount} to review` : 'All caught up'}
+                </span>
               </div>
               <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
                 {upcomingToday.length > 0 && (
@@ -298,7 +307,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
-                          <p className="text-xs text-slate-400 truncate">Dr. {a.doctorName} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
+                          <p className="text-xs text-slate-400 truncate">{withDrPrefix(a.doctorName)} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
                         </div>
                       </div>
                     ))}
@@ -355,20 +364,23 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                 {recentMessages.length > 0 && (
                   <div>
                     <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">Recent Messages</div>
-                    {recentMessages.map(m => (
-                      <div key={m.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('messages'); setNotifOpen(false) }}>
-                        <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <MessageSquare size={13} className="text-blue-500" />
+                    {recentMessages.map(m => {
+                      const chatPartner = m.recipientId ? (m.senderId === currentUser?.uid ? m.recipientId : m.senderId) : null
+                      return (
+                        <div key={m.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { setPendingChatTarget(chatPartner); onNavigate('messages'); setNotifOpen(false) }}>
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <MessageSquare size={13} className="text-blue-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-700">{m.senderName}{chatPartner ? ' (private)' : ''}</p>
+                            <p className="text-xs text-slate-400 truncate">{m.text}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-700">{m.senderName}</p>
-                          <p className="text-xs text-slate-400 truncate">{m.text}</p>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
-                {totalNotifs === 0 && recentMessages.length === 0 && (
+                {taskCount === 0 && recentMessages.length === 0 && (
                   <div className="px-4 py-8 text-center text-sm text-slate-400">
                     <Bell size={24} className="text-slate-200 mx-auto mb-2" />
                     All caught up!

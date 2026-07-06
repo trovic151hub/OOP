@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, BedDouble, Search, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, BedDouble, Search, Building2, Filter, Tag, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import Combobox from '../components/ui/Combobox'
 import { useToast } from '../context/ToastContext'
 
 const ROOM_TYPES   = ['General Ward', 'Private', 'ICU', 'Emergency', 'Consultation', 'Operating Room', 'Pediatric', 'Maternity']
@@ -34,15 +37,11 @@ function RoomForm({ form, setForm, patients }) {
         </div>
         <div>
           <label className="label">Floor</label>
-          <select className="input-field" value={form.floor} onChange={set('floor')}>
-            {FLOORS.map(f => <option key={f}>{f}</option>)}
-          </select>
+          <FormDropdown value={form.floor} onChange={v => setForm(f => ({ ...f, floor: v }))} options={FLOORS.map(f => ({ value: f, label: f }))} />
         </div>
         <div>
           <label className="label">Room Type <span className="text-red-400">*</span></label>
-          <select className="input-field" value={form.type} onChange={set('type')}>
-            {ROOM_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
+          <FormDropdown value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} options={ROOM_TYPES.map(t => ({ value: t, label: t }))} />
         </div>
         <div>
           <label className="label">Capacity (beds)</label>
@@ -64,8 +63,17 @@ function RoomForm({ form, setForm, patients }) {
           <>
             <div className="col-span-2">
               <label className="label">Patient Name</label>
-              <input className="input-field" list="room-patient-list" placeholder="Search patient…" value={form.patientName} onChange={set('patientName')} />
-              <datalist id="room-patient-list">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+              <Combobox
+                value={form.patientName}
+                onChange={v => {
+                  const pat = patients.find(p => p.name === v)
+                  setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '' }))
+                }}
+                options={patients}
+                getLabel={p => p.name}
+                getSub={p => p.phone}
+                placeholder="Search patient…"
+              />
             </div>
           </>
         )}
@@ -119,7 +127,8 @@ export default function Rooms({ currentUser }) {
   }
 
   function quickStatus(r, newStatus) {
-    store.updateRoom(r.id, { ...r, status: newStatus, patientName: newStatus !== 'Occupied' ? '' : r.patientName })
+    const vacating = newStatus !== 'Occupied'
+    store.updateRoom(r.id, { ...r, status: newStatus, patientName: vacating ? '' : r.patientName, patientId: vacating ? '' : r.patientId })
     showToast(`Room ${r.roomNumber} marked as ${newStatus}.`, 'info')
   }
 
@@ -153,17 +162,43 @@ export default function Rooms({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search room number, type, patient…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search room number, type, patient…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
-        <select className="input-field w-auto text-xs" value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="All">All Types</option>
-          {ROOM_TYPES.map(t => <option key={t}>{t}</option>)}
-        </select>
-        <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="All">All Status</option>
-          {ROOM_STATUSES.map(s => <option key={s}>{s}</option>)}
-        </select>
+        <FilterDropdown
+          icon={Tag}
+          value={filterType}
+          onChange={setFilterType}
+          options={[{ value: 'All', label: 'All Types' }, ...ROOM_TYPES.map(t => ({ value: t, label: t }))]}
+        />
+        <FilterDropdown
+          icon={Filter}
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={[{ value: 'All', label: 'All Status' }, ...ROOM_STATUSES.map(s => ({ value: s, label: s }))]}
+        />
+        {(search || filterType !== 'All' || filterStatus !== 'All') && (
+          <button
+            onClick={() => { setSearch(''); setFilterType('All'); setFilterStatus('All') }}
+            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (

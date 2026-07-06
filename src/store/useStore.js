@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  collection, addDoc, updateDoc, deleteDoc,
-  doc, onSnapshot, query, orderBy, where, setDoc, getDoc, getDocs, limit
-} from 'firebase/firestore'
-import { signOut } from 'firebase/auth'
-import { db, auth } from '../firebase'
+import { api } from '../api/client'
 
 const DEFAULT_SETTINGS = {
   hospitalName: 'MedCore Hospital',
@@ -20,6 +15,28 @@ const DEFAULT_SETTINGS = {
   appointmentDuration: 30,
   logo: '',
 }
+
+// [state key, API path] for the 17 list collections + settings (18 total),
+// mirroring the 18 onSnapshot subscriptions this store used to hold.
+const COLLECTIONS = [
+  ['patients', '/patients'],
+  ['doctors', '/doctors'],
+  ['appointments', '/appointments'],
+  ['departments', '/departments'],
+  ['inventory', '/inventory'],
+  ['messages', '/messages'],
+  ['users', '/users'],
+  ['medicalRecords', '/medical-records'],
+  ['billing', '/billing'],
+  ['shifts', '/shifts'],
+  ['rooms', '/rooms'],
+  ['labResults', '/lab-results'],
+  ['prescriptions', '/prescriptions'],
+  ['expenses', '/expenses'],
+  ['documents', '/documents'],
+  ['claims', '/claims'],
+  ['pharmacyOrders', '/pharmacy-orders'],
+]
 
 const state = {
   patients:       [],
@@ -41,410 +58,221 @@ const state = {
   pharmacyOrders: [],
   settings:       { ...DEFAULT_SETTINGS },
   loading:        true,
+  currentUser:    null,
 }
 
 let _listeners = []
 function notify() { _listeners.forEach(fn => fn()) }
 
-let _unsubs = []
+let _initialized = false
 
-async function logAudit(action, entity, entityName) {
+async function refetch(key, path) {
   try {
-    const user = auth.currentUser
-    if (!user) return
-    await addDoc(collection(db, 'auditLog'), {
-      action,
-      entity,
-      entityName: entityName || 'Unknown',
-      userId:     user.uid,
-      userName:   user.displayName || user.email || 'System',
-      timestamp:  new Date().toISOString(),
-    })
-  } catch (_) {}
+    state[key] = await api.get(path)
+  } catch (err) {
+    console.error(err)
+  }
+  notify()
 }
 
-export function initSubscriptions() {
-  if (_unsubs.length > 0) return
+async function refetchSettings() {
+  try {
+    state.settings = { ...DEFAULT_SETTINGS, ...(await api.get('/settings')) }
+  } catch (err) {
+    console.error(err)
+  }
+  notify()
+}
 
-  const qP  = query(collection(db, 'patients'),       orderBy('createdAt', 'desc'))
-  const qD  = query(collection(db, 'doctors'),         orderBy('createdAt', 'desc'))
-  const qA  = query(collection(db, 'appointments'),    orderBy('createdAt', 'desc'))
-  const qDe = query(collection(db, 'departments'),     orderBy('createdAt', 'desc'))
-  const qI  = query(collection(db, 'inventory'),       orderBy('createdAt', 'desc'))
-  const qM  = query(collection(db, 'messages'),        orderBy('createdAt', 'asc'))
-  const qU  = query(collection(db, 'users'),           orderBy('createdAt', 'asc'))
-  const qR  = query(collection(db, 'medicalRecords'),  orderBy('date', 'desc'))
-  const qB  = query(collection(db, 'billing'),         orderBy('createdAt', 'desc'))
-  const qS  = query(collection(db, 'shifts'),          orderBy('createdAt', 'asc'))
-  const qRm = query(collection(db, 'rooms'),           orderBy('createdAt', 'desc'))
-  const qLr = query(collection(db, 'labResults'),      orderBy('date', 'desc'))
-  const qRx = query(collection(db, 'prescriptions'),   orderBy('date', 'desc'))
-  const qEx = query(collection(db, 'expenses'),        orderBy('date', 'desc'))
-  const qDoc = query(collection(db, 'documents'),      orderBy('date', 'desc'))
-  const qCl  = query(collection(db, 'claims'),         orderBy('submittedDate', 'desc'))
-  const qPh  = query(collection(db, 'pharmacyOrders'), orderBy('createdAt', 'desc'))
-  const sRef  = doc(db, 'settings', 'hospital')
+const COLLECTION_PATHS = Object.fromEntries(COLLECTIONS)
 
-  let loaded = 0
-  function checkAll() { if (++loaded >= 18) { state.loading = false; notify() } }
+// Lets a page poll one collection for near-live updates (e.g. the Waiting
+// Room queue picking up another receptionist's check-ins) without a full
+// Socket.IO layer — call on an interval, no-op if the store isn't loaded yet.
+export function refetchCollection(key) {
+  const path = COLLECTION_PATHS[key]
+  if (!path) return Promise.resolve()
+  return refetch(key, path)
+}
 
-  _unsubs.push(
-    onSnapshot(qP,   snap => { state.patients       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qD,   snap => { state.doctors        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qA,   snap => { state.appointments   = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qDe,  snap => { state.departments    = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qI,   snap => { state.inventory      = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qM,   snap => { state.messages       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qU,   snap => { state.users          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qR,   snap => { state.medicalRecords = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qB,   snap => { state.billing        = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qS,   snap => { state.shifts         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qRm,  snap => { state.rooms          = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qLr,  snap => { state.labResults     = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qRx,  snap => { state.prescriptions  = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qEx,  snap => { state.expenses       = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qDoc, snap => { state.documents      = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qCl,  snap => { state.claims         = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(qPh,  snap => { state.pharmacyOrders = snap.docs.map(d => ({ id: d.id, ...d.data() })); checkAll(); notify() }, console.error),
-    onSnapshot(sRef, snap => { state.settings = snap.exists() ? { ...DEFAULT_SETTINGS, ...snap.data() } : { ...DEFAULT_SETTINGS }; checkAll(); notify() }, console.error),
-  )
+export async function initSubscriptions() {
+  if (_initialized) return
+  _initialized = true
+  await Promise.all([
+    ...COLLECTIONS.map(([key, path]) => refetch(key, path)),
+    refetchSettings(),
+  ])
+  state.loading = false
+  notify()
 }
 
 export function clearSubscriptions() {
-  _unsubs.forEach(fn => fn())
-  _unsubs = []
+  _initialized = false
   Object.assign(state, {
     patients: [], doctors: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
     prescriptions: [], expenses: [], documents: [], claims: [],
     pharmacyOrders: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
+    currentUser: null,
   })
   notify()
 }
 
-function stripMeta(data) {
-  const { id: _id, createdAt: _c, ...rest } = data
-  return rest
+export function setCurrentUser(user) {
+  state.currentUser = user
+  notify()
 }
 
-export async function ensureUserProfile(firebaseUser) {
-  const ref = doc(db, 'users', firebaseUser.uid)
-  const snap = await getDoc(ref)
-  if (!snap.exists()) {
-    const existingUsers = await getDocs(collection(db, 'users'))
-    const isFirstUser = existingUsers.empty
-    await setDoc(ref, {
-      uid:       firebaseUser.uid,
-      name:      firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-      email:     firebaseUser.email,
-      role:      isFirstUser ? 'Admin' : 'Receptionist',
-      createdAt: new Date().toISOString(),
-    })
-  }
-  return (await getDoc(ref)).data()
+// One-shot handoff for "open this specific DM" — set by a notification click,
+// read once by the Messages page on mount, then cleared. Doesn't need to be
+// part of the reactive store since nothing else observes it.
+let _pendingChatTarget = null
+export function setPendingChatTarget(uid) { _pendingChatTarget = uid }
+export function consumePendingChatTarget() {
+  const v = _pendingChatTarget
+  _pendingChatTarget = null
+  return v
+}
+
+export async function ensureUserProfile() {
+  const { user } = await api.get('/auth/me')
+  return user
 }
 
 export async function fetchAuditLog() {
-  const q = query(collection(db, 'auditLog'), orderBy('timestamp', 'desc'), limit(200))
-  const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return api.get('/audit-log?limit=200')
+}
+
+async function addItem(key, path, data) {
+  const created = await api.post(path, data)
+  await refetch(key, path)
+  return created
+}
+async function updateItem(key, path, id, data) {
+  await api.put(`${path}/${id}`, data)
+  await refetch(key, path)
+}
+async function deleteItem(key, path, id) {
+  await api.del(`${path}/${id}`)
+  await refetch(key, path)
 }
 
 export const store = {
   async logout() {
+    try { await api.post('/auth/logout') } catch (_) {}
     clearSubscriptions()
-    await signOut(auth)
   },
 
   async updateSettings(data) {
-    await setDoc(doc(db, 'settings', 'hospital'), data, { merge: true })
-    logAudit('Updated', 'Settings', 'Hospital Settings')
+    await api.put('/settings', data)
+    await refetchSettings()
   },
 
-  async addPatient(data) {
-    const ref = await addDoc(collection(db, 'patients'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Patient', data.name)
-    return ref
-  },
-  async updatePatient(id, data) {
-    await updateDoc(doc(db, 'patients', id), stripMeta(data))
-    logAudit('Updated', 'Patient', data.name)
-  },
-  async deletePatient(id, name) {
-    const apptSnap = await getDocs(query(collection(db, 'appointments'), where('patientName', '==', name)))
-    await Promise.all(apptSnap.docs.map(d => deleteDoc(d.ref)))
-    const recSnap = await getDocs(query(collection(db, 'medicalRecords'), where('patientId', '==', id)))
-    await Promise.all(recSnap.docs.map(d => deleteDoc(d.ref)))
-    await deleteDoc(doc(db, 'patients', id))
-    logAudit('Deleted', 'Patient', name || id)
+  async addPatient(data)          { return addItem('patients', '/patients', data) },
+  async updatePatient(id, data)   { return updateItem('patients', '/patients', id, data) },
+  async deletePatient(id) {
+    await deleteItem('patients', '/patients', id)
+    await Promise.all([refetch('appointments', '/appointments'), refetch('medicalRecords', '/medical-records')])
   },
 
-  async addDoctor(data) {
-    const ref = await addDoc(collection(db, 'doctors'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Doctor', data.name)
-    return ref
-  },
-  async updateDoctor(id, data) {
-    await updateDoc(doc(db, 'doctors', id), stripMeta(data))
-    logAudit('Updated', 'Doctor', data.name)
-  },
-  async deleteDoctor(id, name) {
-    const apptSnap = await getDocs(query(collection(db, 'appointments'), where('doctorName', '==', name)))
-    await Promise.all(apptSnap.docs.map(d => deleteDoc(d.ref)))
-    const shiftSnap = await getDocs(query(collection(db, 'shifts'), where('doctorId', '==', id)))
-    await Promise.all(shiftSnap.docs.map(d => deleteDoc(d.ref)))
-    await deleteDoc(doc(db, 'doctors', id))
-    logAudit('Deleted', 'Doctor', name || id)
+  async addDoctor(data)          { return addItem('doctors', '/doctors', data) },
+  async updateDoctor(id, data)   { return updateItem('doctors', '/doctors', id, data) },
+  async deleteDoctor(id) {
+    await deleteItem('doctors', '/doctors', id)
+    await Promise.all([refetch('appointments', '/appointments'), refetch('shifts', '/shifts')])
   },
 
-  async addAppointment(data) {
-    const ref = await addDoc(collection(db, 'appointments'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Appointment', `${data.patientName} w/ ${data.doctorName}`)
-    return ref
-  },
-  async updateAppointment(id, data) {
-    await updateDoc(doc(db, 'appointments', id), stripMeta(data))
-  },
-  async deleteAppointment(id, label) {
-    await deleteDoc(doc(db, 'appointments', id))
-    logAudit('Deleted', 'Appointment', label || id)
-  },
+  async addAppointment(data)        { return addItem('appointments', '/appointments', data) },
+  async updateAppointment(id, data) { return updateItem('appointments', '/appointments', id, data) },
+  async deleteAppointment(id)       { return deleteItem('appointments', '/appointments', id) },
 
-  async addDepartment(data) {
-    const ref = await addDoc(collection(db, 'departments'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Department', data.name)
-    return ref
-  },
-  async updateDepartment(id, data) {
-    await updateDoc(doc(db, 'departments', id), stripMeta(data))
-    logAudit('Updated', 'Department', data.name)
-  },
-  async deleteDepartment(id, name) {
-    await deleteDoc(doc(db, 'departments', id))
-    logAudit('Deleted', 'Department', name || id)
-  },
+  async addDepartment(data)        { return addItem('departments', '/departments', data) },
+  async updateDepartment(id, data) { return updateItem('departments', '/departments', id, data) },
+  async deleteDepartment(id)       { return deleteItem('departments', '/departments', id) },
 
-  async addInventoryItem(data) {
-    const ref = await addDoc(collection(db, 'inventory'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Inventory', data.name)
-    return ref
-  },
-  async updateInventoryItem(id, data) {
-    await updateDoc(doc(db, 'inventory', id), stripMeta(data))
-    logAudit('Updated', 'Inventory', data.name)
-  },
-  async deleteInventoryItem(id, name) {
-    await deleteDoc(doc(db, 'inventory', id))
-    logAudit('Deleted', 'Inventory', name || id)
-  },
+  async addInventoryItem(data)        { return addItem('inventory', '/inventory', data) },
+  async updateInventoryItem(id, data) { return updateItem('inventory', '/inventory', id, data) },
+  async deleteInventoryItem(id)       { return deleteItem('inventory', '/inventory', id) },
 
   async deductInventoryForPrescription(prescriptionText) {
     if (!prescriptionText || !prescriptionText.trim()) return []
-    const snap = await getDocs(collection(db, 'inventory'))
-    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-    const lower = prescriptionText.toLowerCase()
-    const deducted = []
-    for (const item of items) {
-      if (item.name && lower.includes(item.name.toLowerCase()) && (item.stock || 0) > 0) {
-        const newStock = Math.max(0, (item.stock || 0) - 1)
-        await updateDoc(doc(db, 'inventory', item.id), { stock: newStock })
-        logAudit('Deducted', 'Inventory', `${item.name} (Rx)`)
-        deducted.push(item.name)
-      }
-    }
+    const { deducted } = await api.post('/inventory/deduct-for-prescription', { prescriptionText })
+    await refetch('inventory', '/inventory')
     return deducted
   },
 
-  async sendMessage(text, senderName, senderRole) {
-    const user = auth.currentUser
-    if (!user || !text.trim()) return
-    return addDoc(collection(db, 'messages'), {
-      text: text.trim(),
-      senderId:   user.uid,
-      senderName: senderName || user.displayName || 'User',
-      senderRole: senderRole || 'Staff',
-      createdAt:  new Date().toISOString(),
-    })
+  async sendMessage(text, senderName, senderRole, recipientId = null) {
+    if (!text || !text.trim()) return
+    const created = await api.post('/messages', { text: text.trim(), senderName, senderRole, recipientId })
+    await refetch('messages', '/messages')
+    return created
   },
 
-  async updateUserProfile(uid, data) {
-    await updateDoc(doc(db, 'users', uid), data)
-    logAudit('Updated', 'User Profile', data.name || uid)
-  },
+  async updateUserProfile(uid, data) { return updateItem('users', '/users', uid, data) },
 
   async updateLastSeen(uid) {
-    try {
-      await updateDoc(doc(db, 'users', uid), { lastSeen: new Date().toISOString() })
-    } catch (_) {}
+    try { await api.put(`/users/${uid}/last-seen`) } catch (_) {}
   },
 
   async updateUserRole(uid, role) {
-    await updateDoc(doc(db, 'users', uid), { role })
-    logAudit('Role Changed', 'User', `${uid} → ${role}`)
-    if (role === 'Doctor') {
-      const byUid = await getDocs(query(collection(db, 'doctors'), where('uid', '==', uid)))
-      if (!byUid.empty) return
-      const userSnap = await getDoc(doc(db, 'users', uid))
-      if (!userSnap.exists()) return
-      const u = userSnap.data()
-      const byEmail = u.email
-        ? await getDocs(query(collection(db, 'doctors'), where('email', '==', u.email)))
-        : { empty: true }
-      if (!byEmail.empty) {
-        await updateDoc(byEmail.docs[0].ref, { uid })
-        logAudit('Linked', 'Doctor Profile', `${u.email} → uid:${uid}`)
-        return
-      }
-      await addDoc(collection(db, 'doctors'), {
-        uid,
-        name:         u.name  || 'Doctor',
-        email:        u.email || '',
-        phone:        u.phone || '',
-        specialty:    '',
-        department:   '',
-        availability: 'Available',
-        schedule:     '',
-        about:        '',
-        experience:   '',
-        createdAt:    new Date().toISOString(),
-      })
-    }
+    await api.put(`/users/${uid}/role`, { role })
+    await Promise.all([refetch('users', '/users'), refetch('doctors', '/doctors')])
   },
 
   async linkDoctorToUser(doctorId, uid) {
-    await updateDoc(doc(db, 'doctors', doctorId), { uid })
-    logAudit('Linked', 'Doctor Profile', `doctorId:${doctorId} → uid:${uid}`)
+    await api.put(`/doctors/${doctorId}/link-user`, { userId: uid })
+    await refetch('doctors', '/doctors')
   },
 
-  async addRoom(data) {
-    const ref = await addDoc(collection(db, 'rooms'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Room', data.roomNumber || data.name)
-    return ref
-  },
-  async updateRoom(id, data) {
-    await updateDoc(doc(db, 'rooms', id), stripMeta(data))
-    logAudit('Updated', 'Room', data.roomNumber || data.name)
-  },
-  async deleteRoom(id, label) {
-    await deleteDoc(doc(db, 'rooms', id))
-    logAudit('Deleted', 'Room', label || id)
+  // Creates the login account and doctor profile together, already linked.
+  // Returns { doctor, tempPassword } — the temp password is shown to the
+  // Admin once, at creation time, then never retrievable again.
+  async onboardDoctor(data) {
+    const result = await api.post('/doctors/onboard', data)
+    await Promise.all([refetch('doctors', '/doctors'), refetch('users', '/users')])
+    return result
   },
 
-  async addLabResult(data) {
-    const ref = await addDoc(collection(db, 'labResults'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Lab Result', `${data.testName} - ${data.patientName}`)
-    return ref
-  },
-  async updateLabResult(id, data) {
-    await updateDoc(doc(db, 'labResults', id), stripMeta(data))
-  },
-  async deleteLabResult(id) {
-    await deleteDoc(doc(db, 'labResults', id))
-    logAudit('Deleted', 'Lab Result', id)
-  },
+  async addRoom(data)        { return addItem('rooms', '/rooms', data) },
+  async updateRoom(id, data) { return updateItem('rooms', '/rooms', id, data) },
+  async deleteRoom(id)       { return deleteItem('rooms', '/rooms', id) },
 
-  async addMedicalRecord(data) {
-    return addDoc(collection(db, 'medicalRecords'), { ...data, createdAt: new Date().toISOString() })
-  },
-  async updateMedicalRecord(id, data) {
-    await updateDoc(doc(db, 'medicalRecords', id), stripMeta(data))
-  },
-  async deleteMedicalRecord(id) {
-    await deleteDoc(doc(db, 'medicalRecords', id))
-  },
+  async addLabResult(data)        { return addItem('labResults', '/lab-results', data) },
+  async updateLabResult(id, data) { return updateItem('labResults', '/lab-results', id, data) },
+  async deleteLabResult(id)       { return deleteItem('labResults', '/lab-results', id) },
 
-  async addInvoice(data) {
-    const ref = await addDoc(collection(db, 'billing'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Invoice', `${data.patientName} - $${data.total}`)
-    return ref
-  },
-  async updateInvoice(id, data) {
-    await updateDoc(doc(db, 'billing', id), stripMeta(data))
-  },
-  async deleteInvoice(id, label) {
-    await deleteDoc(doc(db, 'billing', id))
-    logAudit('Deleted', 'Invoice', label || id)
-  },
+  async addMedicalRecord(data)        { return addItem('medicalRecords', '/medical-records', data) },
+  async updateMedicalRecord(id, data) { return updateItem('medicalRecords', '/medical-records', id, data) },
+  async deleteMedicalRecord(id)       { return deleteItem('medicalRecords', '/medical-records', id) },
 
-  async addShift(data) {
-    return addDoc(collection(db, 'shifts'), { ...data, createdAt: new Date().toISOString() })
-  },
-  async updateShift(id, data) {
-    await updateDoc(doc(db, 'shifts', id), stripMeta(data))
-  },
-  async deleteShift(id) {
-    await deleteDoc(doc(db, 'shifts', id))
-  },
+  async addInvoice(data)        { return addItem('billing', '/billing', data) },
+  async updateInvoice(id, data) { return updateItem('billing', '/billing', id, data) },
+  async deleteInvoice(id)       { return deleteItem('billing', '/billing', id) },
 
-  async addPrescription(data) {
-    const ref = await addDoc(collection(db, 'prescriptions'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Prescription', `${data.patientName}`)
-    return ref
-  },
-  async updatePrescription(id, data) {
-    await updateDoc(doc(db, 'prescriptions', id), stripMeta(data))
-    logAudit('Updated', 'Prescription', data.patientName)
-  },
-  async deletePrescription(id) {
-    await deleteDoc(doc(db, 'prescriptions', id))
-    logAudit('Deleted', 'Prescription', id)
-  },
+  async addShift(data)        { return addItem('shifts', '/shifts', data) },
+  async updateShift(id, data) { return updateItem('shifts', '/shifts', id, data) },
+  async deleteShift(id)       { return deleteItem('shifts', '/shifts', id) },
 
-  async addExpense(data) {
-    const ref = await addDoc(collection(db, 'expenses'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Expense', data.description)
-    return ref
-  },
-  async updateExpense(id, data) {
-    await updateDoc(doc(db, 'expenses', id), stripMeta(data))
-    logAudit('Updated', 'Expense', data.description)
-  },
-  async deleteExpense(id) {
-    await deleteDoc(doc(db, 'expenses', id))
-    logAudit('Deleted', 'Expense', id)
-  },
+  async addPrescription(data)        { return addItem('prescriptions', '/prescriptions', data) },
+  async updatePrescription(id, data) { return updateItem('prescriptions', '/prescriptions', id, data) },
+  async deletePrescription(id)       { return deleteItem('prescriptions', '/prescriptions', id) },
 
-  async addDocument(data) {
-    const ref = await addDoc(collection(db, 'documents'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Document', `${data.title} - ${data.patientName}`)
-    return ref
-  },
-  async updateDocument(id, data) {
-    await updateDoc(doc(db, 'documents', id), stripMeta(data))
-    logAudit('Updated', 'Document', data.title)
-  },
-  async deleteDocument(id) {
-    await deleteDoc(doc(db, 'documents', id))
-    logAudit('Deleted', 'Document', id)
-  },
+  async addExpense(data)        { return addItem('expenses', '/expenses', data) },
+  async updateExpense(id, data) { return updateItem('expenses', '/expenses', id, data) },
+  async deleteExpense(id)       { return deleteItem('expenses', '/expenses', id) },
 
-  async addClaim(data) {
-    const ref = await addDoc(collection(db, 'claims'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Claim', `${data.patientName} - ${data.insuranceProvider}`)
-    return ref
-  },
-  async updateClaim(id, data) {
-    await updateDoc(doc(db, 'claims', id), stripMeta(data))
-    logAudit('Updated', 'Claim', data.patientName)
-  },
-  async deleteClaim(id) {
-    await deleteDoc(doc(db, 'claims', id))
-    logAudit('Deleted', 'Claim', id)
-  },
+  async addDocument(data)        { return addItem('documents', '/documents', data) },
+  async updateDocument(id, data) { return updateItem('documents', '/documents', id, data) },
+  async deleteDocument(id)       { return deleteItem('documents', '/documents', id) },
 
-  async addPharmacyOrder(data) {
-    const ref = await addDoc(collection(db, 'pharmacyOrders'), { ...data, createdAt: new Date().toISOString() })
-    logAudit('Added', 'Pharmacy Order', data.patientName)
-    return ref
-  },
-  async updatePharmacyOrder(id, data) {
-    await updateDoc(doc(db, 'pharmacyOrders', id), stripMeta(data))
-  },
-  async deletePharmacyOrder(id) {
-    await deleteDoc(doc(db, 'pharmacyOrders', id))
-    logAudit('Deleted', 'Pharmacy Order', id)
-  },
+  async addClaim(data)        { return addItem('claims', '/claims', data) },
+  async updateClaim(id, data) { return updateItem('claims', '/claims', id, data) },
+  async deleteClaim(id)       { return deleteItem('claims', '/claims', id) },
+
+  async addPharmacyOrder(data)        { return addItem('pharmacyOrders', '/pharmacy-orders', data) },
+  async updatePharmacyOrder(id, data) { return updateItem('pharmacyOrders', '/pharmacy-orders', id, data) },
+  async deletePharmacyOrder(id)       { return deleteItem('pharmacyOrders', '/pharmacy-orders', id) },
 }
 
 export function useStore() {
@@ -475,5 +303,6 @@ export function useStore() {
     pharmacyOrders: state.pharmacyOrders,
     settings:       state.settings,
     loading:        state.loading,
+    currentUser:    state.currentUser,
   }
 }

@@ -19,6 +19,25 @@
   box-sizing: border-box;
 }
 
+/* Page loader: scrolls one tiled strip-width to the left, looping into an
+   identical second strip so the motion reads as a continuous ECG feed. */
+@keyframes heartbeat-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-288px); }
+}
+.animate-heartbeat-scroll {
+  animation: heartbeat-scroll 1.6s linear infinite;
+}
+
+@keyframes heart-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.7; }
+  50%      { transform: scale(1.25); opacity: 1; }
+}
+.animate-heart-pulse {
+  animation: heart-pulse 1.1s ease-in-out infinite;
+  transform-origin: center;
+}
+
 body {
   background-color: #f1f5f9;
   color: #0f172a;

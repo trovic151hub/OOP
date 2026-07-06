@@ -3,8 +3,8 @@ import { TrendingUp, Star, Users, Calendar, CheckCircle, Award, BarChart2 } from
 import NairaIcon from '../components/ui/NairaIcon'
 import { useStore } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
-import { formatCurrency } from '../utils/helpers'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
+import { formatCurrency, formatCompactCurrency } from '../utils/helpers'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
@@ -28,7 +28,7 @@ function MetricCard({ label, value, icon: Icon, color = 'teal', sub }) {
   )
 }
 
-function DoctorCard({ doctor, appointments, billing, labResults, rank }) {
+function DoctorCard({ doctor, appointments, billing, labResults, rank, currency }) {
   const myAppts     = appointments.filter(a => a.doctorName === doctor.name)
   const completed   = myAppts.filter(a => a.status === 'Completed').length
   const rate        = myAppts.length > 0 ? Math.round((completed / myAppts.length) * 100) : 0
@@ -86,7 +86,7 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank }) {
         {revenue > 0 && (
           <div className="mt-3 flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
             <NairaIcon size={13} className="text-emerald-600" />
-            <p className="text-xs font-bold text-emerald-700">Revenue generated: {formatCurrency(revenue)}</p>
+            <p className="text-xs font-bold text-emerald-700">Revenue generated: {formatCurrency(revenue, currency)}</p>
           </div>
         )}
       </div>
@@ -115,7 +115,7 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank }) {
 }
 
 export default function StaffPerformance() {
-  const { doctors, appointments, billing, labResults, users } = useStore()
+  const { doctors, appointments, billing, labResults, users, settings } = useStore()
   const [sortBy, setSortBy] = useState('appointments')
 
   const today     = new Date().toISOString().slice(0, 10)
@@ -192,7 +192,7 @@ export default function StaffPerformance() {
           {topDoc.revenue > 0 && (
             <div className="ml-auto text-right flex-shrink-0 hidden sm:block">
               <p className="text-xs opacity-60">Revenue</p>
-              <p className="text-lg font-extrabold">{formatCurrency(topDoc.revenue)}</p>
+              <p className="text-lg font-extrabold">{formatCurrency(topDoc.revenue, settings?.currency)}</p>
             </div>
           )}
         </div>
@@ -200,14 +200,20 @@ export default function StaffPerformance() {
 
       {overviewData.length > 0 && (
         <div className="card p-5 mb-5">
-          <p className="text-sm font-bold text-slate-700 mb-4">Appointments by Doctor ({new Date().getFullYear()})</p>
-          <ResponsiveContainer width="100%" height={180}>
+          <p className="text-sm font-bold text-slate-700 mb-4">Appointments &amp; Revenue by Doctor ({new Date().getFullYear()})</p>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={overviewData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="Appts" name="Appointments" fill="#0d9488" radius={[4,4,0,0]} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11 }} allowDecimals={false} />
+              <YAxis
+                yAxisId="right" orientation="right" tick={{ fontSize: 11 }}
+                tickFormatter={v => formatCompactCurrency(v, settings?.currency)}
+              />
+              <Tooltip formatter={(v, name) => name === 'Revenue' ? [formatCurrency(v, settings?.currency), name] : [v, name]} />
+              <Legend />
+              <Bar yAxisId="left" dataKey="Appts" name="Appointments" fill="#0d9488" radius={[4,4,0,0]} />
+              <Bar yAxisId="right" dataKey="Revenue" name="Revenue" fill="#f59e0b" radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -229,6 +235,7 @@ export default function StaffPerformance() {
               billing={billing}
               labResults={labResults}
               rank={idx + 1}
+              currency={settings?.currency}
             />
           ))}
         </div>

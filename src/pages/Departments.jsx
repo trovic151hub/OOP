@@ -1,14 +1,37 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Building2, Users, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Building2, Users, Filter, Search, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
 import { useToast } from '../context/ToastContext'
 
-const EMPTY_FORM = { name: '', head: '', floor: '', capacity: '', status: 'Active', description: '', phone: '' }
+const EMPTY_FORM = { name: '', head: '', floor: '', capacity: '', status: 'Active', description: '', phone: '', color: 'teal' }
 const STATUSES = ['Active', 'Inactive', 'Under Maintenance']
+
+// Tailwind needs each class name to appear literally in the source to generate
+// it — building it as `bg-${color}-50` at runtime wouldn't work, so each
+// department color is a static lookup instead of a string template.
+const DEPT_COLORS = ['teal', 'red', 'rose', 'purple', 'blue', 'amber', 'green', 'orange', 'pink', 'indigo']
+const DEPT_COLOR_STYLES = {
+  teal:   { bg: 'bg-teal-50',   border: 'border-teal-100',   icon: 'text-teal-600' },
+  red:    { bg: 'bg-red-50',    border: 'border-red-100',    icon: 'text-red-600' },
+  rose:   { bg: 'bg-rose-50',   border: 'border-rose-100',   icon: 'text-rose-600' },
+  purple: { bg: 'bg-purple-50', border: 'border-purple-100', icon: 'text-purple-600' },
+  blue:   { bg: 'bg-blue-50',   border: 'border-blue-100',   icon: 'text-blue-600' },
+  amber:  { bg: 'bg-amber-50',  border: 'border-amber-100',  icon: 'text-amber-600' },
+  green:  { bg: 'bg-green-50',  border: 'border-green-100',  icon: 'text-green-600' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-100', icon: 'text-orange-600' },
+  pink:   { bg: 'bg-pink-50',   border: 'border-pink-100',   icon: 'text-pink-600' },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-100', icon: 'text-indigo-600' },
+}
+const DEPT_COLOR_SWATCH = {
+  teal: 'bg-teal-500', red: 'bg-red-500', rose: 'bg-rose-500', purple: 'bg-purple-500',
+  blue: 'bg-blue-500', amber: 'bg-amber-500', green: 'bg-green-500', orange: 'bg-orange-500',
+  pink: 'bg-pink-500', indigo: 'bg-indigo-500',
+}
 
 function DeptForm({ form, setForm }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -37,9 +60,19 @@ function DeptForm({ form, setForm }) {
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {STATUSES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={STATUSES.map(v => ({ value: v, label: v }))} />
+        </div>
+        <div className="col-span-2">
+          <label className="label">Card Color</label>
+          <div className="flex flex-wrap gap-2">
+            {DEPT_COLORS.map(c => (
+              <button
+                key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
+                title={c}
+                className={`w-7 h-7 rounded-full ${DEPT_COLOR_SWATCH[c]} flex items-center justify-center transition-transform ${form.color === c ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-105'}`}
+              />
+            ))}
+          </div>
         </div>
         <div className="col-span-2">
           <label className="label">Description</label>
@@ -79,12 +112,6 @@ export default function Departments({ currentUser }) {
     setModal(false)
   }
 
-  const statusColor = {
-    Active:             'bg-emerald-50 text-emerald-700',
-    Inactive:           'bg-slate-100 text-slate-600',
-    'Under Maintenance':'bg-amber-50 text-amber-700',
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
@@ -100,13 +127,40 @@ export default function Departments({ currentUser }) {
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name, head, or floor…" className="flex-1 min-w-48" />
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="All">All Status</option>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, head, or floor…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown
+            icon={Filter}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: 'All', label: 'All Status' }, ...STATUSES.map(s => ({ value: s, label: s }))]}
+          />
+          {(search || filterStatus !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterStatus('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -123,16 +177,15 @@ export default function Departments({ currentUser }) {
             const admittedPats = patients.filter(p => (p.status === 'Admitted' || p.status === 'In Treatment') && p.department?.toLowerCase() === dept.name?.toLowerCase())
             const totalBeds    = parseInt(dept.capacity) || 0
             const occupancy    = totalBeds > 0 ? Math.round((admittedPats.length / totalBeds) * 100) : 0
+            const colorStyle = DEPT_COLOR_STYLES[dept.color] || DEPT_COLOR_STYLES.teal
             return (
               <div key={dept.id} className="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center">
-                    <Building2 size={18} className="text-teal-600" />
+                  <div className={`w-10 h-10 rounded-xl ${colorStyle.bg} border ${colorStyle.border} flex items-center justify-center`}>
+                    <Building2 size={18} className={colorStyle.icon} />
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[dept.status] || 'bg-slate-100 text-slate-600'}`}>
-                      {dept.status || 'Active'}
-                    </span>
+                    <Badge status={dept.status || 'Active'} />
                     {isAdmin && (
                       <>
                         <button onClick={() => openEdit(dept)} className="p-1 rounded text-slate-300 hover:text-slate-600 transition-colors">

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { User, Phone, Mail, Stethoscope, Building2, Award, Clock, Save, Pencil, X, BadgeCheck } from 'lucide-react'
+import { User, Phone, Mail, Stethoscope, Building2, Award, Clock, Save, Pencil, X, BadgeCheck, Lock } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
+import { api } from '../api/client'
 import Avatar from '../components/ui/Avatar'
+import FormDropdown from '../components/ui/FormDropdown'
+import Combobox from '../components/ui/Combobox'
 import { useToast } from '../context/ToastContext'
 
 const AVAILABILITIES = ['Available', 'Unavailable', 'Busy', 'On Leave']
@@ -19,10 +22,14 @@ export default function MyProfile({ currentUser }) {
 
   const linkedDoctor = doctors.find(d => d.uid === currentUser?.uid)
 
-  const [editingBasic, setEditingBasic]   = useState(false)
-  const [editingDoctor, setEditingDoctor] = useState(false)
-  const [savingBasic, setSavingBasic]     = useState(false)
-  const [savingDoctor, setSavingDoctor]   = useState(false)
+  const [editingBasic, setEditingBasic]     = useState(false)
+  const [editingDoctor, setEditingDoctor]   = useState(false)
+  const [editingPassword, setEditingPassword] = useState(false)
+  const [savingBasic, setSavingBasic]       = useState(false)
+  const [savingDoctor, setSavingDoctor]     = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
 
   const [basicForm, setBasicForm] = useState({
     name:  currentUser?.name  || '',
@@ -98,6 +105,26 @@ export default function MyProfile({ currentUser }) {
       showToast('Failed to save doctor profile.', 'error')
     } finally {
       setSavingDoctor(false)
+    }
+  }
+
+  async function savePassword() {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) { showToast('Both password fields are required.', 'error'); return }
+    if (passwordForm.newPassword.length < 6) { showToast('New password must be at least 6 characters.', 'error'); return }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) { showToast('New passwords do not match.', 'error'); return }
+    setSavingPassword(true)
+    try {
+      await api.put('/auth/password', {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      })
+      showToast('Password updated.', 'success')
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setEditingPassword(false)
+    } catch (err) {
+      showToast(err.message || 'Failed to update password.', 'error')
+    } finally {
+      setSavingPassword(false)
     }
   }
 
@@ -191,6 +218,63 @@ export default function MyProfile({ currentUser }) {
         </div>
       </div>
 
+      <div className="card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Lock size={16} className="text-slate-400" />
+            <p className="text-sm font-bold text-slate-700">Change Password</p>
+          </div>
+          {!editingPassword ? (
+            <button onClick={() => setEditingPassword(true)} className="btn-ghost text-xs py-1.5 px-3">
+              <Pencil size={12} /> Edit
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setEditingPassword(false); setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' }) }}
+                className="btn-ghost text-xs py-1.5 px-3"
+              >
+                <X size={12} /> Cancel
+              </button>
+              <button onClick={savePassword} disabled={savingPassword} className="btn-primary text-xs py-1.5 px-3">
+                {savingPassword ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save size={12} /> Save</>}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {editingPassword && (
+          <div className="p-6 flex flex-col gap-3">
+            <div>
+              <label className="label">Current Password</label>
+              <input
+                type="password" className="input-field" autoComplete="current-password"
+                value={passwordForm.currentPassword}
+                onChange={e => setPasswordForm(f => ({ ...f, currentPassword: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="label">New Password</label>
+                <input
+                  type="password" className="input-field" autoComplete="new-password" placeholder="Min 6 characters"
+                  value={passwordForm.newPassword}
+                  onChange={e => setPasswordForm(f => ({ ...f, newPassword: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="label">Confirm New Password</label>
+                <input
+                  type="password" className="input-field" autoComplete="new-password"
+                  value={passwordForm.confirmPassword}
+                  onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {isDoctor && (
         <div className="card overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -229,15 +313,15 @@ export default function MyProfile({ currentUser }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Specialty</label>
-                  <input className="input-field" list="spec-list" value={doctorForm.specialty} onChange={setDoc('specialty')} placeholder="e.g. Cardiology" />
-                  <datalist id="spec-list">{SPECIALTIES.map(s => <option key={s} value={s} />)}</datalist>
+                  <Combobox value={doctorForm.specialty} onChange={v => setDoctorForm(f => ({ ...f, specialty: v }))} options={SPECIALTIES} getLabel={s => s} placeholder="e.g. Cardiology" />
                 </div>
                 <div>
                   <label className="label">Department</label>
-                  <select className="input-field" value={doctorForm.department} onChange={setDoc('department')}>
-                    <option value="">None</option>
-                    {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-                  </select>
+                  <FormDropdown
+                    value={doctorForm.department}
+                    onChange={v => setDoctorForm(f => ({ ...f, department: v }))}
+                    options={[{ value: '', label: 'None' }, ...departments.map(d => ({ value: d.name, label: d.name }))]}
+                  />
                 </div>
                 <div>
                   <label className="label">Experience</label>
@@ -245,9 +329,7 @@ export default function MyProfile({ currentUser }) {
                 </div>
                 <div>
                   <label className="label">Availability</label>
-                  <select className="input-field" value={doctorForm.availability} onChange={setDoc('availability')}>
-                    {AVAILABILITIES.map(v => <option key={v}>{v}</option>)}
-                  </select>
+                  <FormDropdown value={doctorForm.availability} onChange={v => setDoctorForm(f => ({ ...f, availability: v }))} options={AVAILABILITIES.map(v => ({ value: v, label: v }))} />
                 </div>
                 <div className="col-span-2">
                   <label className="label">Schedule</label>

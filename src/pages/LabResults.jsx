@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, FlaskConical, Search, Filter, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, FlaskConical, Search, Filter, Tag, Download, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import Combobox from '../components/ui/Combobox'
+import DatePicker from '../components/ui/DatePicker'
 import { useToast } from '../context/ToastContext'
 import { formatDate } from '../utils/helpers'
 
@@ -32,34 +36,27 @@ function LabForm({ form, setForm, patients, doctors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <input className="input-field" list="lab-patients" placeholder="Search patient…" value={form.patientName} onChange={set('patientName')} />
-          <datalist id="lab-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+          <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Search patient…" />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input className="input-field" type="date" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
         <div>
           <label className="label">Test Name <span className="text-red-400">*</span></label>
-          <input className="input-field" list="lab-tests" placeholder="e.g. CBC" value={form.testName} onChange={set('testName')} />
-          <datalist id="lab-tests">{COMMON_TESTS.map(t => <option key={t} value={t} />)}</datalist>
+          <Combobox value={form.testName} onChange={v => setForm(f => ({ ...f, testName: v }))} options={COMMON_TESTS} getLabel={t => t} placeholder="e.g. CBC" />
         </div>
         <div>
           <label className="label">Category</label>
-          <select className="input-field" value={form.category} onChange={set('category')}>
-            {TEST_CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
-          </select>
+          <FormDropdown value={form.category} onChange={v => setForm(f => ({ ...f, category: v }))} options={TEST_CATEGORIES.filter(c => c !== 'All').map(c => ({ value: c, label: c }))} />
         </div>
         <div>
           <label className="label">Ordered By</label>
-          <input className="input-field" list="lab-doctors" placeholder="Doctor name…" value={form.orderedBy} onChange={set('orderedBy')} />
-          <datalist id="lab-doctors">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
+          <Combobox value={form.orderedBy} onChange={v => setForm(f => ({ ...f, orderedBy: v }))} options={doctors} getLabel={d => d.name} getSub={d => d.specialty} placeholder="Doctor name…" />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {RESULT_STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={RESULT_STATUSES.map(s => ({ value: s, label: s }))} />
         </div>
         <div>
           <label className="label">Result Value</label>
@@ -169,17 +166,40 @@ export default function LabResults({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search patient, test, doctor…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search patient, test, doctor…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
-        <Filter size={14} className="text-slate-400" />
-        <select className="input-field w-auto text-xs" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-          {TEST_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-        </select>
-        <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="All">All Status</option>
-          {RESULT_STATUSES.map(s => <option key={s}>{s}</option>)}
-        </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown icon={Tag} value={filterCat} onChange={setFilterCat} options={TEST_CATEGORIES.map(c => ({ value: c, label: c }))} />
+          <FilterDropdown
+            icon={Filter}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: 'All', label: 'All Status' }, ...RESULT_STATUSES.map(s => ({ value: s, label: s }))]}
+          />
+          {(search || filterCat !== 'All' || filterStatus !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterCat('All'); setFilterStatus('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="card overflow-hidden">

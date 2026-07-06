@@ -1,33 +1,48 @@
 import React, { useState, useEffect } from 'react'
-import { ClipboardList, RefreshCw, Filter, Search } from 'lucide-react'
-import { fetchAuditLog } from '../store/useStore'
+import { ClipboardList, RefreshCw, Filter, Tag, Search, X as XIcon } from 'lucide-react'
+import { fetchAuditLog, useStore } from '../store/useStore'
 import { SkeletonTable } from '../components/ui/Skeleton'
+import FilterDropdown from '../components/ui/FilterDropdown'
 
 const ENTITY_COLORS = {
-  Patient:     'bg-blue-100 text-blue-700',
-  Doctor:      'bg-purple-100 text-purple-700',
-  Appointment: 'bg-teal-100 text-teal-700',
-  Department:  'bg-amber-100 text-amber-700',
-  Inventory:   'bg-emerald-100 text-emerald-700',
-  Invoice:     'bg-rose-100 text-rose-700',
-  User:        'bg-slate-100 text-slate-700',
+  Patient:          'bg-blue-100 text-blue-700',
+  Doctor:           'bg-purple-100 text-purple-700',
+  'Doctor Profile': 'bg-purple-100 text-purple-700',
+  Appointment:      'bg-teal-100 text-teal-700',
+  Department:       'bg-amber-100 text-amber-700',
+  Inventory:        'bg-emerald-100 text-emerald-700',
+  Invoice:          'bg-rose-100 text-rose-700',
+  User:             'bg-slate-100 text-slate-700',
+  'User Profile':   'bg-slate-100 text-slate-700',
+  Shift:            'bg-indigo-100 text-indigo-700',
+  Expense:          'bg-orange-100 text-orange-700',
+  Room:             'bg-cyan-100 text-cyan-700',
+  Document:         'bg-pink-100 text-pink-700',
+  Prescription:     'bg-lime-100 text-lime-700',
+  Claim:            'bg-violet-100 text-violet-700',
+  'Pharmacy Order': 'bg-fuchsia-100 text-fuchsia-700',
+  'Medical Record': 'bg-sky-100 text-sky-700',
+  Settings:         'bg-gray-100 text-gray-700',
 }
 
 const ACTION_COLORS = {
-  Added:        'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  Updated:      'bg-blue-50 text-blue-700 border border-blue-200',
-  Deleted:      'bg-red-50 text-red-700 border border-red-200',
+  Added:          'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  Updated:        'bg-blue-50 text-blue-700 border border-blue-200',
+  Deleted:        'bg-red-50 text-red-700 border border-red-200',
   'Role Changed': 'bg-purple-50 text-purple-700 border border-purple-200',
+  Linked:         'bg-teal-50 text-teal-700 border border-teal-200',
+  Deducted:       'bg-amber-50 text-amber-700 border border-amber-200',
 }
 
-function formatTimestamp(iso) {
+function formatTimestamp(iso, timeZone) {
   if (!iso) return '—'
   const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
-    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone }) + ' ' +
+    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone })
 }
 
 export default function AuditLog() {
+  const { settings } = useStore()
   const [logs, setLogs]         = useState([])
   const [loading, setLoading]   = useState(true)
   const [search, setSearch]     = useState('')
@@ -90,21 +105,35 @@ export default function AuditLog() {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
-            type="text" value={search} onChange={e => setSearch(e.target.value)}
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, entity, or user…"
-            className="input-field pl-9"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterEntity} onChange={e => setFilterEntity(e.target.value)}>
-            {entities.map(e => <option key={e}>{e}</option>)}
-          </select>
-          <select className="input-field w-auto text-xs" value={filterAction} onChange={e => setFilterAction(e.target.value)}>
-            {actions.map(a => <option key={a}>{a}</option>)}
-          </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown icon={Tag} value={filterEntity} onChange={setFilterEntity} options={entities.map(e => ({ value: e, label: e }))} />
+          <FilterDropdown icon={Filter} value={filterAction} onChange={setFilterAction} options={actions.map(a => ({ value: a, label: a }))} />
+          {(search || filterEntity !== 'All' || filterAction !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterEntity('All'); setFilterAction('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -136,7 +165,7 @@ export default function AuditLog() {
                   </tr>
                 ) : filtered.map(log => (
                   <tr key={log.id} className="table-row">
-                    <td className="table-td text-xs text-slate-400 whitespace-nowrap">{formatTimestamp(log.timestamp)}</td>
+                    <td className="table-td text-xs text-slate-400 whitespace-nowrap">{formatTimestamp(log.timestamp, settings?.timezone)}</td>
                     <td className="table-td">
                       <p className="text-sm font-semibold text-slate-700">{log.userName}</p>
                     </td>

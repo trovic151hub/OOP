@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Printer, Download, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Printer, Download, Filter, Search, X as XIcon } from 'lucide-react'
 import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import Combobox from '../components/ui/Combobox'
+import DatePicker from '../components/ui/DatePicker'
 import { SkeletonTable } from '../components/ui/Skeleton'
 import { useToast } from '../context/ToastContext'
-import { formatDate } from '../utils/helpers'
+import { formatDate, formatCurrency, getCurrencySymbol } from '../utils/helpers'
 import { exportCSV } from '../utils/exportCSV'
 
 const EMPTY_FORM = { patientName: '', patientId: '', description: '', date: '', services: '', subtotal: '', discount: '0', total: '', status: 'Pending', notes: '' }
@@ -20,13 +23,16 @@ const STATUS_STYLE = {
   Waived:  'bg-slate-100 text-slate-600',
 }
 
-function InvoiceForm({ form, setForm, patients }) {
+function InvoiceForm({ form, setForm, patients, settings }) {
+  const symbol = getCurrencySymbol(settings?.currency)
+  const taxRate = parseFloat(settings?.taxRate) || 0
   const set = k => e => setForm(f => {
     const updated = { ...f, [k]: e.target.value }
     if (k === 'subtotal' || k === 'discount') {
       const sub = parseFloat(k === 'subtotal' ? e.target.value : updated.subtotal) || 0
       const dis = parseFloat(k === 'discount'  ? e.target.value : updated.discount) || 0
-      updated.total = Math.max(0, sub - dis).toFixed(2)
+      const taxed = Math.max(0, sub - dis) * (1 + taxRate / 100)
+      updated.total = taxed.toFixed(2)
     }
     return updated
   })
@@ -35,21 +41,25 @@ function InvoiceForm({ form, setForm, patients }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <input className="input-field" placeholder="Patient name" value={form.patientName} onChange={e => {
-            const pat = patients.find(p => p.name === e.target.value)
-            setForm(f => ({ ...f, patientName: e.target.value, patientId: pat?.id || '' }))
-          }} list="billing-patients" />
-          <datalist id="billing-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+          <Combobox
+            value={form.patientName}
+            onChange={v => {
+              const pat = patients.find(p => p.name === v)
+              setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '' }))
+            }}
+            options={patients}
+            getLabel={p => p.name}
+            getSub={p => p.phone}
+            placeholder="Patient name"
+          />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input type="date" className="input-field" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={STATUSES.map(s => ({ value: s, label: s }))} />
         </div>
         <div className="col-span-2">
           <label className="label">Description / Service</label>
@@ -60,15 +70,15 @@ function InvoiceForm({ form, setForm, patients }) {
           <textarea className="input-field resize-none" rows={2} placeholder="Itemize services, one per line…" value={form.services} onChange={set('services')} />
         </div>
         <div>
-          <label className="label">Subtotal ($)</label>
+          <label className="label">Subtotal ({symbol})</label>
           <input type="number" className="input-field" placeholder="0.00" min="0" step="0.01" value={form.subtotal} onChange={set('subtotal')} />
         </div>
         <div>
-          <label className="label">Discount ($)</label>
+          <label className="label">Discount ({symbol})</label>
           <input type="number" className="input-field" placeholder="0.00" min="0" step="0.01" value={form.discount} onChange={set('discount')} />
         </div>
         <div className="col-span-2">
-          <label className="label">Total ($)</label>
+          <label className="label">Total ({symbol}){taxRate > 0 ? ` — incl. ${taxRate}% tax` : ''}</label>
           <input type="number" className="input-field bg-slate-50" placeholder="0.00" value={form.total} onChange={set('total')} />
         </div>
         <div className="col-span-2">
@@ -80,10 +90,23 @@ function InvoiceForm({ form, setForm, patients }) {
   )
 }
 
-function printInvoice(invoice) {
+function invoiceNumber(invoicePrefix, id) {
+  const prefix = invoicePrefix || 'INV-'
+  const separator = /[-\s/]$/.test(prefix) ? '' : '-'
+  return `${prefix}${separator}${id?.slice(-6).toUpperCase()}`
+}
+
+function printInvoice(invoice, settings) {
+  const hospitalName = settings?.hospitalName || 'MedCore'
+  const symbol = getCurrencySymbol(settings?.currency)
+  const invoiceNo = invoiceNumber(settings?.invoicePrefix, invoice.id)
+  const subtotal = parseFloat(invoice.subtotal || 0)
+  const discount = parseFloat(invoice.discount || 0)
+  const total = parseFloat(invoice.total || 0)
+  const taxAmount = total - (subtotal - discount)
   const w = window.open('', '_blank')
   w.document.write(`
-    <html><head><title>Invoice #${invoice.id?.slice(-6).toUpperCase()}</title>
+    <html><head><title>Invoice ${invoiceNo}</title>
     <style>
       body { font-family: system-ui, sans-serif; padding: 40px; max-width: 680px; margin: 0 auto; color: #1e293b; }
       h1 { color: #0d9488; margin: 0; }
@@ -102,16 +125,17 @@ function printInvoice(invoice) {
     </style></head>
     <body>
       <div class="header">
-        <div><h1>MedCore</h1><p style="color:#94a3b8;margin:4px 0 0">Hospital Management System</p></div>
+        <div><h1>${hospitalName}</h1><p style="color:#94a3b8;margin:4px 0 0">Hospital Management System</p></div>
         <div style="text-align:right">
           <p style="font-size:22px;font-weight:800;margin:0">Invoice</p>
-          <p style="color:#94a3b8;font-size:12px;margin:4px 0 0">#${invoice.id?.slice(-6).toUpperCase()}</p>
+          <p style="color:#94a3b8;font-size:12px;margin:4px 0 0">${invoiceNo}</p>
           <span class="status-badge">${invoice.status}</span>
         </div>
       </div>
       <div class="meta">
         <div class="meta-item"><div class="meta-label">Patient</div><div class="meta-value">${invoice.patientName}</div></div>
         <div class="meta-item"><div class="meta-label">Date</div><div class="meta-value">${invoice.date || 'N/A'}</div></div>
+        ${settings?.paymentTerms ? `<div class="meta-item"><div class="meta-label">Payment Terms</div><div class="meta-value">${settings.paymentTerms}</div></div>` : ''}
       </div>
       <div class="services">
         <div class="meta-label" style="margin-bottom:12px">Services</div>
@@ -119,22 +143,24 @@ function printInvoice(invoice) {
         ${invoice.services ? `<pre style="font-size:13px;color:#64748b;margin:0;white-space:pre-wrap">${invoice.services}</pre>` : ''}
       </div>
       <div>
-        ${parseFloat(invoice.discount) > 0 ? `<div class="total-line"><span>Subtotal</span><span>₦${parseFloat(invoice.subtotal||0).toLocaleString('en-NG')}</span></div>
-        <div class="total-line"><span>Discount</span><span>-₦${parseFloat(invoice.discount||0).toLocaleString('en-NG')}</span></div>` : ''}
+        ${discount > 0 ? `<div class="total-line"><span>Subtotal</span><span>${symbol}${subtotal.toLocaleString('en-US')}</span></div>
+        <div class="total-line"><span>Discount</span><span>-${symbol}${discount.toLocaleString('en-US')}</span></div>` : ''}
+        ${taxAmount > 0.01 ? `<div class="total-line"><span>Tax${settings?.taxRate ? ` (${settings.taxRate}%)` : ''}</span><span>${symbol}${taxAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span></div>` : ''}
         <div class="total-line" style="border-top:2px solid #0d9488;padding-top:12px">
           <span style="font-weight:800;font-size:16px">Total Due</span>
-          <span class="total-amount">₦${parseFloat(invoice.total||0).toLocaleString('en-NG')}</span>
+          <span class="total-amount">${symbol}${total.toLocaleString('en-US')}</span>
         </div>
       </div>
       ${invoice.notes ? `<div style="margin-top:24px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px;color:#64748b"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
-      <div style="margin-top:32px;border-top:1px solid #e2e8f0;padding-top:16px;font-size:11px;color:#94a3b8">Generated by MedCore Hospital System · ${new Date().toLocaleDateString()}</div>
+      ${settings?.invoiceNotes ? `<div style="margin-top:12px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px;color:#64748b">${settings.invoiceNotes}</div>` : ''}
+      <div style="margin-top:32px;border-top:1px solid #e2e8f0;padding-top:16px;font-size:11px;color:#94a3b8">Generated by ${hospitalName} · ${new Date().toLocaleDateString()}</div>
     </body></html>`)
   w.document.close()
   w.print()
 }
 
 export default function Billing({ currentUser }) {
-  const { billing, patients, loading } = useStore()
+  const { billing, patients, loading, settings } = useStore()
   const showToast = useToast()
   const [search, setSearch]         = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
@@ -194,10 +220,10 @@ export default function Billing({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Invoices', value: billing.length,                                              color: 'text-slate-700' },
-          { label: 'Revenue',        value: `₦${Math.round(totalRevenue).toLocaleString('en-NG')}`,  color: 'text-emerald-600' },
-          { label: 'Pending',        value: `₦${Math.round(totalPending).toLocaleString('en-NG')}`,  color: 'text-amber-600' },
-          { label: 'Overdue',        value: `₦${Math.round(totalOverdue).toLocaleString('en-NG')}`,  color: 'text-red-500' },
+          { label: 'Total Invoices', value: billing.length,                              color: 'text-slate-700' },
+          { label: 'Revenue',        value: formatCurrency(totalRevenue, settings?.currency),  color: 'text-emerald-600' },
+          { label: 'Pending',        value: formatCurrency(totalPending, settings?.currency),  color: 'text-amber-600' },
+          { label: 'Overdue',        value: formatCurrency(totalOverdue, settings?.currency),  color: 'text-red-500' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4">
             <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>
@@ -207,13 +233,40 @@ export default function Billing({ currentUser }) {
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search patient or description…" className="flex-1 min-w-48" />
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="All">All Status</option>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search patient or description…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown
+            icon={Filter}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: 'All', label: 'All Status' }, ...STATUSES.map(s => ({ value: s, label: s }))]}
+          />
+          {(search || filterStatus !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterStatus('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -244,11 +297,11 @@ export default function Billing({ currentUser }) {
                 </tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="table-row">
-                  <td className="table-td text-xs font-mono text-slate-400">#{b.id?.slice(-6).toUpperCase()}</td>
+                  <td className="table-td text-xs font-mono text-slate-400">{invoiceNumber(settings?.invoicePrefix, b.id)}</td>
                   <td className="table-td font-semibold text-slate-800 text-sm">{b.patientName}</td>
                   <td className="table-td text-slate-500 text-xs max-w-40 truncate">{b.description || '—'}</td>
                   <td className="table-td text-slate-500 text-xs">{b.date ? formatDate(b.date) : '—'}</td>
-                  <td className="table-td font-bold text-slate-800">₦{Math.round(parseFloat(b.total || 0)).toLocaleString('en-NG')}</td>
+                  <td className="table-td font-bold text-slate-800">{formatCurrency(b.total, settings?.currency)}</td>
                   <td className="table-td">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[b.status] || 'bg-slate-100 text-slate-600'}`}>
                       {b.status}
@@ -256,7 +309,7 @@ export default function Billing({ currentUser }) {
                   </td>
                   <td className="table-td text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => printInvoice(b)} className="p-1.5 rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors" title="Print Invoice">
+                      <button onClick={() => printInvoice(b, settings)} className="p-1.5 rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors" title="Print Invoice">
                         <Printer size={14} />
                       </button>
                       {isAdmin && (
@@ -284,7 +337,7 @@ export default function Billing({ currentUser }) {
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Invoice' : 'New Invoice'} icon={NairaIcon} maxWidth="max-w-xl">
-        <InvoiceForm form={form} setForm={setForm} patients={patients} />
+        <InvoiceForm form={form} setForm={setForm} patients={patients} settings={settings} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
           <button onClick={handleSubmit} className="btn-primary flex-1 justify-center">

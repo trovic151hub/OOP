@@ -4,8 +4,11 @@ import NairaIcon from './ui/NairaIcon'
 import Drawer, { DrawerTabs } from './ui/Drawer'
 import Badge from './ui/Badge'
 import Avatar from './ui/Avatar'
+import FormDropdown from './ui/FormDropdown'
+import Combobox from './ui/Combobox'
+import DatePicker from './ui/DatePicker'
 import { useStore, store } from '../store/useStore'
-import { formatDate, getBadgeStyle } from '../utils/helpers'
+import { formatDate, getBadgeStyle, withDrPrefix, formatCurrency } from '../utils/helpers'
 import { useToast } from '../context/ToastContext'
 
 const RECORD_TYPES = ['Consultation', 'Check-up', 'Follow-up', 'Emergency', 'Surgery', 'Lab Results', 'Imaging', 'Other']
@@ -18,18 +21,15 @@ function MedRecordForm({ form, setForm, doctors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input type="date" className="input-field" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
         <div>
           <label className="label">Type</label>
-          <select className="input-field" value={form.type} onChange={set('type')}>
-            {RECORD_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
+          <FormDropdown value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))} options={RECORD_TYPES.map(t => ({ value: t, label: t }))} />
         </div>
         <div className="col-span-2">
           <label className="label">Doctor</label>
-          <input className="input-field" placeholder="Dr. name" value={form.doctorName} onChange={set('doctorName')} list="drawer-doc-list" />
-          <datalist id="drawer-doc-list">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
+          <Combobox value={form.doctorName} onChange={v => setForm(f => ({ ...f, doctorName: v }))} options={doctors} getLabel={d => d.name} getSub={d => d.specialty} placeholder="Dr. name" />
         </div>
         <div className="col-span-2">
           <label className="label">Diagnosis</label>
@@ -45,7 +45,7 @@ function MedRecordForm({ form, setForm, doctors }) {
         </div>
         <div>
           <label className="label">Follow-up Date</label>
-          <input type="date" className="input-field" value={form.followUpDate} onChange={set('followUpDate')} />
+          <DatePicker value={form.followUpDate} onChange={v => setForm(f => ({ ...f, followUpDate: v }))} />
         </div>
         <div className="col-span-2">
           <label className="label">Notes</label>
@@ -57,7 +57,7 @@ function MedRecordForm({ form, setForm, doctors }) {
 }
 
 export default function PatientDrawer({ patient, onClose, currentUser, onEdit }) {
-  const { appointments, medicalRecords, billing, doctors } = useStore()
+  const { appointments, medicalRecords, billing, doctors, settings } = useStore()
   const showToast = useToast()
   const [tab, setTab]       = useState('overview')
   const [recForm, setRecForm] = useState(EMPTY_REC)
@@ -66,8 +66,11 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
   if (!patient) return null
 
   const patAppts = appointments.filter(a => a.patientName === patient.name)
-  const patRecords = medicalRecords.filter(r => r.patientId === patient.id)
-  const patBilling = billing.filter(b => b.patientId === patient.id)
+  // Match by patientId when present, falling back to name — demo/legacy records
+  // (e.g. seeded medical records, billing entries created before a patientId
+  // was captured) only carry the name, not a real patient id.
+  const patRecords = medicalRecords.filter(r => r.patientId === patient.id || r.patientName === patient.name)
+  const patBilling = billing.filter(b => b.patientId === patient.id || b.patientName === patient.name)
 
   const totalBilled = patBilling.reduce((s, b) => s + (parseFloat(b.total) || 0), 0)
   const totalPaid   = patBilling.filter(b => b.status === 'Paid').reduce((s, b) => s + (parseFloat(b.total) || 0), 0)
@@ -168,7 +171,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 {[
                   { label: 'Appointments', value: patAppts.length, color: 'text-teal-600' },
                   { label: 'Medical Records', value: patRecords.length, color: 'text-blue-600' },
-                  { label: 'Total Billed', value: `₦${Math.round(totalBilled).toLocaleString('en-NG')}`, color: 'text-emerald-600' },
+                  { label: 'Total Billed', value: formatCurrency(totalBilled, settings?.currency), color: 'text-emerald-600' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="card p-4 text-center">
                     <p className={`text-xl font-extrabold ${color}`}>{value}</p>
@@ -217,7 +220,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                       <p className="font-semibold text-slate-800 text-sm">{a.type || 'Consultation'}</p>
                       <Badge status={a.status} />
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">Dr. {a.doctorName}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{withDrPrefix(a.doctorName)}</p>
                     <p className="text-xs text-slate-400">{formatDate(a.date)} {a.timeStart ? `· ${a.timeStart}` : ''}</p>
                     {a.notes && <p className="text-xs text-slate-400 mt-1 italic">"{a.notes}"</p>}
                   </div>
@@ -262,7 +265,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                       <Trash2 size={12} />
                     </button>
                   </div>
-                  {r.doctorName && <p className="text-xs text-teal-600 font-medium mb-2">Dr. {r.doctorName}</p>}
+                  {r.doctorName && <p className="text-xs text-teal-600 font-medium mb-2">{withDrPrefix(r.doctorName)}</p>}
                   {r.diagnosis && <p className="text-sm font-semibold text-slate-700 mb-1">{r.diagnosis}</p>}
                   {r.treatment && <p className="text-xs text-slate-500 mb-1"><strong>Treatment:</strong> {r.treatment}</p>}
                   {r.prescription && <p className="text-xs text-slate-500 mb-1"><strong>Rx:</strong> {r.prescription}</p>}
@@ -281,11 +284,11 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
             <div className="p-6 flex flex-col gap-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                 <div className="card p-4 text-center">
-                  <p className="text-xl font-extrabold text-slate-800">₦{Math.round(totalBilled).toLocaleString('en-NG')}</p>
+                  <p className="text-xl font-extrabold text-slate-800">{formatCurrency(totalBilled, settings?.currency)}</p>
                   <p className="text-xs text-slate-400 mt-0.5">Total Billed</p>
                 </div>
                 <div className="card p-4 text-center">
-                  <p className="text-xl font-extrabold text-emerald-600">₦{Math.round(totalPaid).toLocaleString('en-NG')}</p>
+                  <p className="text-xl font-extrabold text-emerald-600">{formatCurrency(totalPaid, settings?.currency)}</p>
                   <p className="text-xs text-slate-400 mt-0.5">Total Paid</p>
                 </div>
               </div>
@@ -302,7 +305,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                     <p className="text-xs text-slate-400">{formatDate(b.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-800">₦{Math.round(parseFloat(b.total||0)).toLocaleString('en-NG')}</p>
+                    <p className="font-bold text-slate-800">{formatCurrency(b.total, settings?.currency)}</p>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                       b.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
                       b.status === 'Overdue' ? 'bg-red-100 text-red-600' :

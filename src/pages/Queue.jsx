@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Clock, UserCheck, PlayCircle, CheckCheck, RefreshCw, Stethoscope } from 'lucide-react'
-import { useStore, store } from '../store/useStore'
+import { useStore, store, refetchCollection } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import Badge from '../components/ui/Badge'
 import { useToast } from '../context/ToastContext'
@@ -39,6 +39,11 @@ export default function Queue({ currentUser }) {
   const { appointments, doctors } = useStore()
   const showToast = useToast()
   const now = useNow()
+
+  useEffect(() => {
+    const id = setInterval(() => refetchCollection('appointments'), 15000)
+    return () => clearInterval(id)
+  }, [])
 
   const today = new Date().toISOString().slice(0, 10)
   const isDoctor = currentUser?.role === 'Doctor'

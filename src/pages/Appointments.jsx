@@ -1,11 +1,15 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Calendar, Filter, Download, UserCheck, PlayCircle, CheckCheck, X as XIcon, Stethoscope } from 'lucide-react'
+import { Plus, Pencil, Trash2, Calendar, ArrowRight, Filter, Tag, Search, Download, UserCheck, PlayCircle, CheckCheck, X as XIcon, Stethoscope } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import Combobox from '../components/ui/Combobox'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import DatePicker from '../components/ui/DatePicker'
+import TimePicker from '../components/ui/TimePicker'
 import { SkeletonTable } from '../components/ui/Skeleton'
 import { useToast } from '../context/ToastContext'
 import { formatDate, APPOINTMENT_STATUSES, cycleStatus } from '../utils/helpers'
@@ -22,46 +26,87 @@ const STATUS_ACTIONS = {
   'Cancelled':   null,
 }
 
-function AppointmentForm({ form, setForm, patients, doctors }) {
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+function addMinutesToTime(time, minutes) {
+  if (!time || !minutes) return ''
+  const [h, m] = time.split(':').map(Number)
+  const total = h * 60 + m + Number(minutes)
+  const hh = Math.floor((total % (24 * 60)) / 60)
+  const mm = total % 60
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+}
+
+function AppointmentForm({ form, setForm, patients, doctors, settings }) {
+  const set = k => e => setForm(f => {
+    const updated = { ...f, [k]: e.target.value }
+    if (k === 'timeStart' && settings?.appointmentDuration) {
+      updated.timeEnd = addMinutesToTime(e.target.value, settings.appointmentDuration)
+    }
+    return updated
+  })
+  const setDirect = k => v => setForm(f => ({ ...f, [k]: v }))
+  const setTimeStart = v => setForm(f => {
+    const updated = { ...f, timeStart: v }
+    if (settings?.appointmentDuration) updated.timeEnd = addMinutesToTime(v, settings.appointmentDuration)
+    return updated
+  })
   return (
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
       <div>
         <label className="label">Patient Name <span className="text-red-400">*</span></label>
-        <input className="input-field" placeholder="e.g. John Smith" value={form.patientName} onChange={set('patientName')} list="patient-suggestions" />
-        <datalist id="patient-suggestions">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+        <Combobox
+          value={form.patientName}
+          onChange={setDirect('patientName')}
+          options={patients}
+          getLabel={p => p.name}
+          getSub={p => p.phone}
+          placeholder="e.g. John Smith"
+        />
       </div>
       <div>
         <label className="label">Doctor Name <span className="text-red-400">*</span></label>
-        <input className="input-field" placeholder="e.g. Dr. Sarah Lee" value={form.doctorName} onChange={set('doctorName')} list="doctor-suggestions" />
-        <datalist id="doctor-suggestions">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
+        <Combobox
+          value={form.doctorName}
+          onChange={setDirect('doctorName')}
+          options={doctors}
+          getLabel={d => d.name}
+          getSub={d => d.specialty}
+          placeholder="e.g. Dr. Sarah Lee"
+        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input className="input-field" type="date" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={setDirect('date')} />
         </div>
-        <div>
-          <label className="label">Start Time</label>
-          <input className="input-field" type="time" value={form.timeStart} onChange={set('timeStart')} />
-        </div>
-        <div>
-          <label className="label">End Time</label>
-          <input className="input-field" type="time" value={form.timeEnd} onChange={set('timeEnd')} />
+        <div className="sm:col-span-2">
+          <label className="label">Time{settings?.workingHoursStart && settings?.workingHoursEnd ? ` (${settings.workingHoursStart}–${settings.workingHoursEnd})` : ''}</label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <TimePicker value={form.timeStart} onChange={setTimeStart} min={settings?.workingHoursStart} max={settings?.workingHoursEnd} />
+            </div>
+            <ArrowRight size={14} className="text-slate-300 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <TimePicker value={form.timeEnd} onChange={setDirect('timeEnd')} min={settings?.workingHoursStart} max={settings?.workingHoursEnd} />
+            </div>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Appointment Type</label>
-          <select className="input-field" value={form.type} onChange={set('type')}>
-            {APPT_TYPES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown
+            value={form.type}
+            onChange={setDirect('type')}
+            options={APPT_TYPES.map(v => ({ value: v, label: v }))}
+          />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {APPOINTMENT_STATUSES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown
+            value={form.status}
+            onChange={setDirect('status')}
+            options={APPOINTMENT_STATUSES.map(v => ({ value: v, label: v }))}
+          />
         </div>
       </div>
       <div>
@@ -82,7 +127,7 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
           <div className="flex flex-col gap-3">
             <div>
               <label className="label">Follow-up Date</label>
-              <input className="input-field" type="date" value={form.followUpDate} onChange={set('followUpDate')} />
+              <DatePicker value={form.followUpDate} onChange={setDirect('followUpDate')} />
             </div>
             <div>
               <label className="label">Follow-up Instructions</label>
@@ -96,7 +141,7 @@ function AppointmentForm({ form, setForm, patients, doctors }) {
 }
 
 export default function Appointments({ currentUser }) {
-  const { appointments, patients, doctors, loading } = useStore()
+  const { appointments, patients, doctors, loading, settings } = useStore()
   const showToast = useToast()
 
   const [search, setSearch]             = useState('')
@@ -109,6 +154,7 @@ export default function Appointments({ currentUser }) {
   const [confirmId, setConfirmId]       = useState(null)
   const [confirmLabel, setConfirmLabel] = useState('')
 
+  const today = new Date().toISOString().slice(0, 10)
   const isDoctor = currentUser?.role === 'Doctor'
   const linkedDoctor = isDoctor ? doctors.find(d => d.uid === currentUser?.uid) : null
   const myDoctorName = linkedDoctor?.name || ''
@@ -143,7 +189,10 @@ export default function Appointments({ currentUser }) {
   function advanceStatus(a) {
     const next = cycleStatus(a.status)
     if (next === a.status) return
-    store.updateAppointment(a.id, { status: next })
+    const extra = next === 'Checked In'  ? { checkedInAt: new Date().toISOString() }
+                : next === 'In Progress' ? { startedAt: new Date().toISOString() }
+                : {}
+    store.updateAppointment(a.id, { status: next, ...extra })
     showToast(`${a.patientName} → ${next}`, 'info')
   }
 
@@ -197,7 +246,25 @@ export default function Appointments({ currentUser }) {
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by patient or doctor…" className="flex-1 min-w-48" />
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by patient or doctor…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
           {isDoctor && (
             <button
@@ -208,15 +275,26 @@ export default function Appointments({ currentUser }) {
               {myOnly ? 'My Appointments' : 'All Appointments'}
             </button>
           )}
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="All">All Status</option>
-            {APPOINTMENT_STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
-          <select className="input-field w-auto text-xs" value={filterType} onChange={e => setFilterType(e.target.value)}>
-            <option value="All">All Types</option>
-            {APPT_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
+          <FilterDropdown
+            icon={Filter}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: 'All', label: 'All Status' }, ...APPOINTMENT_STATUSES.map(s => ({ value: s, label: s }))]}
+          />
+          <FilterDropdown
+            icon={Tag}
+            value={filterType}
+            onChange={setFilterType}
+            options={[{ value: 'All', label: 'All Types' }, ...APPT_TYPES.map(t => ({ value: t, label: t }))]}
+          />
+          {(search || filterStatus !== 'All' || filterType !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterStatus('All'); setFilterType('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -250,6 +328,7 @@ export default function Appointments({ currentUser }) {
                 const doc = doctors.find(d => d.name === a.doctorName)
                 const action = STATUS_ACTIONS[a.status]
                 const ActionIcon = action?.icon
+                const canAdvance = action && (a.status !== 'Scheduled' || !a.date || a.date <= today)
                 return (
                   <tr key={a.id} className="table-row">
                     <td className="table-td">
@@ -275,13 +354,15 @@ export default function Appointments({ currentUser }) {
                     </td>
                     <td className="table-td">
                       <div className="flex items-center gap-1">
-                        {action ? (
+                        {canAdvance ? (
                           <button
                             onClick={() => advanceStatus(a)}
                             className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors ${action.color}`}
                           >
                             <ActionIcon size={11} /> {action.label}
                           </button>
+                        ) : action ? (
+                          <span className="text-xs text-slate-300" title="Check-in becomes available on the scheduled date">Not yet</span>
                         ) : (
                           <span className="text-xs text-slate-300">—</span>
                         )}
@@ -320,7 +401,7 @@ export default function Appointments({ currentUser }) {
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Appointment' : 'Schedule Appointment'} icon={Calendar} accentColor="teal">
-        <AppointmentForm form={form} setForm={setForm} patients={patients} doctors={doctors} />
+        <AppointmentForm form={form} setForm={setForm} patients={patients} doctors={doctors} settings={settings} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
           <button onClick={handleSubmit} className="btn-primary flex-1 justify-center">

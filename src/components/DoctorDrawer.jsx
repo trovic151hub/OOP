@@ -14,7 +14,7 @@ export default function DoctorDrawer({ doctor, onClose, currentUser, onEdit }) {
 
   const docAppts  = appointments.filter(a => a.doctorName === doctor.name)
   const docShifts = shifts.filter(s => s.doctorId === doctor.id || s.doctorName === doctor.name)
-  const upcoming  = docAppts.filter(a => a.status === 'Scheduled' || a.status === 'Ongoing')
+  const upcoming  = docAppts.filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress')
   const completed = docAppts.filter(a => a.status === 'Completed').length
 
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']

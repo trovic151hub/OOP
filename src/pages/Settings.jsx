@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Building2, Clock, Save, Globe, Phone, Mail, CheckCircle, Database, Loader2 } from 'lucide-react'
+import { Settings as SettingsIcon, Building2, Clock, Save, Globe, Phone, Mail, CheckCircle } from 'lucide-react'
 import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
-import { seedDatabase } from '../utils/seedData'
+import FormDropdown from '../components/ui/FormDropdown'
+import TimePicker from '../components/ui/TimePicker'
 
 const TIMEZONES = ['UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London', 'Europe/Paris', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Singapore', 'Asia/Tokyo', 'Australia/Sydney', 'Africa/Nairobi', 'Africa/Lagos']
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'INR', 'NGN', 'KES', 'GHS', 'ZAR', 'CAD', 'AUD', 'SGD', 'JPY']
@@ -38,14 +39,6 @@ export default function Settings() {
   const showToast = useToast()
   const [form, setForm]       = useState({ ...settings })
   const [saved, setSaved]     = useState(false)
-  const [seeding, setSeeding] = useState(false)
-
-  async function handleSeed() {
-    if (!window.confirm('This will REPLACE all existing demo data (patients, doctors, appointments, billing, inventory, prescriptions, shifts, claims and more) with the full updated dataset.\n\nContinue?')) return
-    setSeeding(true)
-    await seedDatabase(showToast)
-    setSeeding(false)
-  }
 
   useEffect(() => { setForm({ ...settings }) }, [settings])
 
@@ -104,46 +97,50 @@ export default function Settings() {
         <Section title="Contact Information" icon={Phone}>
           <Field label="Phone Number">
             <div className="relative">
-              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="input-field pl-9" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={set('phone')} />
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={set('phone')} />
             </div>
           </Field>
           <Field label="Email Address">
             <div className="relative">
-              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="input-field pl-9" placeholder="info@hospital.com" type="email" value={form.email || ''} onChange={set('email')} />
+              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="info@hospital.com" type="email" value={form.email || ''} onChange={set('email')} />
             </div>
           </Field>
           <Field label="Website">
             <div className="relative">
-              <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="input-field pl-9" placeholder="https://www.hospital.com" value={form.website || ''} onChange={set('website')} />
+              <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="https://www.hospital.com" value={form.website || ''} onChange={set('website')} />
             </div>
           </Field>
           <Field label="Emergency Contact">
             <div className="relative">
-              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="input-field pl-9" placeholder="+1 (555) 911-0000" value={form.emergencyPhone || ''} onChange={set('emergencyPhone')} />
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="+1 (555) 911-0000" value={form.emergencyPhone || ''} onChange={set('emergencyPhone')} />
             </div>
           </Field>
         </Section>
 
         <Section title="Operations" icon={Clock}>
           <Field label="Working Hours Start">
-            <input className="input-field" type="time" value={form.workingHoursStart || '08:00'} onChange={set('workingHoursStart')} />
+            <TimePicker value={form.workingHoursStart || '08:00'} onChange={v => setForm(f => ({ ...f, workingHoursStart: v }))} />
           </Field>
           <Field label="Working Hours End">
-            <input className="input-field" type="time" value={form.workingHoursEnd || '18:00'} onChange={set('workingHoursEnd')} />
+            <TimePicker value={form.workingHoursEnd || '18:00'} onChange={v => setForm(f => ({ ...f, workingHoursEnd: v }))} />
           </Field>
           <Field label="Default Appointment Duration">
-            <select className="input-field" value={form.appointmentDuration || '30'} onChange={set('appointmentDuration')}>
-              {[15, 20, 30, 45, 60, 90].map(m => <option key={m} value={m}>{m} minutes</option>)}
-            </select>
+            <FormDropdown
+              value={String(form.appointmentDuration || '30')}
+              onChange={v => setForm(f => ({ ...f, appointmentDuration: v }))}
+              options={[15, 20, 30, 45, 60, 90].map(m => ({ value: String(m), label: `${m} minutes` }))}
+            />
           </Field>
           <Field label="Timezone">
-            <select className="input-field" value={form.timezone || 'UTC'} onChange={set('timezone')}>
-              {TIMEZONES.map(tz => <option key={tz}>{tz}</option>)}
-            </select>
+            <FormDropdown
+              value={form.timezone || 'UTC'}
+              onChange={v => setForm(f => ({ ...f, timezone: v }))}
+              options={TIMEZONES.map(tz => ({ value: tz, label: tz }))}
+            />
           </Field>
           <Field label="Max Patients Per Day">
             <input className="input-field" type="number" min="1" placeholder="e.g. 100" value={form.maxPatientsPerDay || ''} onChange={set('maxPatientsPerDay')} />
@@ -155,9 +152,11 @@ export default function Settings() {
 
         <Section title="Financial Settings" icon={NairaIcon}>
           <Field label="Currency">
-            <select className="input-field" value={form.currency || 'USD'} onChange={set('currency')}>
-              {CURRENCIES.map(c => <option key={c}>{c}</option>)}
-            </select>
+            <FormDropdown
+              value={form.currency || 'USD'}
+              onChange={v => setForm(f => ({ ...f, currency: v }))}
+              options={CURRENCIES.map(c => ({ value: c, label: c }))}
+            />
           </Field>
           <Field label="VAT / Tax Rate (%)">
             <input className="input-field" type="number" min="0" max="100" step="0.1" placeholder="e.g. 15" value={form.taxRate || ''} onChange={set('taxRate')} />
@@ -166,38 +165,16 @@ export default function Settings() {
             <input className="input-field" placeholder="e.g. INV-" value={form.invoicePrefix || ''} onChange={set('invoicePrefix')} />
           </Field>
           <Field label="Payment Terms">
-            <select className="input-field" value={form.paymentTerms || 'Due on receipt'} onChange={set('paymentTerms')}>
-              {['Due on receipt', 'Net 7', 'Net 14', 'Net 30', 'Net 60'].map(t => <option key={t}>{t}</option>)}
-            </select>
+            <FormDropdown
+              value={form.paymentTerms || 'Due on receipt'}
+              onChange={v => setForm(f => ({ ...f, paymentTerms: v }))}
+              options={['Due on receipt', 'Net 7', 'Net 14', 'Net 30', 'Net 60'].map(t => ({ value: t, label: t }))}
+            />
           </Field>
           <Field label="Invoice Notes" full>
             <textarea className="input-field resize-none" rows={2} placeholder="e.g. Thank you for choosing us. Payment is due within 30 days." value={form.invoiceNotes || ''} onChange={set('invoiceNotes')} />
           </Field>
         </Section>
-
-        <div className="card p-6 border-2 border-dashed border-teal-200 bg-teal-50/40">
-          <div className="flex items-start gap-4 flex-wrap">
-            <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
-              <Database size={17} className="text-teal-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-800 mb-0.5">Load Demo Data</p>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Populate all sections — patients, doctors, appointments, billing, inventory, lab results, pharmacy, shifts, claims, prescriptions, rooms and documents — with realistic sample data so you can explore every feature immediately.
-                Existing records are never overwritten.
-              </p>
-            </div>
-            <button
-              onClick={handleSeed}
-              disabled={seeding}
-              className="btn-primary bg-teal-600 hover:bg-teal-700 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {seeding
-                ? <><Loader2 size={14} className="animate-spin" /> Loading…</>
-                : <><Database size={14} /> Load Demo Data</>}
-            </button>
-          </div>
-        </div>
 
         <div className="flex justify-end">
           <button onClick={handleSave} className={`btn-primary ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>

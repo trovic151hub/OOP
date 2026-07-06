@@ -1,4 +1,9 @@
+import { useStore } from '../../store/useStore'
+import { getCurrencySymbol } from '../../utils/helpers'
+
 export default function NairaIcon({ size = 24, className = '' }) {
+  const { settings } = useStore()
+  const symbol = getCurrencySymbol(settings?.currency)
   return (
     <span
       aria-hidden="true"
@@ -15,7 +20,7 @@ export default function NairaIcon({ size = 24, className = '' }) {
         flexShrink: 0,
       }}
     >
-      ₦
+      {symbol}
     </span>
   )
 }

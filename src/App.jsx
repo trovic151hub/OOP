@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from './firebase'
-import { initSubscriptions, clearSubscriptions, ensureUserProfile, store, useStore } from './store/useStore'
+import { initSubscriptions, ensureUserProfile, setCurrentUser, store, useStore } from './store/useStore'
+import { api } from './api/client'
 import { ToastProvider } from './context/ToastContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Sidebar from './components/layout/Sidebar'
@@ -35,24 +34,146 @@ import StaffPerformance from './pages/StaffPerformance'
 import Pharmacy from './pages/Pharmacy'
 import Settings from './pages/Settings'
 
+const ACTIVE_PAGE_KEY = 'mc_active_page'
+const SIDEBAR_COLLAPSED_KEY = 'mc_sidebar_collapsed'
+
+// Same pulse shape as the brand mark (favicon/sidebar), tiled edge-to-edge —
+// the path's start and end points both sit on the vertical midline, so
+// repeated copies connect into one continuous strip with no visible seam.
+const HEARTBEAT_PATH = 'M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2'
+
+function HeartbeatStrip() {
+  return (
+    <svg width="288" height="48" viewBox="0 0 144 24" fill="none">
+      {[0, 1, 2, 3, 4, 5].map(i => (
+        <path
+          key={i}
+          d={HEARTBEAT_PATH}
+          transform={`translate(${i * 24}, 0)`}
+          stroke="#0d9488"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
+  )
+}
+
+// Fades the trace to transparent at the left/right edges of the visible
+// window (rather than each tile fading independently), so it reads as a
+// smooth continuous sweep regardless of how many pulses are tiled.
+const EDGE_FADE_MASK = 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)'
+
+function HeartbeatLoader({ label = 'Loading' }) {
+  return (
+    <div role="status" aria-live="polite" aria-label={label} className="flex flex-col items-center gap-3">
+      <div
+        className="w-72 h-12 overflow-hidden"
+        style={{ WebkitMaskImage: EDGE_FADE_MASK, maskImage: EDGE_FADE_MASK }}
+      >
+        <div className="flex w-[576px] animate-heartbeat-scroll drop-shadow-[0_0_5px_rgba(13,148,136,0.45)]">
+          <HeartbeatStrip />
+          <HeartbeatStrip />
+        </div>
+      </div>
+      <div className="flex items-center gap-2" aria-hidden="true">
+        <svg width="12" height="12" viewBox="-18 -8 36 40" className="animate-heart-pulse text-teal-500" fill="currentColor">
+          <path d="M0,4 C-6,-6 -18,-2 -18,8 C-18,18 -4,26 0,30 C4,26 18,18 18,8 C18,-2 6,-6 0,4 Z" />
+        </svg>
+        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-400">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+// Shown when an Admin-onboarded account's temp password hasn't been changed
+// yet — blocks the rest of the app until a real password is set, so the temp
+// password never quietly becomes the account's permanent one.
+function ForcePasswordChange() {
+  const [tempPassword, setTempPassword]       = useState('')
+  const [newPassword, setNewPassword]         = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [saving, setSaving]                   = useState(false)
+  const [error, setError]                     = useState('')
+
+  async function submit(e) {
+    e.preventDefault()
+    setError('')
+    if (!tempPassword || !newPassword) { setError('Both fields are required.'); return }
+    if (newPassword.length < 6) { setError('New password must be at least 6 characters.'); return }
+    if (newPassword !== confirmPassword) { setError('Passwords do not match.'); return }
+    setSaving(true)
+    try {
+      await api.put('/auth/password', { currentPassword: tempPassword, newPassword })
+      const user = await ensureUserProfile()
+      setCurrentUser(user)
+    } catch (err) {
+      setError(err.message || 'Failed to update password.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-5">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <h1 className="text-xl font-extrabold text-slate-800 mb-2">Set Your Password</h1>
+        <p className="text-sm text-slate-500 mb-6">Your account was created with a temporary password. Set a new one to continue.</p>
+        <form onSubmit={submit} className="flex flex-col gap-4">
+          <div>
+            <label className="label">Temporary Password</label>
+            <input type="password" className="input-field" autoComplete="current-password" value={tempPassword} onChange={e => setTempPassword(e.target.value)} />
+          </div>
+          <div>
+            <label className="label">New Password</label>
+            <input type="password" className="input-field" autoComplete="new-password" placeholder="Min 6 characters" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+          </div>
+          <div>
+            <label className="label">Confirm New Password</label>
+            <input type="password" className="input-field" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <button type="submit" disabled={saving} className="btn-primary justify-center py-2.5 mt-1">
+            {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Set Password & Continue'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function AppContent() {
-  const [authUser, setAuthUser]     = useState(undefined)
-  const [authPage, setAuthPage]     = useState('login')
-  const [activePage, setActivePage] = useState('dashboard')
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const { users } = useStore()
+  const [authChecked, setAuthChecked] = useState(false)
+  const [authPage, setAuthPage]       = useState('login')
+  const [activePage, setActivePage]   = useState(() => localStorage.getItem(ACTIVE_PAGE_KEY) || 'dashboard')
+  const [mobileOpen, setMobileOpen]   = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
+  const { users, currentUser: authUser, settings } = useStore()
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async user => {
-      setAuthUser(user)
-      if (user) {
+    document.title = settings?.hospitalName || 'MedCore'
+  }, [settings?.hospitalName])
+
+  useEffect(() => {
+    const startedAt = Date.now()
+    // The auth check usually resolves in well under 100ms, which makes the
+    // heartbeat loader flash by too fast to register as an animation at all —
+    // hold it visible for at least this long so it reads as intentional.
+    const MIN_SPLASH_MS = 700
+    ;(async () => {
+      try {
+        const user = await ensureUserProfile()
+        setCurrentUser(user)
         initSubscriptions()
-        await ensureUserProfile(user)
-      } else {
-        clearSubscriptions()
+      } catch (_) {
+        // not logged in
+      } finally {
+        const remaining = MIN_SPLASH_MS - (Date.now() - startedAt)
+        if (remaining > 0) await new Promise(r => setTimeout(r, remaining))
+        setAuthChecked(true)
       }
-    })
-    return unsub
+    })()
   }, [])
 
   useEffect(() => {
@@ -62,13 +183,10 @@ function AppContent() {
     return () => clearInterval(interval)
   }, [authUser])
 
-  if (authUser === undefined) {
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-3 text-slate-400">
-          <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm">Loading MedCore…</p>
-        </div>
+        <HeartbeatLoader label="Loading MedCore" />
       </div>
     )
   }
@@ -82,12 +200,17 @@ function AppContent() {
   const userProfile = users.find(u => u.uid === authUser.uid)
   const currentUser = {
     uid:      authUser.uid,
-    name:     userProfile?.name || authUser.displayName || authUser.email?.split('@')[0] || 'User',
+    name:     userProfile?.name || authUser.name || authUser.email?.split('@')[0] || 'User',
     email:    userProfile?.email || authUser.email,
-    role:     userProfile?.role || 'Receptionist',
+    role:     userProfile?.role || authUser.role || 'Receptionist',
     phone:    userProfile?.phone || '',
     bio:      userProfile?.bio || '',
     lastSeen: userProfile?.lastSeen || '',
+    mustChangePassword: userProfile?.mustChangePassword ?? authUser.mustChangePassword ?? false,
+  }
+
+  if (currentUser.mustChangePassword) {
+    return <ForcePasswordChange />
   }
 
   if (currentUser.role === 'Patient') {
@@ -96,7 +219,16 @@ function AppContent() {
 
   function navigate(page) {
     setActivePage(page)
+    localStorage.setItem(ACTIVE_PAGE_KEY, page)
     setMobileOpen(false)
+  }
+
+  function toggleSidebarCollapsed() {
+    setSidebarCollapsed(v => {
+      const next = !v
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next))
+      return next
+    })
   }
 
   const adminOnly = (Component, props = {}) =>
@@ -145,13 +277,16 @@ function AppContent() {
         currentUser={currentUser}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsed}
       />
-      <div className="flex-1 md:ml-60 flex flex-col min-h-screen">
+      <div className={`flex-1 flex flex-col min-h-screen min-w-0 transition-[margin-left] duration-300 ease-in-out ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-60'}`}>
         <Topbar
           activePage={activePage}
           currentUser={currentUser}
           onNavigate={navigate}
           onMobileMenuToggle={() => setMobileOpen(v => !v)}
+          sidebarCollapsed={sidebarCollapsed}
         />
         <main className="flex-1 pt-16 pb-16 md:pb-0 px-4 md:px-6 py-6 overflow-y-auto">
           {renderPage()}

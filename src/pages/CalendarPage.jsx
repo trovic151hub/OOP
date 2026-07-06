@@ -8,10 +8,11 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
 const STATUS_DOT = {
-  Scheduled: 'bg-teal-500',
-  Ongoing:   'bg-blue-500',
-  Completed: 'bg-emerald-500',
-  Cancelled: 'bg-red-400',
+  Scheduled:     'bg-teal-500',
+  'Checked In':  'bg-violet-500',
+  'In Progress': 'bg-blue-500',
+  Completed:     'bg-emerald-500',
+  Cancelled:     'bg-red-400',
 }
 
 export default function CalendarPage({ onNavigate }) {

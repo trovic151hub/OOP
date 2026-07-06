@@ -4,9 +4,7 @@ import {
   CheckCircle, Clock, AlertCircle, Activity, ChevronRight,
   Stethoscope, Home, Menu, X
 } from 'lucide-react'
-import { auth } from '../firebase'
-import { signOut } from 'firebase/auth'
-import { useStore } from '../store/useStore'
+import { store, useStore } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import { formatDate, formatCurrency } from '../utils/helpers'
@@ -58,9 +56,9 @@ export default function PatientPortal({ currentUser }) {
   const abnormalLabs = myLabs.filter(l => l.status === 'Abnormal')
   const activeRx     = myRx.filter(r => r.status === 'Active')
   const pendingBills = myBills.filter(i => i.status !== 'Paid')
-  const pendingTotal = pendingBills.reduce((s, i) => s + Number(i.totalAmount || 0), 0)
+  const pendingTotal = pendingBills.reduce((s, i) => s + Number(i.total || i.totalAmount || 0), 0)
 
-  function handleSignOut() { signOut(auth) }
+  function handleSignOut() { store.logout() }
 
   function navigate(id) { setPage(id); setMobileNavOpen(false) }
 

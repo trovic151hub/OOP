@@ -1,23 +1,27 @@
 # MedCore — Hospital Management System
 
 ## Project Overview
-A full-featured hospital management system built with React + Vite + Tailwind CSS v4 + Firebase (Auth + Firestore). Light teal-themed UI.
+A full-featured hospital management system built with React + Vite + Tailwind CSS v4 on the frontend, and a custom Express.js + MongoDB + JWT backend. Light teal-themed UI.
 
 ## Tech Stack
 - **Frontend**: React 18, Vite, Tailwind CSS v4 (`@tailwindcss/vite` plugin)
-- **Database & Auth**: Firebase v11 — Firestore (real-time) + Auth (email/password)
+- **Backend**: Express.js (`server/`), MongoDB via Mongoose, JWT auth in httpOnly cookies + CSRF double-submit token
 - **Charts**: Recharts (AreaChart, BarChart, PieChart)
 - **Icons**: Lucide React
-- **State**: Custom store with Zustand-like pattern + Firestore `onSnapshot` subscriptions
+- **State**: Custom store (`src/store/useStore.js`) — fetches all collections from the Express API on login, refetches the affected collection after each mutation
 
 ## Architecture
 
 ### Key Files
 | File | Purpose |
 |------|---------|
-| `src/firebase.js` | Firebase config & initialization |
-| `src/store/useStore.js` | Global state + 18 Firestore subscriptions + CRUD + audit logging |
-| `src/App.jsx` | Auth flow, routing, user profile fetch, mobile sidebar state |
+| `src/api/client.js` | Fetch wrapper — cookie-based auth, CSRF header, JSON in/out |
+| `src/store/useStore.js` | Global state + fetch-on-login for 18 collections + CRUD + current-user tracking |
+| `src/App.jsx` | Auth flow (calls `/api/auth/me` on load), routing, user profile fetch, mobile sidebar state |
+| `server/src/app.js` | Express app assembly — CORS, cookies, auth/CSRF gate, route mounting |
+| `server/src/models/*.js` | Mongoose schemas — one per collection, `strict:false` for page-form flexibility |
+| `server/src/routes/*.js` + `controllers`/`utils/crudFactory.js` | REST routes per collection, shared CRUD+audit-log factory |
+| `server/src/utils/seed.js` | Demo data seeder (`npm run seed`), replaces the old client-side `seedData.js` |
 | `src/components/layout/Sidebar.jsx` | Role-based navigation (12 nav items, mobile drawer) |
 | `src/components/layout/Topbar.jsx` | Global search dropdown, notifications panel, mobile menu |
 | `src/components/PatientDrawer.jsx` | Slide-in patient profile (4 tabs) |
@@ -60,18 +64,19 @@ A full-featured hospital management system built with React + Vite + Tailwind CS
 6. **Print / PDF Export** — Print button in Topbar triggers `window.print()`. `@media print` CSS hides navigation/sidebar. Prescriptions page has per-Rx print button generating a formatted prescription slip. Dark mode auto-reverts for print.
 7. **formatCurrency utility** — Added to `src/utils/helpers.js`. Badge statuses extended: Paid, Overdue, Inactive.
 
-### Firestore Collections (14 real-time subscriptions)
+### MongoDB Collections (17 fetched on login + settings singleton + audit log)
+
 - `patients` — patient records (with department, email, blood type fields)
-- `doctors` — doctor profiles (with department matching)
+- `doctors` — doctor profiles (`uid` links to a `users` document once promoted to the Doctor role)
 - `appointments` — appointment scheduling
 - `departments` — hospital departments (with capacity for bed management)
-- `inventory` — medical supplies and equipment
-- `messages` — real-time staff chat
-- `users` — registered user profiles with roles
-- `medicalRecords` — patient medical history (linked by patientId)
-- `billing` — invoices and payment records (linked by patientId)
-- `shifts` — weekly doctor shift schedule (linked by weekStart ISO date)
-- `auditLog` — action log (fetched on-demand, not subscribed)
+- `inventory` — medical supplies and equipment (`quantity` field, deducted on prescription fill)
+- `messages` — staff chat (fetched on login, refetched after sending)
+- `users` — registered user profiles with roles (password hash never sent to the client)
+- `medicalRecords` — patient medical history (linked by `patientId`)
+- `billing` — invoices and payment records (linked by `patientId`)
+- `shifts` — weekly doctor shift schedule (linked by `weekStart` ISO date)
+- `auditLog` — action log (fetched on-demand via `/api/audit-log`, admin only)
 
 ### Role-Based Access
 - **Admin**: Full access to all 12 pages
@@ -90,26 +95,23 @@ A full-featured hospital management system built with React + Vite + Tailwind CS
 - **Bed Management** — occupancy progress bar per department card (uses patient.department field)
 - **Audit Log** — admin-only log of all Add/Update/Delete actions with user, timestamp, entity
 - **Mobile Sidebar** — hamburger menu in Topbar, overlay drawer on mobile
-- **Skeleton Loading** — shimmer placeholders while Firestore data loads
+- **Skeleton Loading** — shimmer placeholders while the initial API fetch is in flight
 
 ## Environment Variables
-All stored as `VITE_FIREBASE_*` secrets in Replit:
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
+Frontend (`.env`, optional): `VITE_API_URL` (defaults to `/api`, proxied to the Express server in dev).
 
-Firebase Project ID: `hospital-management-4e0a3`
+Backend (`server/.env`, see `server/.env.example`):
+
+- `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `CLIENT_ORIGIN`, `CSRF_SECRET`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `APP_URL` (password-reset email delivery)
 
 ## Important Configuration
 - **Tailwind v4**: No `tailwind.config.js`, no `postcss.config.js` — uses `@tailwindcss/vite` plugin
 - **No React Router**: Navigation via `activePage` state in `App.jsx`, `navigate()` passed as `onNavigate`
 - **HMR disabled**: `hmr: false` in `vite.config.js` to prevent Replit proxy WebSocket loops
-- **Firestore rules**: Production mode — `allow read, write: if request.auth != null`
-- **Audit logging**: `logAudit(action, entity, entityName)` called in all CRUD store methods
-- **Store loading**: `checkAll()` counter waits for all 10 subscriptions before setting `loading: false`
+- **Auth**: JWT in an httpOnly cookie (`mc_token`) set by `server/src/controllers/auth.controller.js`; a separate non-httpOnly `mc_csrf` cookie is echoed back as the `X-CSRF-Token` header on mutating requests (double-submit CSRF pattern, see `server/src/middleware/csrf.middleware.js`)
+- **Audit logging**: `logAudit(req, action, entity, entityName)` (`server/src/utils/audit.js`) called from route controllers per the same add/update/delete pattern the old Firestore store used
+- **Dev servers**: `npm run dev` runs Vite (port 5000) and Express (port 5001) together via `concurrently`; Vite proxies `/api` to Express
 
 ## Custom CSS Classes (src/index.css)
 `.sidebar-link`, `.btn-primary`, `.btn-ghost`, `.btn-danger`, `.card`, `.input-field`, `.label`, `.badge`, `.table-th`, `.table-td`, `.table-row`

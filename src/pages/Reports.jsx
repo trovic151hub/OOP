@@ -6,16 +6,17 @@ import {
 import { useStore } from '../store/useStore'
 import { TrendingUp, Users, Calendar, Package, Download, BarChart2 } from 'lucide-react'
 import NairaIcon from '../components/ui/NairaIcon'
+import { formatCurrency, formatCompactCurrency, getCurrencySymbol } from '../utils/helpers'
 
 const COLORS = ['#0d9488', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
-function ChartTooltip({ active, payload, label }) {
+function ChartTooltip({ active, payload, label, currency }) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2 text-xs">
       <p className="font-bold text-slate-700 mb-1">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }} className="font-semibold">{p.name}: {typeof p.value === 'number' && p.name?.toLowerCase().includes('revenue') ? `₦${Math.round(p.value).toLocaleString('en-NG')}` : p.value}</p>
+        <p key={i} style={{ color: p.color }} className="font-semibold">{p.name}: {typeof p.value === 'number' && (p.name?.toLowerCase().includes('revenue') || p.name?.toLowerCase() === 'paid') ? formatCurrency(p.value, currency) : p.value}</p>
       ))}
     </div>
   )
@@ -45,7 +46,7 @@ function SummaryCard({ label, value, sub, icon: Icon, color }) {
 }
 
 export default function Reports() {
-  const { patients, doctors, appointments, billing, inventory } = useStore()
+  const { patients, doctors, appointments, billing, inventory, settings } = useStore()
   const [range, setRange] = useState(6)
 
   const last = Array.from({ length: range }, (_, i) => {
@@ -68,10 +69,11 @@ export default function Reports() {
   const collectionRate = totalRevenue > 0 ? ((totalPaid / totalRevenue) * 100).toFixed(1) : '0.0'
 
   const apptStatusData = [
-    { name: 'Scheduled', value: appointments.filter(a => a.status === 'Scheduled').length,  fill: '#0d9488' },
-    { name: 'Ongoing',   value: appointments.filter(a => a.status === 'Ongoing').length,    fill: '#3b82f6' },
-    { name: 'Completed', value: appointments.filter(a => a.status === 'Completed').length,  fill: '#10b981' },
-    { name: 'Cancelled', value: appointments.filter(a => a.status === 'Cancelled').length,  fill: '#ef4444' },
+    { name: 'Scheduled',   value: appointments.filter(a => a.status === 'Scheduled').length,   fill: '#0d9488' },
+    { name: 'Checked In',  value: appointments.filter(a => a.status === 'Checked In').length,   fill: '#8b5cf6' },
+    { name: 'In Progress', value: appointments.filter(a => a.status === 'In Progress').length,  fill: '#3b82f6' },
+    { name: 'Completed',   value: appointments.filter(a => a.status === 'Completed').length,    fill: '#10b981' },
+    { name: 'Cancelled',   value: appointments.filter(a => a.status === 'Cancelled').length,    fill: '#ef4444' },
   ].filter(d => d.value > 0)
 
   const billingStatusData = [
@@ -130,8 +132,8 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Total Revenue" value={`₦${Math.round(totalRevenue).toLocaleString('en-NG')}`} sub={`${collectionRate}% collected`} icon={NairaIcon} color="emerald" />
-        <SummaryCard label="Outstanding" value={`₦${Math.round(totalPending).toLocaleString('en-NG')}`} sub="Pending invoices" icon={TrendingUp} color="amber" />
+        <SummaryCard label="Total Revenue" value={formatCurrency(totalRevenue, settings?.currency)} sub={`${collectionRate}% collected`} icon={NairaIcon} color="emerald" />
+        <SummaryCard label="Outstanding" value={formatCurrency(totalPending, settings?.currency)} sub="Pending invoices" icon={TrendingUp} color="amber" />
         <SummaryCard label="Total Patients" value={patients.length} sub={`${patients.filter(p => p.status === 'Active').length} active`} icon={Users} color="teal" />
         <SummaryCard label="Total Appointments" value={appointments.length} sub={`${appointments.filter(a => a.status === 'Completed').length} completed`} icon={Calendar} color="blue" />
       </div>
@@ -152,8 +154,8 @@ export default function Reports() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
-              <Tooltip content={<ChartTooltip />} />
+              <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => formatCompactCurrency(v, settings?.currency)} />
+              <Tooltip content={<ChartTooltip currency={settings?.currency} />} />
               <Area type="monotone" dataKey="Revenue" name="Revenue" stroke="#0d9488" strokeWidth={2} fill="url(#revenueGrad)" />
               <Area type="monotone" dataKey="Paid" name="Paid" stroke="#10b981" strokeWidth={2} fill="none" strokeDasharray="4 2" />
             </AreaChart>

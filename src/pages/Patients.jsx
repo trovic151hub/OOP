@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Users, Filter, Download, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Filter, Tag, Search, X as XIcon, Download, Eye } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
 import { SkeletonTable } from '../components/ui/Skeleton'
 import PatientDrawer from '../components/PatientDrawer'
 import { useToast } from '../context/ToastContext'
@@ -30,21 +31,15 @@ function PatientForm({ form, setForm, departments }) {
         </div>
         <div>
           <label className="label">Gender</label>
-          <select className="input-field" value={form.gender} onChange={set('gender')}>
-            {['Not specified','Male','Female','Other'].map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.gender} onChange={v => setForm(f => ({ ...f, gender: v }))} options={['Not specified','Male','Female','Other'].map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Blood Type</label>
-          <select className="input-field" value={form.blood} onChange={set('blood')}>
-            {['Unknown','A+','A-','B+','B-','AB+','AB-','O+','O-'].map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.blood} onChange={v => setForm(f => ({ ...f, blood: v }))} options={['Unknown','A+','A-','B+','B-','AB+','AB-','O+','O-'].map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {STATUSES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={STATUSES.map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Phone</label>
@@ -56,16 +51,15 @@ function PatientForm({ form, setForm, departments }) {
         </div>
         <div>
           <label className="label">Patient Type</label>
-          <select className="input-field" value={form.patientType} onChange={set('patientType')}>
-            {['Outpatient','Inpatient'].map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.patientType} onChange={v => setForm(f => ({ ...f, patientType: v }))} options={['Outpatient','Inpatient'].map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Department</label>
-          <select className="input-field" value={form.department} onChange={set('department')}>
-            <option value="">None</option>
-            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-          </select>
+          <FormDropdown
+            value={form.department}
+            onChange={v => setForm(f => ({ ...f, department: v }))}
+            options={[{ value: '', label: 'None' }, ...departments.map(d => ({ value: d.name, label: d.name }))]}
+          />
         </div>
         <div className="col-span-2">
           <label className="label">Condition / Diagnosis</label>
@@ -135,18 +129,46 @@ export default function Patients({ currentUser }) {
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name, condition…" className="flex-1 min-w-48" />
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="All">All Status</option>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
-          <select className="input-field w-auto text-xs" value={filterType} onChange={e => setFilterType(e.target.value)}>
-            <option value="All">All Types</option>
-            <option>Outpatient</option>
-            <option>Inpatient</option>
-          </select>
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, condition…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown
+            icon={Filter}
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={[{ value: 'All', label: 'All Status' }, ...STATUSES.map(s => ({ value: s, label: s }))]}
+          />
+          <FilterDropdown
+            icon={Tag}
+            value={filterType}
+            onChange={setFilterType}
+            options={[{ value: 'All', label: 'All Types' }, { value: 'Outpatient', label: 'Outpatient' }, { value: 'Inpatient', label: 'Inpatient' }]}
+          />
+          {(search || filterStatus !== 'All' || filterType !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterStatus('All'); setFilterType('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 

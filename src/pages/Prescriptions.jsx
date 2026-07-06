@@ -1,12 +1,15 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Pill, Search, Filter, Download, Printer } from 'lucide-react'
+import { Plus, Pencil, Trash2, Pill, Search, Filter, Download, Printer, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import Combobox from '../components/ui/Combobox'
+import DatePicker from '../components/ui/DatePicker'
 import { useToast } from '../context/ToastContext'
-import { formatDate } from '../utils/helpers'
+import { formatDate, withDrPrefix } from '../utils/helpers'
 
 const RX_STATUSES = ['Active', 'Completed', 'Cancelled']
 const FREQUENCIES  = ['Once daily', 'Twice daily', '3x daily', '4x daily', 'Every 6h', 'Every 8h', 'Every 12h', 'As needed', 'Before meals', 'After meals']
@@ -28,14 +31,10 @@ function MedRow({ med, idx, onChange, onRemove, canRemove }) {
         <input className="input-field" placeholder="Dosage e.g. 500mg" value={med.dosage} onChange={set('dosage')} />
       </div>
       <div className="col-span-1 sm:col-span-3">
-        <select className="input-field" value={med.frequency} onChange={set('frequency')}>
-          {FREQUENCIES.map(f => <option key={f}>{f}</option>)}
-        </select>
+        <FormDropdown value={med.frequency} onChange={v => onChange(idx, { ...med, frequency: v })} options={FREQUENCIES.map(f => ({ value: f, label: f }))} />
       </div>
       <div className="col-span-1 sm:col-span-2">
-        <select className="input-field" value={med.duration} onChange={set('duration')}>
-          {DURATIONS.map(d => <option key={d}>{d}</option>)}
-        </select>
+        <FormDropdown value={med.duration} onChange={v => onChange(idx, { ...med, duration: v })} options={DURATIONS.map(d => ({ value: d, label: d }))} />
       </div>
       <div className="col-span-1 sm:col-span-1 flex items-center justify-center pt-2.5">
         {canRemove && (
@@ -58,23 +57,19 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <input className="input-field" list="rx-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />
-          <datalist id="rx-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+          <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
         </div>
         <div>
           <label className="label">Doctor <span className="text-red-400">*</span></label>
-          <input className="input-field" list="rx-doctors" placeholder="Doctor name…" value={form.doctorName} onChange={set('doctorName')} />
-          <datalist id="rx-doctors">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
+          <Combobox value={form.doctorName} onChange={v => setForm(f => ({ ...f, doctorName: v }))} options={doctors} getLabel={d => d.name} getSub={d => d.specialty} placeholder="Doctor name…" />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input className="input-field" type="date" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {RX_STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={RX_STATUSES.map(s => ({ value: s, label: s }))} />
         </div>
       </div>
 
@@ -105,11 +100,11 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
   )
 }
 
-function PrintPreview({ rx }) {
+function PrintPreview({ rx, settings }) {
   return (
     <div id="rx-print" className="font-sans text-slate-800 p-6">
       <div className="border-b-2 border-teal-600 pb-4 mb-4">
-        <h1 className="text-2xl font-extrabold text-teal-700">MedCore</h1>
+        <h1 className="text-2xl font-extrabold text-teal-700">{settings?.hospitalName || 'MedCore'}</h1>
         <p className="text-xs text-slate-500">Medical Practice Management System</p>
       </div>
       <div className="flex justify-between mb-4 text-sm">
@@ -147,7 +142,7 @@ function PrintPreview({ rx }) {
 }
 
 export default function Prescriptions({ currentUser }) {
-  const { prescriptions = [], patients, doctors } = useStore()
+  const { prescriptions = [], patients, doctors, settings } = useStore()
   const showToast = useToast()
 
   const [search, setSearch]           = useState('')
@@ -179,12 +174,19 @@ export default function Prescriptions({ currentUser }) {
   }
   function openEdit(r) { setForm({ ...EMPTY_FORM, ...r, medications: r.medications || [{ name: '', dosage: '', frequency: 'Once daily', duration: '7 days' }] }); setEditId(r.id); setModal(true) }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.patientName.trim() || !form.doctorName.trim()) { showToast('Patient and doctor are required.', 'error'); return }
     if (!form.date) { showToast('Date is required.', 'error'); return }
     if (form.medications.some(m => !m.name.trim())) { showToast('All medication names are required.', 'error'); return }
-    if (editId) { store.updatePrescription(editId, form); showToast('Prescription updated.') }
-    else { store.addPrescription(form); showToast('Prescription saved.') }
+    if (editId) {
+      await store.updatePrescription(editId, form)
+      showToast('Prescription updated.')
+    } else {
+      await store.addPrescription(form)
+      const medNames = form.medications.map(m => m.name.trim()).filter(Boolean).join(', ')
+      const deducted = await store.deductInventoryForPrescription(medNames)
+      showToast(deducted.length > 0 ? `Prescription saved. Inventory updated: ${deducted.join(', ')}.` : 'Prescription saved.')
+    }
     setModal(false)
   }
 
@@ -211,7 +213,7 @@ export default function Prescriptions({ currentUser }) {
     <div>
       {printRx && (
         <div className="fixed inset-0 bg-white z-[999] print-only">
-          <PrintPreview rx={printRx} />
+          <PrintPreview rx={printRx} settings={settings} />
         </div>
       )}
 
@@ -242,8 +244,22 @@ export default function Prescriptions({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search by patient or doctor…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by patient or doctor…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
         <Filter size={14} className="text-slate-400" />
         {['All','Active','Completed','Cancelled'].map(s => (
@@ -268,7 +284,7 @@ export default function Prescriptions({ currentUser }) {
                 <Avatar name={r.patientName} size="md" />
                 <div>
                   <p className="font-bold text-slate-800">{r.patientName}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Dr. {r.doctorName} · {r.date ? formatDate(r.date) : '—'}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{withDrPrefix(r.doctorName)} · {r.date ? formatDate(r.date) : '—'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

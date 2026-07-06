@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, FlaskConical, Search, Filter, Download, PackageCheck, Clock, CheckCheck, XCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, FlaskConical, Search, Filter, Download, PackageCheck, Clock, CheckCheck, XCircle, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
+import FormDropdown from '../components/ui/FormDropdown'
+import Combobox from '../components/ui/Combobox'
 import { useToast } from '../context/ToastContext'
-import { formatDate } from '../utils/helpers'
+import { formatDate, formatMedications } from '../utils/helpers'
 
 const ORDER_STATUSES = ['Pending', 'Preparing', 'Ready', 'Dispensed', 'Cancelled']
 
@@ -46,7 +48,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
       prescriptionId: id,
       patientName:  rx.patientName  || f.patientName,
       doctorName:   rx.doctorName   || f.doctorName,
-      medications:  rx.medications  || f.medications,
+      medications:  formatMedications(rx.medications) || f.medications,
       instructions: rx.instructions || f.instructions,
     }))
   }
@@ -55,23 +57,20 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
       <div>
         <label className="label">Load from Prescription</label>
-        <select className="input-field text-sm" value={form.prescriptionId} onChange={e => { set('prescriptionId')(e); loadPrescription(e.target.value) }}>
-          <option value="">— Select prescription —</option>
-          {prescriptions.filter(p => p.status === 'Active').map(p => (
-            <option key={p.id} value={p.id}>{p.patientName} – {(p.medications || '').slice(0, 40)}</option>
-          ))}
-        </select>
+        <FormDropdown
+          value={form.prescriptionId}
+          onChange={v => { setForm(f => ({ ...f, prescriptionId: v })); loadPrescription(v) }}
+          options={[{ value: '', label: '— Select prescription —' }, ...prescriptions.filter(p => p.status === 'Active').map(p => ({ value: p.id, label: `${p.patientName} – ${formatMedications(p.medications).slice(0, 40)}` }))]}
+        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <input className="input-field" list="ph-patients" placeholder="Patient name…" value={form.patientName} onChange={set('patientName')} />
-          <datalist id="ph-patients">{patients.map(p => <option key={p.id} value={p.name} />)}</datalist>
+          <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
         </div>
         <div>
           <label className="label">Doctor</label>
-          <input className="input-field" list="ph-doctors" placeholder="Doctor name…" value={form.doctorName} onChange={set('doctorName')} />
-          <datalist id="ph-doctors">{doctors.map(d => <option key={d.id} value={d.name} />)}</datalist>
+          <Combobox value={form.doctorName} onChange={v => setForm(f => ({ ...f, doctorName: v }))} options={doctors} getLabel={d => d.name} getSub={d => d.specialty} placeholder="Doctor name…" />
         </div>
       </div>
       <div>
@@ -85,9 +84,7 @@ function PharmacyForm({ form, setForm, patients, doctors, prescriptions }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {ORDER_STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={ORDER_STATUSES.map(s => ({ value: s, label: s }))} />
         </div>
         <div>
           <label className="label">Pharmacist Name</label>
@@ -115,7 +112,7 @@ export default function Pharmacy({ currentUser }) {
 
   const filtered = pharmacyOrders.filter(o => {
     const q = search.toLowerCase()
-    const matchQ = o.patientName?.toLowerCase().includes(q) || o.medications?.toLowerCase().includes(q) || o.doctorName?.toLowerCase().includes(q)
+    const matchQ = o.patientName?.toLowerCase().includes(q) || formatMedications(o.medications).toLowerCase().includes(q) || o.doctorName?.toLowerCase().includes(q)
     const matchS = filterStatus === 'All' || o.status === filterStatus
     return matchQ && matchS
   })
@@ -123,7 +120,7 @@ export default function Pharmacy({ currentUser }) {
   const counts = ORDER_STATUSES.reduce((acc, s) => { acc[s] = pharmacyOrders.filter(o => o.status === s).length; return acc }, {})
 
   function openAdd()   { setForm({ ...EMPTY_FORM }); setEditId(null); setModal(true) }
-  function openEdit(o) { setForm({ ...EMPTY_FORM, ...o }); setEditId(o.id); setModal(true) }
+  function openEdit(o) { setForm({ ...EMPTY_FORM, ...o, medications: formatMedications(o.medications) }); setEditId(o.id); setModal(true) }
 
   function handleSubmit() {
     if (!form.patientName.trim())  { showToast('Patient is required.', 'error'); return }
@@ -133,15 +130,26 @@ export default function Pharmacy({ currentUser }) {
     setModal(false)
   }
 
-  function advanceOrder(order) {
+  async function advanceOrder(order) {
     const next = NEXT_STATUS[order.status]
     if (!next) return
     const update = { status: next }
     if (next === 'Dispensed') {
       update.dispensedAt = new Date().toISOString().slice(0,10)
-      update.dispensedBy = currentUser?.name || ''
+      update.pharmacistName = currentUser?.name || ''
     }
-    store.updatePharmacyOrder(order.id, update)
+    await store.updatePharmacyOrder(order.id, update)
+
+    // Orders loaded from a Prescription already deducted stock when that
+    // prescription was created — only deduct here for standalone/walk-in
+    // orders, so dispensing never double-counts against inventory.
+    if (next === 'Dispensed' && !order.prescriptionId) {
+      const deducted = await store.deductInventoryForPrescription(formatMedications(order.medications))
+      if (deducted.length > 0) {
+        showToast(`${order.patientName} → ${next}. Inventory updated: ${deducted.join(', ')}.`, 'info')
+        return
+      }
+    }
     showToast(`${order.patientName} → ${next}`, 'info')
   }
 
@@ -153,7 +161,7 @@ export default function Pharmacy({ currentUser }) {
   function exportCSV() {
     const rows = [
       ['Patient','Doctor','Medications','Status','Pharmacist','Dispensed At','Created'],
-      ...filtered.map(o => [o.patientName, o.doctorName, o.medications, o.status, o.pharmacistName, o.dispensedAt, o.createdAt?.slice(0,10)]),
+      ...filtered.map(o => [o.patientName, o.doctorName, formatMedications(o.medications), o.status, o.pharmacistName, o.dispensedAt, o.createdAt?.slice(0,10)]),
     ]
     const csv = rows.map(r => r.map(x => `"${x||''}"`).join(',')).join('\n')
     const a = document.createElement('a'); a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`; a.download = 'pharmacy_orders.csv'; a.click()
@@ -192,8 +200,22 @@ export default function Pharmacy({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search by patient or medications…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by patient or medications…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
         <Filter size={14} className="text-slate-400" />
         {['All', ...ORDER_STATUSES].map(s => (
@@ -234,7 +256,7 @@ export default function Pharmacy({ currentUser }) {
                     </td>
                     <td className="table-td text-sm text-slate-500">{o.doctorName || '—'}</td>
                     <td className="table-td max-w-xs">
-                      <p className="text-xs text-slate-700 font-medium line-clamp-2">{o.medications}</p>
+                      <p className="text-xs text-slate-700 font-medium line-clamp-2">{formatMedications(o.medications)}</p>
                       {o.instructions && <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{o.instructions}</p>}
                     </td>
                     <td className="table-td">

@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, Activity, UserPlus, Info } from 'lucide-react'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { doc, setDoc, collection, getDocs } from 'firebase/firestore'
-import { auth, db } from '../firebase'
+import { api } from '../api/client'
+import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
 
 export default function Register({ onSwitch }) {
@@ -22,32 +21,12 @@ export default function Register({ onSwitch }) {
     if (!agreed) { showToast('Please agree to the Terms & Conditions.', 'error'); return }
     setLoading(true)
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password)
-      await updateProfile(user, { displayName: form.name })
-      const existingUsers = await getDocs(collection(db, 'users'))
-      const isFirstUser = existingUsers.empty
-      await setDoc(doc(db, 'users', user.uid), {
-        uid:       user.uid,
-        name:      form.name,
-        email:     form.email,
-        role:      isFirstUser ? 'Admin' : 'Receptionist',
-        createdAt: new Date().toISOString(),
-      })
-      showToast(isFirstUser ? 'Admin account created!' : 'Account created! Your admin will assign your role.', 'success')
+      const { user } = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password })
+      setCurrentUser(user)
+      initSubscriptions()
+      showToast(user.role === 'Admin' ? 'Admin account created!' : 'Account created! Your admin will assign your role.', 'success')
     } catch (err) {
-      console.error('Registration error:', err.code, err.message)
-      const msg = err.code === 'auth/email-already-in-use'
-        ? 'This email is already registered. Try logging in instead.'
-        : err.code === 'auth/invalid-email'
-        ? 'Invalid email address.'
-        : err.code === 'auth/weak-password'
-        ? 'Password is too weak. Use at least 6 characters.'
-        : err.code === 'auth/operation-not-allowed'
-        ? 'Email/password sign-up is disabled. Check Firebase console.'
-        : err.code === 'permission-denied'
-        ? 'Database permission denied. Check Firestore security rules.'
-        : `Registration failed (${err.code || 'unknown'}). Please try again.`
-      showToast(msg, 'error')
+      showToast(err.message || 'Registration failed. Please try again.', 'error')
     } finally {
       setLoading(false)
     }

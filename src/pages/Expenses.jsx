@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from 'react'
-import { Plus, Pencil, Trash2, TrendingDown, Search, Filter, Download, BarChart2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, TrendingDown, Search, Filter, Calendar, Download, BarChart2, X as XIcon } from 'lucide-react'
 import NairaIcon from '../components/ui/NairaIcon'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import Badge from '../components/ui/Badge'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
+import DatePicker from '../components/ui/DatePicker'
 import { useToast } from '../context/ToastContext'
-import { formatDate, formatCurrency } from '../utils/helpers'
+import { formatDate, formatCurrency, formatCompactCurrency, getCurrencySymbol } from '../utils/helpers'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const CATEGORIES = ['Salaries', 'Medical Supplies', 'Equipment', 'Utilities', 'Maintenance', 'Rent', 'Insurance', 'Marketing', 'IT & Software', 'Training', 'Other']
@@ -16,7 +19,8 @@ const MONTHS     = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct',
 
 const EMPTY_FORM = { description: '', category: 'Medical Supplies', amount: '', date: '', status: 'Paid', paymentMethod: 'Bank Transfer', vendor: '', notes: '', recurring: false }
 
-function ExpenseForm({ form, setForm }) {
+function ExpenseForm({ form, setForm, settings }) {
+  const symbol = getCurrencySymbol(settings?.currency)
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
   return (
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -27,29 +31,23 @@ function ExpenseForm({ form, setForm }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Category</label>
-          <select className="input-field" value={form.category} onChange={set('category')}>
-            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-          </select>
+          <FormDropdown value={form.category} onChange={v => setForm(f => ({ ...f, category: v }))} options={CATEGORIES.map(c => ({ value: c, label: c }))} />
         </div>
         <div>
-          <label className="label">Amount ($) <span className="text-red-400">*</span></label>
+          <label className="label">Amount ({symbol}) <span className="text-red-400">*</span></label>
           <input className="input-field" type="number" min="0" step="0.01" placeholder="0.00" value={form.amount} onChange={set('amount')} />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
-          <input className="input-field" type="date" value={form.date} onChange={set('date')} />
+          <DatePicker value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} />
         </div>
         <div>
           <label className="label">Status</label>
-          <select className="input-field" value={form.status} onChange={set('status')}>
-            {STATUSES.map(s => <option key={s}>{s}</option>)}
-          </select>
+          <FormDropdown value={form.status} onChange={v => setForm(f => ({ ...f, status: v }))} options={STATUSES.map(s => ({ value: s, label: s }))} />
         </div>
         <div>
           <label className="label">Payment Method</label>
-          <select className="input-field" value={form.paymentMethod} onChange={set('paymentMethod')}>
-            {METHODS.map(m => <option key={m}>{m}</option>)}
-          </select>
+          <FormDropdown value={form.paymentMethod} onChange={v => setForm(f => ({ ...f, paymentMethod: v }))} options={METHODS.map(m => ({ value: m, label: m }))} />
         </div>
         <div>
           <label className="label">Vendor / Supplier</label>
@@ -69,7 +67,9 @@ function ExpenseForm({ form, setForm }) {
 }
 
 export default function Expenses() {
-  const { expenses = [], invoices = [] } = useStore()
+  const { expenses = [], invoices = [], settings } = useStore()
+  const fmt = (n) => formatCurrency(n, settings?.currency)
+  const fmtCompact = (n) => formatCompactCurrency(n, settings?.currency)
   const showToast = useToast()
 
   const [search, setSearch]     = useState('')
@@ -81,7 +81,7 @@ export default function Expenses() {
   const [confirmId, setConfirmId] = useState(null)
   const [view, setView]         = useState('list')
 
-  const totalRevenue = useMemo(() => invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.totalAmount || 0), 0), [invoices])
+  const totalRevenue = useMemo(() => invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.total || i.totalAmount || 0), 0), [invoices])
 
   const currentYear  = new Date().getFullYear()
   const currentMonth = new Date().getMonth()
@@ -104,7 +104,7 @@ export default function Expenses() {
   const byMonth = MONTHS.map((m, i) => ({
     name: m,
     Expenses: expenses.filter(e => e.date && new Date(e.date).getMonth() === i && new Date(e.date).getFullYear() === currentYear).reduce((s, e) => s + Number(e.amount || 0), 0),
-    Revenue:  invoices.filter(inv => inv.status === 'Paid' && inv.date && new Date(inv.date).getMonth() === i && new Date(inv.date).getFullYear() === currentYear).reduce((s, inv) => s + Number(inv.totalAmount || 0), 0),
+    Revenue:  invoices.filter(inv => inv.status === 'Paid' && inv.date && new Date(inv.date).getMonth() === i && new Date(inv.date).getFullYear() === currentYear).reduce((s, inv) => s + Number(inv.total || inv.totalAmount || 0), 0),
   }))
 
   function openAdd()  { setForm({ ...EMPTY_FORM, date: new Date().toISOString().slice(0, 10) }); setEditId(null); setModal(true) }
@@ -134,7 +134,7 @@ export default function Expenses() {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Expense Tracking</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{expenses.length} expenses · Net P&amp;L: <span className={netProfit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{formatCurrency(netProfit)}</span></p>
+          <p className="text-sm text-slate-400 mt-0.5">{expenses.length} expenses · Net P&amp;L: <span className={netProfit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{fmt(netProfit)}</span></p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setView(v => v === 'list' ? 'chart' : 'list')} className="btn-ghost text-xs"><BarChart2 size={13} /> {view === 'list' ? 'Analytics' : 'List'}</button>
@@ -145,10 +145,10 @@ export default function Expenses() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Expenses',    value: formatCurrency(totalExpenses), color: 'text-red-600',     border: 'border-red-200' },
-          { label: 'This Month',        value: formatCurrency(thisMonthExp),  color: 'text-amber-600',   border: 'border-amber-200' },
-          { label: 'Total Revenue',     value: formatCurrency(totalRevenue),  color: 'text-teal-600',    border: 'border-teal-200' },
-          { label: 'Net Profit / Loss', value: formatCurrency(netProfit),     color: netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', border: netProfit >= 0 ? 'border-emerald-200' : 'border-red-200' },
+          { label: 'Total Expenses',    value: fmt(totalExpenses), color: 'text-red-600',     border: 'border-red-200' },
+          { label: 'This Month',        value: fmt(thisMonthExp),  color: 'text-amber-600',   border: 'border-amber-200' },
+          { label: 'Total Revenue',     value: fmt(totalRevenue),  color: 'text-teal-600',    border: 'border-teal-200' },
+          { label: 'Net Profit / Loss', value: fmt(netProfit),     color: netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', border: netProfit >= 0 ? 'border-emerald-200' : 'border-red-200' },
         ].map(({ label, value, color, border }) => (
           <div key={label} className={`card p-4 border ${border}`}>
             <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
@@ -159,7 +159,7 @@ export default function Expenses() {
 
       {pendingExp > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2 text-sm text-amber-700">
-          <NairaIcon size={15} /> <strong>{formatCurrency(pendingExp)}</strong> in pending expenses awaiting payment
+          <NairaIcon size={15} /> <strong>{fmt(pendingExp)}</strong> in pending expenses awaiting payment
         </div>
       )}
 
@@ -171,8 +171,8 @@ export default function Expenses() {
               <BarChart data={byMonth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000000 ? `₦${(v/1000000).toFixed(1)}m` : v >= 1000 ? `₦${(v/1000).toFixed(0)}k` : `₦${v}`} />
-                <Tooltip formatter={v => formatCurrency(v)} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => fmtCompact(v)} />
+                <Tooltip formatter={v => fmt(v)} />
                 <Legend />
                 <Bar dataKey="Revenue"  fill="#14b8a6" radius={[4,4,0,0]} />
                 <Bar dataKey="Expenses" fill="#f87171" radius={[4,4,0,0]} />
@@ -184,9 +184,9 @@ export default function Expenses() {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byCat} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000000 ? `₦${(v/1000000).toFixed(1)}m` : v >= 1000 ? `₦${(v/1000).toFixed(0)}k` : `₦${v}`} />
+                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={v => fmtCompact(v)} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
-                <Tooltip formatter={v => formatCurrency(v)} />
+                <Tooltip formatter={v => fmt(v)} />
                 <Bar dataKey="amount" fill="#f472b6" radius={[0,4,4,0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -196,18 +196,33 @@ export default function Expenses() {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input-field pl-9" placeholder="Search expenses…" value={search} onChange={e => setSearch(e.target.value)} />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search expenses…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
-        <Filter size={14} className="text-slate-400" />
-        <select className="input-field !w-auto text-xs" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-          <option>All</option>
-          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-        </select>
-        <select className="input-field !w-auto text-xs" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}>
-          <option>All</option>
-          {MONTHS.map(m => <option key={m}>{m}</option>)}
-        </select>
+        <FilterDropdown icon={Filter} value={filterCat} onChange={setFilterCat} options={[{ value: 'All', label: 'All' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]} />
+        <FilterDropdown icon={Calendar} value={filterMonth} onChange={setFilterMonth} options={[{ value: 'All', label: 'All' }, ...MONTHS.map(m => ({ value: m, label: m }))]} />
+        {(search || filterCat !== 'All' || filterMonth !== 'All') && (
+          <button
+            onClick={() => { setSearch(''); setFilterCat('All'); setFilterMonth('All') }}
+            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       <div className="card overflow-hidden">
@@ -232,7 +247,7 @@ export default function Expenses() {
                 <td className="table-td">
                   <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded-full">{e.category}</span>
                 </td>
-                <td className="table-td font-bold text-red-600">{formatCurrency(e.amount || 0)}</td>
+                <td className="table-td font-bold text-red-600">{fmt(e.amount || 0)}</td>
                 <td className="table-td text-slate-400 text-xs">{e.date ? formatDate(e.date) : '—'}</td>
                 <td className="table-td"><Badge status={e.status} /></td>
                 <td className="table-td text-xs text-slate-500">{e.vendor || '—'}</td>
@@ -250,7 +265,7 @@ export default function Expenses() {
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Expense' : 'Add Expense'} icon={TrendingDown} accentColor="teal">
-        <ExpenseForm form={form} setForm={setForm} />
+        <ExpenseForm form={form} setForm={setForm} settings={settings} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
           <button onClick={handleSubmit} className="btn-primary flex-1 justify-center">

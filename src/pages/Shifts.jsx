@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Trash2, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, Clock, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { SkeletonTable } from '../components/ui/Skeleton'
@@ -7,6 +7,43 @@ import { useToast } from '../context/ToastContext'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const SHIFT_TYPES = ['Morning', 'Afternoon', 'Night']
+
+// A miniature version of the shared FormDropdown, sized to fit inside a
+// ~64px schedule-grid cell — the full-size component doesn't fit here.
+function MiniDoctorPicker({ value, onChange, doctors }) {
+  const [open, setOpen] = useState(false)
+  const selected = doctors.find(d => d.name === value)
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-between gap-1 text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-white text-slate-700 w-full text-left"
+      >
+        <span className="truncate">{selected ? selected.name : 'Select doctor…'}</span>
+        <ChevronDown size={9} className={`text-slate-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-[100] w-40 max-h-48 overflow-y-auto py-1">
+            {doctors.map(d => (
+              <button
+                type="button"
+                key={d.id}
+                onClick={() => { onChange(d.name); setOpen(false) }}
+                className={`w-full text-left px-2.5 py-1.5 text-[11px] transition-colors truncate ${value === d.name ? 'bg-teal-50 text-teal-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 const SHIFT_COLORS = {
   Morning:   { bg: 'bg-amber-50 border border-amber-200',  text: 'text-amber-800',  badge: 'bg-amber-100 text-amber-700',  dot: 'bg-amber-400', label: '06:00 – 14:00' },
@@ -161,10 +198,7 @@ export default function Shifts({ currentUser }) {
                             {isAdmin && (
                               isSelected ? (
                                 <div className="flex flex-col gap-1 mt-1">
-                                  <select className="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-white text-slate-700 w-full" value={selectedDoctor} onChange={e => setSelectedDoctor(e.target.value)}>
-                                    <option value="">Select doctor…</option>
-                                    {doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-                                  </select>
+                                  <MiniDoctorPicker value={selectedDoctor} onChange={setSelectedDoctor} doctors={doctors} />
                                   <div className="flex gap-1">
                                     <button onClick={addShift} className="flex-1 text-[10px] bg-teal-600 text-white rounded px-1 py-0.5 font-bold">Add</button>
                                     <button onClick={() => { setAddMode(null); setSelectedDoctor('') }} className="flex-1 text-[10px] bg-slate-100 text-slate-500 rounded px-1 py-0.5">×</button>

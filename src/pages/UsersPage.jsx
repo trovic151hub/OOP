@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { UserCog, Shield, Search, ChevronDown, Wifi, Clock } from 'lucide-react'
+import { UserCog, Shield, Search, ChevronDown, Wifi, Clock, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { useToast } from '../context/ToastContext'
+import { getLastSeen } from '../utils/helpers'
 
 const ROLES = ['Admin', 'Doctor', 'Receptionist', 'Patient']
 const TABS  = ['All', 'Admin', 'Doctor', 'Receptionist', 'Patient']
@@ -12,18 +13,6 @@ const ROLE_BADGE = {
   Doctor:       'bg-purple-100 text-purple-700 border border-purple-200',
   Receptionist: 'bg-blue-100 text-blue-700 border border-blue-200',
   Patient:      'bg-emerald-100 text-emerald-700 border border-emerald-200',
-}
-
-function getLastSeen(lastSeen) {
-  if (!lastSeen) return { label: 'Never', online: false }
-  const diff = Date.now() - new Date(lastSeen).getTime()
-  const mins  = Math.floor(diff / 60000)
-  if (mins < 5)   return { label: 'Online now', online: true }
-  if (mins < 60)  return { label: `${mins}m ago`, online: false }
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24)   return { label: `${hrs}h ago`, online: false }
-  const days = Math.floor(hrs / 24)
-  return { label: `${days}d ago`, online: false }
 }
 
 function RoleSelector({ userId, currentRole, disabled, onRoleChange }) {
@@ -61,8 +50,8 @@ function RoleSelector({ userId, currentRole, disabled, onRoleChange }) {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 rounded-xl shadow-lg z-20 overflow-hidden min-w-36">
+          <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
+          <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] overflow-hidden min-w-36">
             {ROLES.map(role => (
               <button
                 key={role}
@@ -99,6 +88,7 @@ export default function UsersPage({ currentUser }) {
     Admin:        users.filter(u => u.role === 'Admin').length,
     Doctor:       users.filter(u => u.role === 'Doctor').length,
     Receptionist: users.filter(u => u.role === 'Receptionist').length,
+    Patient:      users.filter(u => u.role === 'Patient').length,
   }
 
   const onlineCount = users.filter(u => {
@@ -148,12 +138,23 @@ export default function UsersPage({ currentUser }) {
             ))}
           </div>
           <div className="relative flex-1 min-w-40">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
-              type="text" value={search} onChange={e => setSearch(e.target.value)}
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Search by name, email, or role…"
-              className="input-field pl-9"
+              style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+              className="input-field border-slate-200 focus:shadow-sm"
             />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              >
+                <XIcon size={14} />
+              </button>
+            )}
           </div>
         </div>
 

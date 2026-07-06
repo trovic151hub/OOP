@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Stethoscope, MessageSquare, Phone, Download, Link2, CheckCircle2, Unlink } from 'lucide-react'
+import { Plus, Pencil, Trash2, Stethoscope, MessageSquare, Phone, Download, Link2, CheckCircle2, Unlink, Filter, Search, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
 import { SkeletonCard } from '../components/ui/Skeleton'
 import DoctorDrawer from '../components/DoctorDrawer'
 import { useToast } from '../context/ToastContext'
@@ -30,24 +31,23 @@ function DoctorForm({ form, setForm, departments }) {
         </div>
         <div>
           <label className="label">Department</label>
-          <select className="input-field" value={form.department} onChange={set('department')}>
-            <option value="">None</option>
-            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-          </select>
+          <FormDropdown
+            value={form.department}
+            onChange={v => setForm(f => ({ ...f, department: v }))}
+            options={[{ value: '', label: 'None' }, ...departments.map(d => ({ value: d.name, label: d.name }))]}
+          />
         </div>
         <div>
           <label className="label">Phone</label>
           <input className="input-field" placeholder="+1 555 000 1234" value={form.phone} onChange={set('phone')} />
         </div>
         <div>
-          <label className="label">Email</label>
+          <label className="label">Email <span className="text-red-400">*</span></label>
           <input className="input-field" type="email" placeholder="doctor@hospital.com" value={form.email} onChange={set('email')} />
         </div>
         <div>
           <label className="label">Availability</label>
-          <select className="input-field" value={form.availability} onChange={set('availability')}>
-            {AVAILABILITIES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.availability} onChange={v => setForm(f => ({ ...f, availability: v }))} options={AVAILABILITIES.map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Experience</label>
@@ -115,12 +115,11 @@ function LinkAccountModal({ open, onClose, doctor, users, doctors }) {
         ) : (
           <div>
             <label className="label">Doctor User Account</label>
-            <select className="input-field" value={selected} onChange={e => setSelected(e.target.value)}>
-              <option value="">— Select a user —</option>
-              {doctorUsers.map(u => (
-                <option key={u.uid} value={u.uid}>{u.name} ({u.email})</option>
-              ))}
-            </select>
+            <FormDropdown
+              value={selected}
+              onChange={setSelected}
+              options={[{ value: '', label: '— Select a user —' }, ...doctorUsers.map(u => ({ value: u.uid, label: `${u.name} (${u.email})` }))]}
+            />
           </div>
         )}
 
@@ -148,6 +147,8 @@ export default function Doctors({ currentUser }) {
   const [confirmName, setConfirmName]         = useState('')
   const [drawerDoctor, setDrawerDoctor]       = useState(null)
   const [linkDoctor, setLinkDoctor]           = useState(null)
+  const [onboardResult, setOnboardResult]     = useState(null)
+  const [saving, setSaving]                   = useState(false)
 
   const isAdmin = currentUser?.role === 'Admin'
 
@@ -162,11 +163,25 @@ export default function Doctors({ currentUser }) {
   function openAdd()  { setForm(EMPTY_FORM); setEditId(null); setModal(true) }
   function openEdit(d){ setForm({ ...EMPTY_FORM, ...d }); setEditId(d.id); setModal(true) }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.name.trim() || !form.specialty.trim()) { showToast('Name and specialty are required.', 'error'); return }
-    if (editId) { store.updateDoctor(editId, form); showToast('Doctor updated.') }
-    else        { store.addDoctor(form); showToast('Doctor added.') }
-    setModal(false)
+    if (editId) {
+      await store.updateDoctor(editId, form)
+      showToast('Doctor updated.')
+      setModal(false)
+      return
+    }
+    if (!form.email.trim()) { showToast('Email is required to create the doctor\'s login account.', 'error'); return }
+    setSaving(true)
+    try {
+      const result = await store.onboardDoctor(form)
+      setModal(false)
+      setOnboardResult(result)
+    } catch (err) {
+      showToast(err.message || 'Failed to onboard doctor.', 'error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function unlinkAccount(d) {
@@ -210,13 +225,15 @@ export default function Doctors({ currentUser }) {
           <button onClick={() => exportDoctors(doctors)} className="btn-ghost text-xs">
             <Download size={13} /> Export CSV
           </button>
-          <select className="input-field w-auto text-sm" value={filterAvail} onChange={e => setFilterAvail(e.target.value)}>
-            <option>All Status</option>
-            {AVAILABILITIES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FilterDropdown
+            icon={Filter}
+            value={filterAvail}
+            onChange={setFilterAvail}
+            options={[{ value: 'All Status', label: 'All Status' }, ...AVAILABILITIES.map(v => ({ value: v, label: v }))]}
+          />
           {isAdmin && (
             <button onClick={openAdd} className="btn-primary">
-              <Plus size={15} /> Add New Doctor
+              <Plus size={15} /> Onboard Doctor
             </button>
           )}
         </div>
@@ -241,8 +258,24 @@ export default function Doctors({ currentUser }) {
         ))}
       </div>
 
-      <div className="mb-4">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name or specialty…" />
+      <div className="relative mb-4 max-w-md">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by name or specialty…"
+          style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+          className="input-field border-slate-200 focus:shadow-sm"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+          >
+            <XIcon size={14} />
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -304,12 +337,24 @@ export default function Doctors({ currentUser }) {
                 )}
 
                 <div className="flex gap-2 mt-auto pt-1">
-                  <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs transition-colors" title={d.email || 'No email'}>
-                    <MessageSquare size={12} />
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 text-xs transition-colors" title={d.phone || 'No phone'}>
-                    <Phone size={12} />
-                  </button>
+                  {d.email ? (
+                    <a href={`mailto:${d.email}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-teal-600 text-xs transition-colors" title={d.email}>
+                      <MessageSquare size={12} />
+                    </a>
+                  ) : (
+                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-200 text-xs cursor-not-allowed" title="No email">
+                      <MessageSquare size={12} />
+                    </button>
+                  )}
+                  {d.phone ? (
+                    <a href={`tel:${d.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-teal-600 text-xs transition-colors" title={d.phone}>
+                      <Phone size={12} />
+                    </a>
+                  ) : (
+                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-200 text-xs cursor-not-allowed" title="No phone">
+                      <Phone size={12} />
+                    </button>
+                  )}
                   <button
                     onClick={() => setDrawerDoctor(d)}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 hover:bg-teal-100 text-xs font-semibold transition-colors"
@@ -324,16 +369,56 @@ export default function Doctors({ currentUser }) {
       )}
 
       {isAdmin && (
-        <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Doctor' : 'Add New Doctor'} icon={Stethoscope} accentColor="purple">
+        <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Doctor' : 'Onboard Doctor'} icon={Stethoscope} accentColor="purple">
           <DoctorForm form={form} setForm={setForm} departments={departments} />
+          {!editId && (
+            <p className="text-[11px] text-slate-400 mt-3">
+              This creates a login account for this doctor (role: Doctor) along with their profile, already linked. You'll get a one-time temporary password to share with them.
+            </p>
+          )}
           <div className="flex gap-3 mt-5">
             <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
-            <button onClick={handleSubmit} className="btn-primary flex-1 justify-center">
-              {editId ? 'Save Changes' : 'Add Doctor'}
+            <button onClick={handleSubmit} disabled={saving} className="btn-primary flex-1 justify-center">
+              {saving
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : editId ? 'Save Changes' : 'Onboard Doctor'}
             </button>
           </div>
         </Modal>
       )}
+
+      <Modal open={!!onboardResult} onClose={() => setOnboardResult(null)} title="Doctor Onboarded" icon={CheckCircle2} accentColor="teal">
+        {onboardResult && (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-slate-600">
+              <strong>{onboardResult.doctor?.name}</strong>'s account and profile were created and linked. Share this one-time temporary password with them — it won't be shown again.
+            </p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Email</p>
+                <p className="text-sm font-semibold text-slate-800">{onboardResult.doctor?.email}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Temporary Password</p>
+                <p className="text-sm font-mono font-bold text-teal-700">{onboardResult.tempPassword}</p>
+              </div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+              They'll be required to set a new password the first time they log in.
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(`Email: ${onboardResult.doctor?.email}\nTemporary password: ${onboardResult.tempPassword}`)
+                showToast('Copied to clipboard.', 'success')
+              }}
+              className="btn-ghost justify-center"
+            >
+              Copy Credentials
+            </button>
+            <button onClick={() => setOnboardResult(null)} className="btn-primary justify-center">Done</button>
+          </div>
+        )}
+      </Modal>
 
       <LinkAccountModal
         open={!!linkDoctor}

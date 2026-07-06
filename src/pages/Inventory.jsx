@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Package, AlertTriangle, Filter, Download } from 'lucide-react'
+import { Plus, Pencil, Trash2, Package, AlertTriangle, Filter, Tag, Download, Search, X as XIcon } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
-import SearchBar from '../components/ui/SearchBar'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import FormDropdown from '../components/ui/FormDropdown'
+import FilterDropdown from '../components/ui/FilterDropdown'
 import { useToast } from '../context/ToastContext'
 import { exportInventory } from '../utils/exportCSV'
 
 const EMPTY_FORM = { name: '', category: 'Medication', quantity: '', unit: 'pieces', reorderLevel: '', supplier: '', location: '', notes: '' }
-const CATEGORIES = ['Medication', 'Equipment', 'Supplies', 'PPE', 'Laboratory', 'Surgical', 'Radiology', 'Other']
+const CATEGORIES = ['Medication', 'Consumable', 'Equipment', 'Supplies', 'PPE', 'Laboratory', 'Surgical', 'Radiology', 'Other']
 const UNITS = ['pieces', 'boxes', 'vials', 'bottles', 'sets', 'pairs', 'kg', 'liters', 'tablets']
 
 function getStockStatus(qty, reorder) {
@@ -30,15 +31,11 @@ function ItemForm({ form, setForm }) {
         </div>
         <div>
           <label className="label">Category</label>
-          <select className="input-field" value={form.category} onChange={set('category')}>
-            {CATEGORIES.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.category} onChange={v => setForm(f => ({ ...f, category: v }))} options={CATEGORIES.map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Unit</label>
-          <select className="input-field" value={form.unit} onChange={set('unit')}>
-            {UNITS.map(v => <option key={v}>{v}</option>)}
-          </select>
+          <FormDropdown value={form.unit} onChange={v => setForm(f => ({ ...f, unit: v }))} options={UNITS.map(v => ({ value: v, label: v }))} />
         </div>
         <div>
           <label className="label">Quantity <span className="text-red-400">*</span></label>
@@ -147,19 +144,45 @@ export default function Inventory({ currentUser }) {
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name, category, supplier…" className="flex-1 min-w-48" />
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-slate-400" />
-          <select className="input-field w-auto text-xs" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-            <option value="All">All Categories</option>
-            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-          </select>
-          <select className="input-field w-auto text-xs" value={filterStock} onChange={e => setFilterStock(e.target.value)}>
-            <option value="All">All Status</option>
-            <option>In Stock</option>
-            <option>Low Stock</option>
-            <option>Out of Stock</option>
-          </select>
+        <div className="relative flex-1 min-w-48">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, category, supplier…"
+            style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
+            className="input-field border-slate-200 focus:shadow-sm"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              <XIcon size={14} />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <FilterDropdown
+            icon={Tag}
+            value={filterCat}
+            onChange={setFilterCat}
+            options={[{ value: 'All', label: 'All Categories' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]}
+          />
+          <FilterDropdown
+            icon={Filter}
+            value={filterStock}
+            onChange={setFilterStock}
+            options={[{ value: 'All', label: 'All Status' }, { value: 'In Stock', label: 'In Stock' }, { value: 'Low Stock', label: 'Low Stock' }, { value: 'Out of Stock', label: 'Out of Stock' }]}
+          />
+          {(search || filterCat !== 'All' || filterStock !== 'All') && (
+            <button
+              onClick={() => { setSearch(''); setFilterCat('All'); setFilterStock('All') }}
+              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
