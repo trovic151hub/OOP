@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Stethoscope, MessageSquare, Phone, Download, Link2, CheckCircle2, Unlink, Filter, Search, X as XIcon } from 'lucide-react'
+import { Plus, Pencil, Trash2, Stethoscope, MessageSquare, Phone, Download, Link2, CheckCircle2, Unlink, Filter, Search, X as XIcon, Camera } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
+import PassportPhoto from '../components/ui/PassportPhoto'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import FormDropdown from '../components/ui/FormDropdown'
@@ -12,14 +13,46 @@ import DoctorDrawer from '../components/DoctorDrawer'
 import { useToast } from '../context/ToastContext'
 import { exportDoctors } from '../utils/exportCSV'
 
-const EMPTY_FORM   = { name: '', specialty: '', department: '', phone: '', email: '', availability: 'Available', schedule: '', about: '', experience: '' }
+const EMPTY_FORM   = { name: '', specialty: '', department: '', phone: '', email: '', availability: 'Available', schedule: '', about: '', experience: '', photo: '' }
 const SPECIALTIES  = ['All','General Medicine','Pediatrics','Cardiology','Orthopedics','Dermatology','Neurology','Pulmonology','Radiology','Oncology']
 const AVAILABILITIES = ['Available','Unavailable','Busy','On Leave']
 
 function DoctorForm({ form, setForm, departments }) {
+  const showToast = useToast()
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  function handlePhotoChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', 'error'); return }
+    if (file.size > 1.5 * 1024 * 1024) { showToast('Image must be smaller than 1.5MB.', 'error'); return }
+    const reader = new FileReader()
+    reader.onload = () => setForm(f => ({ ...f, photo: reader.result }))
+    reader.readAsDataURL(file)
+  }
+
   return (
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
+      <div className="flex justify-center">
+        <div className="relative group">
+          <PassportPhoto src={form.photo} name={form.name} size="md" />
+          <label className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/40 flex items-center justify-center cursor-pointer transition-colors">
+            <Camera size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          </label>
+          {form.photo && (
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, photo: '' }))}
+              title="Remove photo"
+              className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200"
+            >
+              <XIcon size={11} />
+            </button>
+          )}
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="label">Full Name <span className="text-red-400">*</span></label>
@@ -167,6 +200,7 @@ export default function Doctors({ currentUser }) {
     if (!form.name.trim() || !form.specialty.trim()) { showToast('Name and specialty are required.', 'error'); return }
     if (editId) {
       await store.updateDoctor(editId, form)
+      if (form.uid) await store.updateUserProfile(form.uid, { avatar: form.photo || '' })
       showToast('Doctor updated.')
       setModal(false)
       return
@@ -304,7 +338,7 @@ export default function Doctors({ currentUser }) {
                   )}
                 </div>
                 <div className="flex flex-col items-center text-center gap-2">
-                  <Avatar name={d.name} size="lg" />
+                  <PassportPhoto src={d.photo || linkedUser?.avatar} name={d.name} size="sm" />
                   <div>
                     <p className="font-bold text-slate-800 text-sm">{d.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{d.specialty}</p>

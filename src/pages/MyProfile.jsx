@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { User, Phone, Mail, Stethoscope, Building2, Award, Clock, Save, Pencil, X, BadgeCheck, Lock } from 'lucide-react'
+import { User, Phone, Mail, Stethoscope, Building2, Award, Clock, Save, Pencil, X, BadgeCheck, Lock, Camera } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import { api } from '../api/client'
 import Avatar from '../components/ui/Avatar'
@@ -28,6 +28,7 @@ export default function MyProfile({ currentUser }) {
   const [savingBasic, setSavingBasic]       = useState(false)
   const [savingDoctor, setSavingDoctor]     = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
 
@@ -88,6 +89,44 @@ export default function MyProfile({ currentUser }) {
     }
   }
 
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', 'error'); return }
+    if (file.size > 1.5 * 1024 * 1024) { showToast('Image must be smaller than 1.5MB.', 'error'); return }
+
+    setUploadingAvatar(true)
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      await store.updateUserProfile(currentUser.uid, { avatar: dataUrl })
+      if (linkedDoctor) await store.updateDoctor(linkedDoctor.id, { photo: dataUrl })
+      showToast('Profile photo updated.', 'success')
+    } catch {
+      showToast('Failed to upload photo.', 'error')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  async function removeAvatar() {
+    setUploadingAvatar(true)
+    try {
+      await store.updateUserProfile(currentUser.uid, { avatar: '' })
+      if (linkedDoctor) await store.updateDoctor(linkedDoctor.id, { photo: '' })
+      showToast('Profile photo removed.', 'success')
+    } catch {
+      showToast('Failed to remove photo.', 'error')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   async function saveDoctorProfile() {
     if (!linkedDoctor) { showToast('No linked doctor profile found.', 'error'); return }
     setSavingDoctor(true)
@@ -139,7 +178,25 @@ export default function MyProfile({ currentUser }) {
 
       <div className="card overflow-hidden">
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-6 py-8 flex items-center gap-5 border-b border-slate-100">
-          <Avatar name={currentUser?.name} size="xl" />
+          <div className="relative flex-shrink-0 group">
+            <Avatar name={currentUser?.name} src={currentUser?.avatar} size="xl" />
+            <label className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center cursor-pointer transition-colors">
+              {uploadingAvatar
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Camera size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              }
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar} />
+            </label>
+            {currentUser?.avatar && !uploadingAvatar && (
+              <button
+                onClick={removeAvatar}
+                title="Remove photo"
+                className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200"
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
           <div>
             <h2 className="text-xl font-extrabold text-slate-800">{currentUser?.name}</h2>
             <p className="text-sm text-slate-500 mt-0.5">{currentUser?.email}</p>

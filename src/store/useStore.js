@@ -211,6 +211,10 @@ export const store = {
   },
 
   async updateUserProfile(uid, data) { return updateItem('users', '/users', uid, data) },
+  async deleteUser(uid) {
+    await deleteItem('users', '/users', uid)
+    await refetch('doctors', '/doctors')
+  },
 
   async updateLastSeen(uid) {
     try { await api.put(`/users/${uid}/last-seen`) } catch (_) {}

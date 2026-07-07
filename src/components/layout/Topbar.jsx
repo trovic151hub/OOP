@@ -435,7 +435,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
         </div>
 
         <div className="flex items-center gap-2 ml-1">
-          <Avatar name={currentUser?.name} size="sm" />
+          <Avatar name={currentUser?.name} src={currentUser?.avatar} size="sm" />
           <div className="hidden md:block">
             <p className="text-sm font-semibold text-slate-700 leading-tight">{currentUser?.name || 'Admin'}</p>
             <p className="text-xs text-slate-400">{currentUser?.role || 'Admin'}</p>

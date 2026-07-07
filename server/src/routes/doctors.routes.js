@@ -35,7 +35,7 @@ router.delete('/:id', controller.remove)
 // two independently-created records that can drift apart or be left unlinked.
 router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
   try {
-    const { name, email, specialty, department, phone, availability, schedule, about, experience } = req.body
+    const { name, email, specialty, department, phone, availability, schedule, about, experience, photo } = req.body
     if (!name?.trim() || !email?.trim() || !specialty?.trim()) {
       return res.status(400).json({ message: 'Name, email and specialty are required.' })
     }
@@ -46,7 +46,7 @@ router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
     const tempPassword = crypto.randomBytes(6).toString('hex')
     const passwordHash = await bcrypt.hash(tempPassword, 10)
     const user = await User.create({
-      name, email: normalizedEmail, password: passwordHash,
+      name, email: normalizedEmail, password: passwordHash, phone: phone || '', avatar: photo || '',
       role: 'Doctor', mustChangePassword: true,
     })
 
@@ -54,7 +54,7 @@ router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
       const doctor = await Doctor.create({
         name, specialty, department: department || '', phone: phone || '', email: normalizedEmail,
         availability: availability || 'Available', schedule: schedule || '', about: about || '',
-        experience: experience || '', uid: user._id.toString(),
+        experience: experience || '', photo: photo || '', uid: user._id.toString(),
         createdAt: new Date().toISOString(),
       })
       await logAudit(req, 'Added', 'Doctor', name)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Send, MessageSquare, Hash } from 'lucide-react'
+import { Send, MessageSquare, Hash, ChevronLeft } from 'lucide-react'
 import { useStore, store, consumePendingChatTarget } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { getLastSeen } from '../utils/helpers'
@@ -39,7 +39,15 @@ export default function Messages({ currentUser }) {
   const { messages, users, settings } = useStore()
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
-  const [activeChat, setActiveChat] = useState(() => consumePendingChatTarget()) // null = General channel, else a user's uid
+  const pendingChatRef = useRef(null)
+  const [activeChat, setActiveChat] = useState(() => { // null = General channel, else a user's uid
+    const t = consumePendingChatTarget()
+    pendingChatRef.current = t
+    return t
+  })
+  // Mobile drills down list -> conversation; jump straight to the
+  // conversation if we arrived via a notification's pending chat target.
+  const [mobileView, setMobileView] = useState(() => pendingChatRef.current ? 'chat' : 'list')
   const bottomRef = useRef(null)
 
   // Broadcast messages have no recipientId; a DM only belongs to this
@@ -80,12 +88,18 @@ export default function Messages({ currentUser }) {
 
   return (
     <div className="flex gap-5 h-[calc(100vh-10rem)]">
-      <div className="flex-1 flex flex-col card overflow-hidden">
+      <div className={`${mobileView === 'chat' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col card overflow-hidden`}>
         <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+          <button
+            onClick={() => setMobileView('list')}
+            className="lg:hidden -ml-1 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex-shrink-0"
+          >
+            <ChevronLeft size={18} />
+          </button>
           {activeChatUser ? (
             <>
               <div className="relative flex-shrink-0">
-                <Avatar name={activeChatUser.name} size="md" />
+                <Avatar name={activeChatUser.name} src={activeChatUser.avatar} size="md" />
                 {activeChatUser.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />}
               </div>
               <div>
@@ -129,7 +143,7 @@ export default function Messages({ currentUser }) {
               const isMe = item.senderId === currentUser?.uid
               return (
                 <div key={item.id || i} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''} mb-2`}>
-                  {!isMe && <Avatar name={item.senderName} size="sm" className="flex-shrink-0 mt-1" />}
+                  {!isMe && <Avatar name={item.senderName} src={users.find(u => u.uid === item.senderId)?.avatar} size="sm" className="flex-shrink-0 mt-1" />}
                   <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                     {!isMe && (
                       <div className="flex items-center gap-2">
@@ -157,7 +171,7 @@ export default function Messages({ currentUser }) {
 
         <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
           <form onSubmit={handleSend} className="flex items-center gap-2">
-            <Avatar name={currentUser?.name} size="sm" />
+            <Avatar name={currentUser?.name} src={currentUser?.avatar} size="sm" />
             <input
               value={text}
               onChange={e => setText(e.target.value)}
@@ -175,11 +189,11 @@ export default function Messages({ currentUser }) {
         </div>
       </div>
 
-      <div className="hidden lg:flex w-56 flex-shrink-0 flex-col gap-4">
+      <div className={`${mobileView === 'list' ? 'flex' : 'hidden'} lg:flex w-full lg:w-56 flex-shrink-0 flex-col gap-4`}>
         <div className="card p-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Channels</p>
           <button
-            onClick={() => setActiveChat(null)}
+            onClick={() => { setActiveChat(null); setMobileView('chat') }}
             className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === null ? 'bg-teal-50 text-teal-700' : 'hover:bg-slate-50 text-slate-600'}`}
           >
             <Hash size={13} className="flex-shrink-0" />
@@ -193,11 +207,11 @@ export default function Messages({ currentUser }) {
             {staffList.map(u => (
               <button
                 key={u.id}
-                onClick={() => setActiveChat(u.uid)}
+                onClick={() => { setActiveChat(u.uid); setMobileView('chat') }}
                 className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === u.uid ? 'bg-teal-50' : 'hover:bg-slate-50'}`}
               >
                 <div className="relative flex-shrink-0">
-                  <Avatar name={u.name} size="sm" />
+                  <Avatar name={u.name} src={u.avatar} size="sm" />
                   {u.online && <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 border border-white" />}
                 </div>
                 <div className="min-w-0">

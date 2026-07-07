@@ -7,6 +7,7 @@ import {
   FileText, Shield, BarChart, FlaskRound, Settings
 } from 'lucide-react'
 import NairaIcon from '../ui/NairaIcon'
+import Avatar from '../ui/Avatar'
 import { store, useStore } from '../../store/useStore'
 
 const ALL_NAV = [
@@ -112,9 +113,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
         <div style={{ paddingBottom: bottomPad }} className="px-3 border-t border-slate-100 pt-3 flex-shrink-0">
           {currentUser && (
             <div className={`flex items-center gap-2.5 px-2 py-2 mb-2 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
-              <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {currentUser.name?.charAt(0).toUpperCase() || 'A'}
-              </div>
+              <Avatar name={currentUser.name} src={currentUser.avatar} size="sm" />
               <div className={`min-w-0 ${textCls}`}>
                 <p className="text-xs font-semibold text-slate-700 truncate">{currentUser.name}</p>
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${ROLE_BADGE[role] || 'bg-slate-100 text-slate-500'}`}>

@@ -34,6 +34,32 @@ router.put('/:id/last-seen', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+router.delete('/:id', requireRole('Admin'), async (req, res, next) => {
+  try {
+    const targetId = req.params.id
+    if (targetId === req.user.id) {
+      return res.status(400).json({ message: 'You cannot delete your own account.' })
+    }
+    const user = await User.findById(targetId)
+    if (!user) return res.status(404).json({ message: 'Not found' })
+
+    if (user.role === 'Admin') {
+      const adminCount = await User.countDocuments({ role: 'Admin' })
+      if (adminCount <= 1) {
+        return res.status(400).json({ message: 'Cannot delete the only remaining Admin account.' })
+      }
+    }
+
+    // Unlink rather than delete their Doctor profile — the professional record
+    // (appointments, patient history references) should survive the account
+    // being removed; it just goes back to the "not linked" state.
+    await Doctor.updateMany({ uid: targetId }, { uid: '' })
+    await User.findByIdAndDelete(targetId)
+    await logAudit(req, 'Deleted', 'User', `${user.name} (${user.email})`)
+    res.status(204).end()
+  } catch (err) { next(err) }
+})
+
 router.put('/:id/role', requireRole('Admin'), async (req, res, next) => {
   try {
     const { role } = req.body

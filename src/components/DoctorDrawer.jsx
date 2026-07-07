@@ -2,16 +2,17 @@ import React, { useState } from 'react'
 import { Phone, Mail, Building2, Award, Clock, Calendar, Pencil, Stethoscope } from 'lucide-react'
 import Drawer, { DrawerTabs } from './ui/Drawer'
 import Badge from './ui/Badge'
-import Avatar from './ui/Avatar'
+import PassportPhoto from './ui/PassportPhoto'
 import { useStore } from '../store/useStore'
 import { formatDate } from '../utils/helpers'
 
 export default function DoctorDrawer({ doctor, onClose, currentUser, onEdit }) {
-  const { appointments, shifts } = useStore()
+  const { appointments, shifts, users } = useStore()
   const [tab, setTab] = useState('overview')
 
   if (!doctor) return null
 
+  const linkedUser = doctor.uid ? users.find(u => u.uid === doctor.uid) : null
   const docAppts  = appointments.filter(a => a.doctorName === doctor.name)
   const docShifts = shifts.filter(s => s.doctorId === doctor.id || s.doctorName === doctor.name)
   const upcoming  = docAppts.filter(a => a.status === 'Scheduled' || a.status === 'Checked In' || a.status === 'In Progress')
@@ -46,7 +47,7 @@ export default function DoctorDrawer({ doctor, onClose, currentUser, onEdit }) {
           {tab === 'overview' && (
             <div className="p-6 flex flex-col gap-5">
               <div className="flex items-start gap-5">
-                <Avatar name={doctor.name} size="xl" />
+                <PassportPhoto src={doctor.photo || linkedUser?.avatar} name={doctor.name} size="xl" />
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>

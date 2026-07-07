@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   role:     { type: String, enum: ['Admin', 'Doctor', 'Receptionist', 'Patient'], default: 'Receptionist' },
   phone:    { type: String, default: '' },
   bio:      { type: String, default: '' },
+  avatar:   { type: String, default: '' },
   lastSeen: { type: Date },
   resetPasswordTokenHash:   { type: String, select: false },
   resetPasswordExpiresAt:  { type: Date, select: false },

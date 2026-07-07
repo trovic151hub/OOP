@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { initSubscriptions, ensureUserProfile, setCurrentUser, store, useStore } from './store/useStore'
+import { initSubscriptions, ensureUserProfile, setCurrentUser, store, useStore, refetchCollection } from './store/useStore'
 import { api } from './api/client'
 import { ToastProvider } from './context/ToastContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -108,6 +108,10 @@ function ForcePasswordChange() {
       await api.put('/auth/password', { currentPassword: tempPassword, newPassword })
       const user = await ensureUserProfile()
       setCurrentUser(user)
+      // The `users` collection was already snapshotted (with the old
+      // mustChangePassword: true) back at login — without this, App's gate
+      // check keeps reading that stale flag from `users` and never unlocks.
+      await refetchCollection('users')
     } catch (err) {
       setError(err.message || 'Failed to update password.')
     } finally {
@@ -215,6 +219,7 @@ function AppContent() {
     role:     userProfile?.role || authUser.role || 'Receptionist',
     phone:    userProfile?.phone || '',
     bio:      userProfile?.bio || '',
+    avatar:   userProfile?.avatar || authUser.avatar || '',
     lastSeen: userProfile?.lastSeen || '',
     mustChangePassword: userProfile?.mustChangePassword ?? authUser.mustChangePassword ?? false,
   }

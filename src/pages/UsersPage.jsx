@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { UserCog, Shield, Search, ChevronDown, Wifi, Clock, X as XIcon } from 'lucide-react'
+import { UserCog, Shield, Search, ChevronDown, Wifi, Clock, X as XIcon, Trash2 } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
+import ConfirmModal from '../components/ui/ConfirmModal'
 import { useToast } from '../context/ToastContext'
 import { getLastSeen } from '../utils/helpers'
 
@@ -72,9 +73,21 @@ function RoleSelector({ userId, currentRole, disabled, onRoleChange }) {
 
 export default function UsersPage({ currentUser }) {
   const { users } = useStore()
+  const showToast = useToast()
   const [search, setSearch]   = useState('')
   const [activeTab, setActiveTab] = useState('All')
   const [, forceUpdate] = useState(0)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+
+  async function handleDeleteUser() {
+    if (!confirmDelete) return
+    try {
+      await store.deleteUser(confirmDelete.id)
+      showToast('User deleted.', 'info')
+    } catch (err) {
+      showToast(err.message || 'Failed to delete user.', 'error')
+    }
+  }
 
   const filtered = users.filter(u => {
     const q = search.toLowerCase()
@@ -171,12 +184,13 @@ export default function UsersPage({ currentUser }) {
                   </div>
                 </th>
                 <th className="table-th">Joined</th>
+                <th className="table-th"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center">
+                  <td colSpan={6} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
                       <UserCog size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No users yet'}</p>
@@ -190,7 +204,7 @@ export default function UsersPage({ currentUser }) {
                     <td className="table-td">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <Avatar name={u.name} size="sm" />
+                          <Avatar name={u.name} src={u.avatar} size="sm" />
                           {online && (
                             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
                           )}
@@ -224,6 +238,17 @@ export default function UsersPage({ currentUser }) {
                     <td className="table-td text-slate-400 text-xs">
                       {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                     </td>
+                    <td className="table-td">
+                      {u.uid !== currentUser?.uid && (
+                        <button
+                          onClick={() => setConfirmDelete(u)}
+                          title="Delete user"
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
@@ -236,6 +261,14 @@ export default function UsersPage({ currentUser }) {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDeleteUser}
+        title="Delete User"
+        message={confirmDelete ? `Are you sure you want to delete ${confirmDelete.name}'s account? Their login access will be revoked immediately. If they have a linked doctor profile, it will be unlinked but not deleted. This action cannot be undone.` : ''}
+      />
     </div>
   )
 }

@@ -33,6 +33,7 @@ function toPublicUser(user) {
     role: user.role,
     phone: user.phone || '',
     bio: user.bio || '',
+    avatar: user.avatar || '',
     lastSeen: user.lastSeen || '',
     createdAt: user.createdAt,
     mustChangePassword: !!user.mustChangePassword,
