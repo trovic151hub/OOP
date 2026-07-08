@@ -15,9 +15,9 @@ const UNITS = ['pieces', 'boxes', 'vials', 'bottles', 'sets', 'pairs', 'kg', 'li
 function getStockStatus(qty, reorder) {
   const q = parseInt(qty) || 0
   const r = parseInt(reorder) || 0
-  if (q === 0) return { label: 'Out of Stock', cls: 'bg-red-50 text-red-700' }
-  if (q <= r)  return { label: 'Low Stock',    cls: 'bg-amber-50 text-amber-700' }
-  return { label: 'In Stock', cls: 'bg-emerald-50 text-emerald-700' }
+  if (q === 0) return { label: 'Out of Stock', cls: 'bg-red-50 dark:bg-red-500/12 text-red-700' }
+  if (q <= r)  return { label: 'Low Stock',    cls: 'bg-amber-50 dark:bg-amber-500/12 text-amber-700' }
+  return { label: 'In Stock', cls: 'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700' }
 }
 
 function ItemForm({ form, setForm }) {
@@ -110,8 +110,8 @@ export default function Inventory({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Inventory</h2>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Inventory</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">
             {inventory.length} items · {lowStockCount > 0 && <span className="text-amber-500 font-semibold">{lowStockCount} need attention</span>}
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function Inventory({ currentUser }) {
       </div>
 
       {lowStockCount > 0 && (
-        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-sm text-amber-700 font-semibold">
+        <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 mb-4 text-sm text-amber-700 font-semibold">
           <AlertTriangle size={16} className="flex-shrink-0" />
           {lowStockCount} item{lowStockCount > 1 ? 's are' : ' is'} low or out of stock and may need restocking.
         </div>
@@ -137,7 +137,7 @@ export default function Inventory({ currentUser }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {summaryCards.map(({ label, value, color }) => (
           <div key={label} className="card p-4">
-            <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-600 mb-1">{label}</p>
             <p className={`text-2xl font-extrabold ${bgMap[color].split(' ')[1]}`}>{value}</p>
           </div>
         ))}
@@ -145,18 +145,18 @@ export default function Inventory({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, category, supplier…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -178,7 +178,7 @@ export default function Inventory({ currentUser }) {
           {(search || filterCat !== 'All' || filterStock !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterCat('All'); setFilterStock('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -189,7 +189,7 @@ export default function Inventory({ currentUser }) {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="table-th">Item</th>
                 <th className="table-th">Category</th>
@@ -205,7 +205,7 @@ export default function Inventory({ currentUser }) {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={isAdmin ? 8 : 7} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                       <Package size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No items yet'}</p>
                       {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Add First Item</button>}
@@ -218,30 +218,30 @@ export default function Inventory({ currentUser }) {
                   <tr key={item.id} className="table-row">
                     <td className="table-td">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center flex-shrink-0">
                           <Package size={14} className="text-teal-600" />
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-800 text-sm">{item.name}</p>
-                          {item.notes && <p className="text-xs text-slate-400 truncate max-w-32">{item.notes}</p>}
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{item.name}</p>
+                          {item.notes && <p className="text-xs text-slate-400 dark:text-slate-600 truncate max-w-32">{item.notes}</p>}
                         </div>
                       </div>
                     </td>
                     <td className="table-td text-slate-500 text-xs">{item.category}</td>
-                    <td className="table-td font-semibold text-slate-700">{item.quantity} <span className="text-slate-400 font-normal text-xs">{item.unit}</span></td>
-                    <td className="table-td text-slate-400 text-xs">{item.reorderLevel || '—'}</td>
+                    <td className="table-td font-semibold text-slate-700 dark:text-slate-300">{item.quantity} <span className="text-slate-400 dark:text-slate-600 font-normal text-xs">{item.unit}</span></td>
+                    <td className="table-td text-slate-400 dark:text-slate-600 text-xs">{item.reorderLevel || '—'}</td>
                     <td className="table-td">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${stock.cls}`}>{stock.label}</span>
                     </td>
                     <td className="table-td text-slate-500 text-xs">{item.supplier || '—'}</td>
-                    <td className="table-td text-slate-400 text-xs">{item.location || '—'}</td>
+                    <td className="table-td text-slate-400 dark:text-slate-600 text-xs">{item.location || '—'}</td>
                     {isAdmin && (
                       <td className="table-td text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                          <button onClick={() => openEdit(item)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                             <Pencil size={14} />
                           </button>
-                          <button onClick={() => setConfirmId(item.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                          <button onClick={() => setConfirmId(item.id)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500 transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -254,7 +254,7 @@ export default function Inventory({ currentUser }) {
           </table>
         </div>
         {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-600">
             Showing {filtered.length} of {inventory.length} items
           </div>
         )}

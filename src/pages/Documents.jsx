@@ -14,16 +14,16 @@ import { formatDate } from '../utils/helpers'
 const DOC_TYPES = ['Lab Report', 'Scan / Imaging', 'Consent Form', 'Discharge Summary', 'Prescription', 'Insurance Card', 'Referral Letter', 'Medical History', 'X-Ray', 'Other']
 
 const TYPE_COLORS = {
-  'Lab Report':       'bg-blue-50   text-blue-700   border-blue-200',
-  'Scan / Imaging':   'bg-violet-50 text-violet-700 border-violet-200',
-  'Consent Form':     'bg-amber-50  text-amber-700  border-amber-200',
-  'Discharge Summary':'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'Prescription':     'bg-teal-50   text-teal-700   border-teal-200',
-  'Insurance Card':   'bg-orange-50 text-orange-700 border-orange-200',
-  'Referral Letter':  'bg-pink-50   text-pink-700   border-pink-200',
-  'Medical History':  'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'X-Ray':            'bg-slate-100 text-slate-700  border-slate-200',
-  'Other':            'bg-slate-50  text-slate-600  border-slate-200',
+  'Lab Report':       'bg-blue-50 dark:bg-blue-500/12   text-blue-700   border-blue-200 dark:border-blue-500/30',
+  'Scan / Imaging':   'bg-violet-50 dark:bg-violet-500/12 text-violet-700 border-violet-200 dark:border-violet-500/30',
+  'Consent Form':     'bg-amber-50 dark:bg-amber-500/12  text-amber-700  border-amber-200 dark:border-amber-500/30',
+  'Discharge Summary':'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700 border-emerald-200 dark:border-emerald-500/30',
+  'Prescription':     'bg-teal-50 dark:bg-teal-500/12   text-teal-700   border-teal-200 dark:border-teal-500/30',
+  'Insurance Card':   'bg-orange-50 dark:bg-orange-500/12 text-orange-700 border-orange-200',
+  'Referral Letter':  'bg-pink-50 dark:bg-pink-500/12   text-pink-700   border-pink-200',
+  'Medical History':  'bg-indigo-50 dark:bg-indigo-500/12 text-indigo-700 border-indigo-200',
+  'X-Ray':            'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300  border-slate-200 dark:border-slate-700',
+  'Other':            'bg-slate-50 dark:bg-slate-800  text-slate-600 dark:text-slate-400  border-slate-200 dark:border-slate-700',
 }
 
 const EMPTY_FORM = { patientName: '', title: '', type: 'Lab Report', date: '', description: '', url: '', uploadedBy: '' }
@@ -53,7 +53,7 @@ function DocumentForm({ form, setForm, patients }) {
       <div>
         <label className="label">Document URL / Link</label>
         <input className="input-field" type="url" placeholder="https://drive.google.com/…" value={form.url} onChange={set('url')} />
-        <p className="text-[11px] text-slate-400 mt-1">Paste a link to Google Drive, Dropbox, or your imaging system.</p>
+        <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-1">Paste a link to Google Drive, Dropbox, or your imaging system.</p>
       </div>
       <div>
         <label className="label">Description / Notes</label>
@@ -116,8 +116,8 @@ export default function Documents({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Patient Documents</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{documents.length} total documents across {uniquePatients.length} patients</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Patient Documents</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{documents.length} total documents across {uniquePatients.length} patients</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV}  className="btn-ghost text-xs"><Download size={13} /> Export</button>
@@ -129,7 +129,7 @@ export default function Documents({ currentUser }) {
         {['All', ...DOC_TYPES].map(t => (
           <button key={t}
             onClick={() => setFilterType(t)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full border whitespace-nowrap transition-colors ${filterType === t ? 'bg-teal-600 text-white border-teal-600' : 'bg-white border-slate-200 text-slate-500 hover:border-teal-300 hover:text-teal-600'}`}>
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border whitespace-nowrap transition-colors ${filterType === t ? 'bg-teal-600 text-white border-teal-600' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-teal-300 hover:text-teal-600'}`}>
             {t}{t !== 'All' && typeCounts[t] > 0 ? ` (${typeCounts[t]})` : ''}
           </button>
         ))}
@@ -137,18 +137,18 @@ export default function Documents({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search documents…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -163,7 +163,7 @@ export default function Documents({ currentUser }) {
         {(search || filterPat || filterType !== 'All') && (
           <button
             onClick={() => { setSearch(''); setFilterPat(''); setFilterType('All') }}
-            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
           >
             Clear
           </button>
@@ -171,7 +171,7 @@ export default function Documents({ currentUser }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
           <FolderOpen size={40} className="text-slate-200 mb-3" />
           <p className="text-sm font-semibold">{search || filterType !== 'All' ? 'No results' : 'No documents yet'}</p>
           {!search && filterType === 'All' && <button onClick={openAdd} className="btn-primary text-xs mt-4"><Plus size={13} /> Add First</button>}
@@ -187,29 +187,29 @@ export default function Documents({ currentUser }) {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {d.url && (
                       <a href={d.url} target="_blank" rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg text-slate-400 hover:bg-teal-50 hover:text-teal-600 transition-colors" title="Open document">
+                        className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-teal-50 hover:text-teal-600 transition-colors" title="Open document">
                         <ExternalLink size={13} />
                       </a>
                     )}
-                    <button onClick={() => openEdit(d)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                    <button onClick={() => openEdit(d)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400">
                       <Pencil size={13} />
                     </button>
-                    <button onClick={() => setConfirmId(d.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500">
+                    <button onClick={() => setConfirmId(d.id)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500">
                       <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <p className="font-bold text-slate-800 text-sm leading-snug">{d.title}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 text-sm leading-snug">{d.title}</p>
                   {d.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{d.description}</p>}
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
                   <Avatar name={d.patientName} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-700 truncate">{d.patientName}</p>
-                    <p className="text-[10px] text-slate-400">{d.date ? formatDate(d.date) : '—'}{d.uploadedBy ? ` · ${d.uploadedBy}` : ''}</p>
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{d.patientName}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-600">{d.date ? formatDate(d.date) : '—'}{d.uploadedBy ? ` · ${d.uploadedBy}` : ''}</p>
                   </div>
                   {d.url && (
                     <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" title="Has link" />

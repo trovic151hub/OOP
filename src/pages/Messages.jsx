@@ -30,25 +30,36 @@ function groupByDate(messages, timeZone) {
 }
 
 const ROLE_BADGE = {
-  Admin:        'bg-teal-100 text-teal-700',
-  Doctor:       'bg-purple-100 text-purple-700',
-  Receptionist: 'bg-blue-100 text-blue-700',
+  Admin:        'bg-teal-100 dark:bg-teal-500/18 text-teal-700',
+  Doctor:       'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  Receptionist: 'bg-blue-100 dark:bg-blue-500/18 text-blue-700',
 }
 
 export default function Messages({ currentUser }) {
   const { messages, users, settings } = useStore()
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
-  const pendingChatRef = useRef(null)
-  const [activeChat, setActiveChat] = useState(() => { // null = General channel, else a user's uid
-    const t = consumePendingChatTarget()
-    pendingChatRef.current = t
-    return t
-  })
-  // Mobile drills down list -> conversation; jump straight to the
+  const [activeChat, setActiveChat] = useState(null) // null = General channel, else a user's uid
+  // Mobile drills down list -> conversation; jumps straight to the
   // conversation if we arrived via a notification's pending chat target.
-  const [mobileView, setMobileView] = useState(() => pendingChatRef.current ? 'chat' : 'list')
+  const [mobileView, setMobileView] = useState('list')
+  const consumedPendingRef = useRef(false)
   const bottomRef = useRef(null)
+
+  // consumePendingChatTarget() clears its value as a side effect on read, so
+  // it can't safely live in a useState lazy initializer — React (Strict Mode
+  // in particular) can invoke that initializer twice, and the second call
+  // would just see it already cleared. A ref-guarded effect runs the
+  // consuming read exactly once for real, regardless of double-invocation.
+  useEffect(() => {
+    if (consumedPendingRef.current) return
+    consumedPendingRef.current = true
+    const t = consumePendingChatTarget()
+    if (t) {
+      setActiveChat(t)
+      setMobileView('chat')
+    }
+  }, [])
 
   // Broadcast messages have no recipientId; a DM only belongs to this
   // conversation if it's between the current user and the active partner.
@@ -89,10 +100,10 @@ export default function Messages({ currentUser }) {
   return (
     <div className="flex gap-5 h-[calc(100vh-10rem)]">
       <div className={`${mobileView === 'chat' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col card overflow-hidden`}>
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
           <button
             onClick={() => setMobileView('list')}
-            className="lg:hidden -ml-1 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex-shrink-0"
+            className="lg:hidden -ml-1 p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 flex-shrink-0"
           >
             <ChevronLeft size={18} />
           </button>
@@ -100,21 +111,21 @@ export default function Messages({ currentUser }) {
             <>
               <div className="relative flex-shrink-0">
                 <Avatar name={activeChatUser.name} src={activeChatUser.avatar} size="md" />
-                {activeChatUser.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />}
+                {activeChatUser.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-700" />}
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-800">{activeChatUser.name}</p>
-                <p className="text-xs text-slate-400">{activeChatUser.online ? 'Online now' : activeChatUser.label} · Private message</p>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{activeChatUser.name}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-600">{activeChatUser.online ? 'Online now' : activeChatUser.label} · Private message</p>
               </div>
             </>
           ) : (
             <>
-              <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-500/12 border border-teal-100 dark:border-teal-500/20 flex items-center justify-center flex-shrink-0">
                 <MessageSquare size={16} className="text-teal-600" />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-800">General · Staff Channel</p>
-                <p className="text-xs text-slate-400">{users.length} member{users.length !== 1 ? 's' : ''} · All staff can see this channel</p>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">General · Staff Channel</p>
+                <p className="text-xs text-slate-400 dark:text-slate-600">{users.length} member{users.length !== 1 ? 's' : ''} · All staff can see this channel</p>
               </div>
             </>
           )}
@@ -122,7 +133,7 @@ export default function Messages({ currentUser }) {
 
         <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1">
           {visibleMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-center">
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-600 text-center">
               <MessageSquare size={40} className="text-slate-200 mb-3" />
               <p className="text-sm font-medium">No messages yet</p>
               <p className="text-xs mt-1">
@@ -134,9 +145,9 @@ export default function Messages({ currentUser }) {
               if (item.type === 'date') {
                 return (
                   <div key={i} className="flex items-center gap-3 my-3">
-                    <div className="flex-1 h-px bg-slate-100" />
-                    <span className="text-xs text-slate-400 font-medium px-2">{item.label}</span>
-                    <div className="flex-1 h-px bg-slate-100" />
+                    <div className="flex-1 h-px bg-slate-100 dark:bg-slate-900" />
+                    <span className="text-xs text-slate-400 dark:text-slate-600 font-medium px-2">{item.label}</span>
+                    <div className="flex-1 h-px bg-slate-100 dark:bg-slate-900" />
                   </div>
                 )
               }
@@ -147,8 +158,8 @@ export default function Messages({ currentUser }) {
                   <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                     {!isMe && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-700">{item.senderName}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${ROLE_BADGE[item.senderRole] || 'bg-slate-100 text-slate-500'}`}>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{item.senderName}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${ROLE_BADGE[item.senderRole] || 'bg-slate-100 dark:bg-slate-900 text-slate-500'}`}>
                           {item.senderRole}
                         </span>
                       </div>
@@ -156,11 +167,11 @@ export default function Messages({ currentUser }) {
                     <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       isMe
                         ? 'bg-teal-600 text-white rounded-tr-sm'
-                        : 'bg-slate-100 text-slate-800 rounded-tl-sm'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-sm'
                     }`}>
                       {item.text}
                     </div>
-                    <span className="text-[10px] text-slate-400 px-1">{formatTime(item.createdAt, settings?.timezone)}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-600 px-1">{formatTime(item.createdAt, settings?.timezone)}</span>
                   </div>
                 </div>
               )
@@ -169,14 +180,14 @@ export default function Messages({ currentUser }) {
           <div ref={bottomRef} />
         </div>
 
-        <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
+        <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
           <form onSubmit={handleSend} className="flex items-center gap-2">
             <Avatar name={currentUser?.name} src={currentUser?.avatar} size="sm" />
             <input
               value={text}
               onChange={e => setText(e.target.value)}
               placeholder={activeChatUser ? `Message ${activeChatUser.name.split(' ')[0]}…` : 'Type a message…'}
-              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
             <button
               type="submit"
@@ -194,7 +205,7 @@ export default function Messages({ currentUser }) {
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Channels</p>
           <button
             onClick={() => { setActiveChat(null); setMobileView('chat') }}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === null ? 'bg-teal-50 text-teal-700' : 'hover:bg-slate-50 text-slate-600'}`}
+            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === null ? 'bg-teal-50 dark:bg-teal-500/12 text-teal-700' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
           >
             <Hash size={13} className="flex-shrink-0" />
             <span className="text-xs font-semibold truncate">General</span>
@@ -208,24 +219,24 @@ export default function Messages({ currentUser }) {
               <button
                 key={u.id}
                 onClick={() => { setActiveChat(u.uid); setMobileView('chat') }}
-                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === u.uid ? 'bg-teal-50' : 'hover:bg-slate-50'}`}
+                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === u.uid ? 'bg-teal-50 dark:bg-teal-500/12' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               >
                 <div className="relative flex-shrink-0">
                   <Avatar name={u.name} src={u.avatar} size="sm" />
-                  {u.online && <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 border border-white" />}
+                  {u.online && <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 border border-white dark:border-slate-700" />}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-700 truncate">{u.name}</p>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{u.name}</p>
                   <div className="flex items-center gap-1">
-                    <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${ROLE_BADGE[u.role] || 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${ROLE_BADGE[u.role] || 'bg-slate-100 dark:bg-slate-900 text-slate-500'}`}>
                       {u.role}
                     </span>
-                    <span className="text-[9px] text-slate-400 truncate">{u.label}</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-600 truncate">{u.label}</span>
                   </div>
                 </div>
               </button>
             ))}
-            {staffList.length === 0 && <p className="text-xs text-slate-400">No other staff yet</p>}
+            {staffList.length === 0 && <p className="text-xs text-slate-400 dark:text-slate-600">No other staff yet</p>}
           </div>
         </div>
       </div>

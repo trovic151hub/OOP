@@ -13,11 +13,11 @@ import { formatDate, formatMedications } from '../utils/helpers'
 const ORDER_STATUSES = ['Pending', 'Preparing', 'Ready', 'Dispensed', 'Cancelled']
 
 const STATUS_STYLE = {
-  Pending:    'bg-amber-50 text-amber-700 border border-amber-200',
-  Preparing:  'bg-blue-50 text-blue-700 border border-blue-200',
-  Ready:      'bg-violet-50 text-violet-700 border border-violet-200',
-  Dispensed:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  Cancelled:  'bg-red-50 text-red-600 border border-red-200',
+  Pending:    'bg-amber-50 dark:bg-amber-500/12 text-amber-700 border border-amber-200 dark:border-amber-500/30',
+  Preparing:  'bg-blue-50 dark:bg-blue-500/12 text-blue-700 border border-blue-200 dark:border-blue-500/30',
+  Ready:      'bg-violet-50 dark:bg-violet-500/12 text-violet-700 border border-violet-200 dark:border-violet-500/30',
+  Dispensed:  'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700 border border-emerald-200 dark:border-emerald-500/30',
+  Cancelled:  'bg-red-50 dark:bg-red-500/12 text-red-600 border border-red-200 dark:border-red-500/30',
 }
 
 const NEXT_STATUS = {
@@ -171,8 +171,8 @@ export default function Pharmacy({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Pharmacy</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{pharmacyOrders.length} orders · {counts.Pending || 0} pending · {counts.Ready || 0} ready for pickup</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Pharmacy</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{pharmacyOrders.length} orders · {counts.Pending || 0} pending · {counts.Ready || 0} ready for pickup</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-ghost text-xs"><Download size={13} /> Export</button>
@@ -191,7 +191,7 @@ export default function Pharmacy({ currentUser }) {
           }
           return (
             <div key={s} className="card p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFilterStatus(s === filterStatus ? 'All' : s)}>
-              <p className="text-xs font-semibold text-slate-400 mb-1">{s}</p>
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-600 mb-1">{s}</p>
               <p className={`text-2xl font-extrabold ${styles[s]}`}>{counts[s] || 0}</p>
             </div>
           )
@@ -200,27 +200,27 @@ export default function Pharmacy({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by patient or medications…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
-        <Filter size={14} className="text-slate-400" />
+        <Filter size={14} className="text-slate-400 dark:text-slate-600" />
         {['All', ...ORDER_STATUSES].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 dark:bg-teal-500/12 border-teal-300 text-teal-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {s}
           </button>
         ))}
@@ -229,7 +229,7 @@ export default function Pharmacy({ currentUser }) {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 {['Patient','Doctor','Medications','Status','Advance','Pharmacist','Dispensed',''].map(h => <th key={h} className="table-th">{h}</th>)}
               </tr>
@@ -237,7 +237,7 @@ export default function Pharmacy({ currentUser }) {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={8} className="py-16 text-center">
-                  <div className="flex flex-col items-center gap-2 text-slate-400">
+                  <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                     <FlaskConical size={32} className="text-slate-200" />
                     <p className="text-sm">{search || filterStatus !== 'All' ? 'No results' : 'No pharmacy orders yet'}</p>
                     {!search && filterStatus === 'All' && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Create First</button>}
@@ -251,13 +251,13 @@ export default function Pharmacy({ currentUser }) {
                     <td className="table-td">
                       <div className="flex items-center gap-2">
                         <Avatar name={o.patientName} size="sm" />
-                        <p className="font-semibold text-sm text-slate-800">{o.patientName}</p>
+                        <p className="font-semibold text-sm text-slate-800 dark:text-slate-200">{o.patientName}</p>
                       </div>
                     </td>
                     <td className="table-td text-sm text-slate-500">{o.doctorName || '—'}</td>
                     <td className="table-td max-w-xs">
-                      <p className="text-xs text-slate-700 font-medium line-clamp-2">{formatMedications(o.medications)}</p>
-                      {o.instructions && <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{o.instructions}</p>}
+                      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium line-clamp-2">{formatMedications(o.medications)}</p>
+                      {o.instructions && <p className="text-[10px] text-slate-400 dark:text-slate-600 mt-0.5 line-clamp-1">{o.instructions}</p>}
                     </td>
                     <td className="table-td">
                       <span className={`badge text-[10px] font-bold ${STATUS_STYLE[o.status]}`}>{o.status}</span>
@@ -265,22 +265,22 @@ export default function Pharmacy({ currentUser }) {
                     <td className="table-td">
                       {nextStatus ? (
                         <button onClick={() => advanceOrder(o)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors">
+                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-500/12 text-teal-700 border border-teal-200 dark:border-teal-500/30 hover:bg-teal-100 transition-colors">
                           {ActionIcon && <ActionIcon size={11} />} → {nextStatus}
                         </button>
                       ) : o.status === 'Pending' || o.status === 'Preparing' ? (
                         <button onClick={() => cancelOrder(o.id)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors">
+                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/12 text-red-600 border border-red-200 dark:border-red-500/30 hover:bg-red-100 transition-colors">
                           <XCircle size={11} /> Cancel
                         </button>
-                      ) : <span className="text-xs text-slate-300">—</span>}
+                      ) : <span className="text-xs text-slate-300 dark:text-slate-700">—</span>}
                     </td>
                     <td className="table-td text-xs text-slate-500">{o.pharmacistName || '—'}</td>
-                    <td className="table-td text-xs text-slate-400">{o.dispensedAt ? formatDate(o.dispensedAt) : '—'}</td>
+                    <td className="table-td text-xs text-slate-400 dark:text-slate-600">{o.dispensedAt ? formatDate(o.dispensedAt) : '—'}</td>
                     <td className="table-td">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(o)} className="p-1.5 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600"><Pencil size={13} /></button>
-                        <button onClick={() => setConfirmId(o.id)} className="p-1.5 rounded text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
+                        <button onClick={() => openEdit(o)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400"><Pencil size={13} /></button>
+                        <button onClick={() => setConfirmId(o.id)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>

@@ -117,8 +117,8 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-800">{patient.name}</h3>
-                      <p className="text-sm text-slate-400">{patient.gender} · {patient.age} years old</p>
+                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">{patient.name}</h3>
+                      <p className="text-sm text-slate-400 dark:text-slate-600">{patient.gender} · {patient.age} years old</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge status={patient.status || 'Active'} />
@@ -135,9 +135,9 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                       { icon: Mail, label: 'Email', val: patient.email || '—' },
                     ].map(({ icon: Icon, label, val }) => (
                       <div key={label} className="flex items-center gap-2 text-sm">
-                        <Icon size={14} className="text-slate-400 flex-shrink-0" />
-                        <span className="text-slate-400 text-xs">{label}:</span>
-                        <span className="text-slate-700 font-medium text-xs truncate">{val}</span>
+                        <Icon size={14} className="text-slate-400 dark:text-slate-600 flex-shrink-0" />
+                        <span className="text-slate-400 dark:text-slate-600 text-xs">{label}:</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium text-xs truncate">{val}</span>
                       </div>
                     ))}
                   </div>
@@ -147,19 +147,19 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
               {(patient.condition || patient.notes) && (
                 <div className="grid grid-cols-1 gap-3">
                   {patient.condition && (
-                    <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
+                    <div className="bg-teal-50 dark:bg-teal-500/12 border border-teal-100 dark:border-teal-500/20 rounded-xl p-4">
                       <p className="text-xs font-bold text-teal-600 uppercase tracking-wide mb-1">Current Condition</p>
                       <p className="text-sm text-teal-800 font-medium">{patient.condition}</p>
                     </div>
                   )}
                   {patient.location && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">
-                      <MapPin size={14} className="text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                      <MapPin size={14} className="text-slate-400 dark:text-slate-600" />
                       <span className="font-medium">{patient.location}</span>
                     </div>
                   )}
                   {patient.notes && (
-                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                    <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-100 dark:border-amber-500/20 rounded-xl p-4">
                       <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">Notes</p>
                       <p className="text-sm text-amber-800">{patient.notes}</p>
                     </div>
@@ -175,25 +175,25 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 ].map(({ label, value, color }) => (
                   <div key={label} className="card p-4 text-center">
                     <p className={`text-xl font-extrabold ${color}`}>{value}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
 
               {patRecords.length > 0 && (
                 <div className="card overflow-hidden">
-                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                    <p className="text-sm font-bold text-slate-700">Latest Record</p>
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Latest Record</p>
                     <button onClick={() => setTab('records')} className="text-xs text-teal-600 hover:underline">View all</button>
                   </div>
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/12 flex items-center justify-center flex-shrink-0">
                         <FileText size={14} className="text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-700">{patRecords[0].diagnosis || patRecords[0].type}</p>
-                        <p className="text-xs text-slate-400">{formatDate(patRecords[0].date)} · {patRecords[0].doctorName}</p>
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{patRecords[0].diagnosis || patRecords[0].type}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600">{formatDate(patRecords[0].date)} · {patRecords[0].doctorName}</p>
                         {patRecords[0].prescription && <p className="text-xs text-teal-600 mt-1">Rx: {patRecords[0].prescription}</p>}
                       </div>
                     </div>
@@ -206,23 +206,23 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
           {tab === 'appointments' && (
             <div className="p-6 flex flex-col gap-3">
               {patAppts.length === 0 ? (
-                <div className="text-center py-12 text-slate-400">
+                <div className="text-center py-12 text-slate-400 dark:text-slate-600">
                   <Calendar size={32} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">No appointments yet</p>
                 </div>
               ) : patAppts.map(a => (
                 <div key={a.id} className="card p-4 flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center flex-shrink-0">
                     <Calendar size={15} className="text-teal-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-800 text-sm">{a.type || 'Consultation'}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{a.type || 'Consultation'}</p>
                       <Badge status={a.status} />
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">{withDrPrefix(a.doctorName)}</p>
-                    <p className="text-xs text-slate-400">{formatDate(a.date)} {a.timeStart ? `· ${a.timeStart}` : ''}</p>
-                    {a.notes && <p className="text-xs text-slate-400 mt-1 italic">"{a.notes}"</p>}
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{formatDate(a.date)} {a.timeStart ? `· ${a.timeStart}` : ''}</p>
+                    {a.notes && <p className="text-xs text-slate-400 dark:text-slate-600 mt-1 italic">"{a.notes}"</p>}
                   </div>
                 </div>
               ))}
@@ -232,14 +232,14 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
           {tab === 'records' && (
             <div className="p-6 flex flex-col gap-3">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-bold text-slate-700">Medical Records</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Medical Records</p>
                 <button onClick={() => setAddRec(v => !v)} className="btn-primary text-xs py-1.5 px-3">
                   <Plus size={13} /> {addRec ? 'Cancel' : 'Add Record'}
                 </button>
               </div>
 
               {addRec && (
-                <div className="card p-4 border-2 border-teal-100">
+                <div className="card p-4 border-2 border-teal-100 dark:border-teal-500/20">
                   <p className="text-xs font-bold text-teal-600 mb-3 uppercase tracking-wide">New Medical Record</p>
                   <MedRecordForm form={recForm} setForm={setRecForm} doctors={doctors} />
                   <div className="flex gap-2 mt-4">
@@ -250,7 +250,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
               )}
 
               {patRecords.length === 0 ? (
-                <div className="text-center py-12 text-slate-400">
+                <div className="text-center py-12 text-slate-400 dark:text-slate-600">
                   <FileText size={32} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">No medical records yet</p>
                 </div>
@@ -258,20 +258,20 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 <div key={r.id} className="card p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{r.type}</span>
-                      <span className="text-xs text-slate-400">{formatDate(r.date)}</span>
+                      <span className="text-xs font-bold bg-blue-100 dark:bg-blue-500/18 text-blue-700 px-2 py-0.5 rounded-full">{r.type}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-600">{formatDate(r.date)}</span>
                     </div>
-                    <button onClick={() => store.deleteMedicalRecord(r.id)} className="p-1 rounded text-slate-300 hover:text-red-400 transition-colors">
+                    <button onClick={() => store.deleteMedicalRecord(r.id)} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-red-400 transition-colors">
                       <Trash2 size={12} />
                     </button>
                   </div>
                   {r.doctorName && <p className="text-xs text-teal-600 font-medium mb-2">{withDrPrefix(r.doctorName)}</p>}
-                  {r.diagnosis && <p className="text-sm font-semibold text-slate-700 mb-1">{r.diagnosis}</p>}
+                  {r.diagnosis && <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">{r.diagnosis}</p>}
                   {r.treatment && <p className="text-xs text-slate-500 mb-1"><strong>Treatment:</strong> {r.treatment}</p>}
                   {r.prescription && <p className="text-xs text-slate-500 mb-1"><strong>Rx:</strong> {r.prescription}</p>}
-                  {r.notes && <p className="text-xs text-slate-400 italic mt-1">{r.notes}</p>}
+                  {r.notes && <p className="text-xs text-slate-400 dark:text-slate-600 italic mt-1">{r.notes}</p>}
                   {r.followUpDate && (
-                    <div className="mt-2 text-xs bg-amber-50 text-amber-700 rounded-lg px-2 py-1">
+                    <div className="mt-2 text-xs bg-amber-50 dark:bg-amber-500/12 text-amber-700 rounded-lg px-2 py-1">
                       Follow-up: {formatDate(r.followUpDate)}
                     </div>
                   )}
@@ -284,32 +284,32 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
             <div className="p-6 flex flex-col gap-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                 <div className="card p-4 text-center">
-                  <p className="text-xl font-extrabold text-slate-800">{formatCurrency(totalBilled, settings?.currency)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Total Billed</p>
+                  <p className="text-xl font-extrabold text-slate-800 dark:text-slate-200">{formatCurrency(totalBilled, settings?.currency)}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">Total Billed</p>
                 </div>
                 <div className="card p-4 text-center">
                   <p className="text-xl font-extrabold text-emerald-600">{formatCurrency(totalPaid, settings?.currency)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Total Paid</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">Total Paid</p>
                 </div>
               </div>
 
               {patBilling.length === 0 ? (
-                <div className="text-center py-12 text-slate-400">
+                <div className="text-center py-12 text-slate-400 dark:text-slate-600">
                   <NairaIcon size={32} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">No billing records yet</p>
                 </div>
               ) : patBilling.map(b => (
                 <div key={b.id} className="card p-4 flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-slate-700 text-sm">{b.description || 'Medical Service'}</p>
-                    <p className="text-xs text-slate-400">{formatDate(b.date)}</p>
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{b.description || 'Medical Service'}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{formatDate(b.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-800">{formatCurrency(b.total, settings?.currency)}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200">{formatCurrency(b.total, settings?.currency)}</p>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      b.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' :
-                      b.status === 'Overdue' ? 'bg-red-100 text-red-600' :
-                      'bg-amber-100 text-amber-700'
+                      b.status === 'Paid' ? 'bg-emerald-100 dark:bg-emerald-500/18 text-emerald-700' :
+                      b.status === 'Overdue' ? 'bg-red-100 dark:bg-red-500/18 text-red-600' :
+                      'bg-amber-100 dark:bg-amber-500/18 text-amber-700'
                     }`}>{b.status}</span>
                   </div>
                 </div>

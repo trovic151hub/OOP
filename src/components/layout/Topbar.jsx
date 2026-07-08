@@ -47,53 +47,53 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
   return (
     <>
       {hasResults && (
-        <div className="absolute top-full mt-2 left-0 w-[min(320px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overscroll-contain max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="absolute top-full mt-2 left-0 w-[min(320px,calc(100vw-2rem))] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-[60] overscroll-contain max-h-[calc(100vh-8rem)] overflow-y-auto">
           {results.patients.length > 0 && (
             <div>
-              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Patients</div>
+              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">Patients</div>
               {results.patients.map(p => (
                 <button key={p.id} onClick={() => { onNavigate('patients'); setSearch(''); setSearchOpen(false) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
                   <Avatar name={p.name} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{p.name}</p>
-                    <p className="text-xs text-slate-400">{p.age} yrs · {p.status}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{p.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{p.age} yrs · {p.status}</p>
                   </div>
-                  <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                  <ChevronRight size={13} className="text-slate-300 dark:text-slate-700 flex-shrink-0" />
                 </button>
               ))}
             </div>
           )}
           {results.doctors.length > 0 && (
             <div>
-              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Doctors</div>
+              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">Doctors</div>
               {results.doctors.map(d => (
                 <button key={d.id} onClick={() => { onNavigate('doctors'); setSearch(''); setSearchOpen(false) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
                   <Avatar name={d.name} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{d.name}</p>
-                    <p className="text-xs text-slate-400">{d.specialty}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{d.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{d.specialty}</p>
                   </div>
-                  <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                  <ChevronRight size={13} className="text-slate-300 dark:text-slate-700 flex-shrink-0" />
                 </button>
               ))}
             </div>
           )}
           {results.appointments.length > 0 && (
             <div>
-              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50 border-b border-slate-100">Appointments</div>
+              <div className="px-3 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">Appointments</div>
               {results.appointments.map(a => (
                 <button key={a.id} onClick={() => { onNavigate('appointments'); setSearch(''); setSearchOpen(false) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left">
-                  <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left">
+                  <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center flex-shrink-0">
                     <Calendar size={13} className="text-teal-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{a.patientName}</p>
-                    <p className="text-xs text-slate-400">{a.doctorName} · {a.date}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{a.patientName}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{a.doctorName} · {a.date}</p>
                   </div>
-                  <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                  <ChevronRight size={13} className="text-slate-300 dark:text-slate-700 flex-shrink-0" />
                 </button>
               ))}
             </div>
@@ -101,7 +101,7 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
         </div>
       )}
       {!hasResults && search.length >= 2 && (
-        <div className="absolute top-full mt-2 left-0 w-[min(288px,calc(100vw-2rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] px-4 py-6 text-center text-sm text-slate-400">
+        <div className="absolute top-full mt-2 left-0 w-[min(288px,calc(100vw-2rem))] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-[60] px-4 py-6 text-center text-sm text-slate-400 dark:text-slate-600">
           No results for "<strong>{search}</strong>"
         </div>
       )}
@@ -153,6 +153,15 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     }
   }, [mobileSearch])
 
+  // Messages only count as "read" once the user actually visits the Messages
+  // page — not just by opening the notification dropdown to glance at them.
+  useEffect(() => {
+    if (activePage !== 'messages') return
+    const now = new Date().toISOString()
+    localStorage.setItem('notifReadAt', now)
+    setNotifRead(now)
+  }, [activePage])
+
   const today    = new Date().toISOString().slice(0, 10)
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 
@@ -177,10 +186,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const taskCount      = upcomingToday.length + lowStockItems.length + checkedInPats.length + abnormalLabs.length
   const unreadCount    = unreadMessages.length
 
-  function markRead() {
-    const now = new Date().toISOString()
-    localStorage.setItem('notifReadAt', now)
-    setNotifRead(now)
+  function toggleNotif() {
     setNotifOpen(v => {
       const next = !v
       // Portaled to document.body (see below) to escape the header's own
@@ -222,25 +228,25 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   }
 
   return (
-    <header className={`fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center z-10 px-4 md:px-6 transition-[left] duration-300 ease-in-out ${sidebarCollapsed ? 'md:left-[72px]' : 'md:left-60'}`}>
+    <header className={`fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center z-10 px-4 md:px-6 transition-[left] duration-300 ease-in-out ${sidebarCollapsed ? 'md:left-[72px]' : 'md:left-60'}`}>
 
       {mobileSearch ? (
         <div ref={mSearchRef} className="flex-1 flex items-center gap-2 sm:hidden">
-          <button onClick={closeMobileSearch} className="flex-shrink-0 w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-50">
+          <button onClick={closeMobileSearch} className="flex-shrink-0 w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
             <X size={18} />
           </button>
           <div className="flex-1 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none z-10" />
             <input
               ref={mobileInputRef}
               type="text"
               value={search}
               onChange={e => { setSearch(e.target.value); setSearchOpen(true) }}
               placeholder="Search patients, doctors…"
-              className="w-full pl-8 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-8 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
             {search && (
-              <button onClick={() => { setSearch(''); setSearchOpen(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => { setSearch(''); setSearchOpen(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
                 <X size={12} />
               </button>
             )}
@@ -256,26 +262,26 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
         </div>
       ) : (
         <div className="flex items-center gap-3 flex-1 min-w-0 sm:flex-none">
-          <button onClick={onMobileMenuToggle} className="md:hidden w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 flex-shrink-0">
+          <button onClick={onMobileMenuToggle} className="md:hidden w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 flex-shrink-0">
             <Menu size={18} />
           </button>
-          <h1 className="text-base md:text-lg font-bold text-slate-800 truncate">{PAGE_LABELS[activePage] || 'Dashboard'}</h1>
+          <h1 className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">{PAGE_LABELS[activePage] || 'Dashboard'}</h1>
         </div>
       )}
 
       <div className={`flex items-center gap-1.5 md:gap-3 ml-auto ${mobileSearch ? 'sm:flex hidden' : ''}`}>
         <div ref={searchRef} className="relative hidden sm:block">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none z-10" />
           <input
             type="text"
             value={search}
             onChange={e => { setSearch(e.target.value); setSearchOpen(true) }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search anything…"
-            className="pl-8 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-44 md:w-56 transition-all"
+            className="pl-8 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-44 md:w-56 transition-all"
           />
           {search && (
-            <button onClick={() => { setSearch(''); setSearchOpen(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => { setSearch(''); setSearchOpen(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
               <X size={12} />
             </button>
           )}
@@ -291,7 +297,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
 
         <button
           onClick={() => setMobileSearch(true)}
-          className="sm:hidden w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors"
+          className="sm:hidden w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           title="Search"
         >
           <Search size={16} />
@@ -300,7 +306,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
         <button
           onClick={() => window.print()}
           title="Print current page"
-          className="hidden sm:flex w-9 h-9 rounded-lg border border-slate-200 items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors no-print"
+          className="hidden sm:flex w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors no-print"
         >
           <Printer size={16} />
         </button>
@@ -308,15 +314,15 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
         <button
           onClick={toggleDark}
           title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors no-print"
+          className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors no-print"
         >
           {dark ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
         <div ref={notifRef} className="relative">
           <button
-            onClick={markRead}
-            className="w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors relative"
+            onClick={toggleNotif}
+            className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors relative"
           >
             <Bell size={16} />
             {unreadCount > 0 && (
@@ -329,27 +335,32 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
           {notifOpen && notifPos && createPortal(
             <div
               ref={notifPanelRef}
-              style={{ top: notifPos.top, right: notifPos.right, maxHeight: notifPos.maxHeight }}
-              className="fixed w-[min(320px,calc(100vw-1rem))] bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overflow-hidden flex flex-col"
+              style={{ '--notif-top': `${notifPos.top}px`, '--notif-right': `${notifPos.right}px`, '--notif-max-h': `${notifPos.maxHeight}px` }}
+              className="fixed inset-0 w-full h-full md:inset-auto md:top-[var(--notif-top)] md:right-[var(--notif-right)] md:w-[min(320px,calc(100vw-1rem))] md:h-auto md:max-h-[var(--notif-max-h)] bg-white dark:bg-slate-800 md:border md:border-slate-200 md:dark:border-slate-700 md:rounded-xl shadow-xl z-[60] overflow-hidden flex flex-col"
             >
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-                <p className="text-sm font-bold text-slate-700">Notifications</p>
-                <span className="text-xs text-slate-400">
-                  {unreadCount > 0 ? `${unreadCount} unread` : taskCount > 0 ? `${taskCount} to review` : 'All caught up'}
-                </span>
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Notifications</p>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-400 dark:text-slate-600">
+                    {unreadCount > 0 ? `${unreadCount} unread` : taskCount > 0 ? `${taskCount} to review` : 'All caught up'}
+                  </span>
+                  <button onClick={() => setNotifOpen(false)} className="md:hidden text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 p-1 -mr-1">
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
               <div className="overflow-y-auto overscroll-contain">
                 {upcomingToday.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">Upcoming Appointments</div>
+                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800">Upcoming Appointments</div>
                     {upcomingToday.slice(0, 4).map(a => (
-                      <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('calendar'); setNotifOpen(false) }}>
-                        <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer" onClick={() => { onNavigate('calendar'); setNotifOpen(false) }}>
+                        <div className="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Calendar size={13} className="text-teal-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
-                          <p className="text-xs text-slate-400 truncate">{withDrPrefix(a.doctorName)} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{a.patientName}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{withDrPrefix(a.doctorName)} · {a.date === today ? 'Today' : 'Tomorrow'} {a.timeStart ? `at ${a.timeStart}` : ''}</p>
                         </div>
                       </div>
                     ))}
@@ -357,14 +368,14 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                 )}
                 {checkedInPats.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-[10px] font-bold text-violet-400 uppercase tracking-wide bg-violet-50">Patients Checked In — Waiting</div>
+                    <div className="px-4 py-2 text-[10px] font-bold text-violet-400 uppercase tracking-wide bg-violet-50 dark:bg-violet-500/12">Patients Checked In — Waiting</div>
                     {checkedInPats.slice(0, 4).map(a => (
-                      <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('queue'); setNotifOpen(false) }}>
-                        <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div key={a.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer" onClick={() => { onNavigate('queue'); setNotifOpen(false) }}>
+                        <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <UserCheck size={13} className="text-violet-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-700">{a.patientName}</p>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{a.patientName}</p>
                           <p className="text-xs text-violet-600">Checked in · Waiting for {a.doctorName}</p>
                         </div>
                       </div>
@@ -373,14 +384,14 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                 )}
                 {abnormalLabs.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-[10px] font-bold text-red-400 uppercase tracking-wide bg-red-50">Abnormal Lab Results</div>
+                    <div className="px-4 py-2 text-[10px] font-bold text-red-400 uppercase tracking-wide bg-red-50 dark:bg-red-500/12">Abnormal Lab Results</div>
                     {abnormalLabs.slice(0, 3).map(l => (
-                      <div key={l.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('lab-results'); setNotifOpen(false) }}>
-                        <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div key={l.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer" onClick={() => { onNavigate('lab-results'); setNotifOpen(false) }}>
+                        <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <FlaskConical size={13} className="text-red-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-700">{l.patientName}</p>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{l.patientName}</p>
                           <p className="text-xs text-red-500">{l.testName} — Abnormal</p>
                         </div>
                       </div>
@@ -389,14 +400,14 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                 )}
                 {lowStockItems.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">Inventory Alerts</div>
+                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800">Inventory Alerts</div>
                     {lowStockItems.slice(0, 3).map(i => (
-                      <div key={i.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { onNavigate('inventory'); setNotifOpen(false) }}>
-                        <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div key={i.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer" onClick={() => { onNavigate('inventory'); setNotifOpen(false) }}>
+                        <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <AlertTriangle size={13} className="text-amber-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-700">{i.name}</p>
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{i.name}</p>
                           <p className="text-xs text-amber-600">{parseInt(i.quantity) === 0 ? 'Out of stock' : `Only ${i.quantity} ${i.unit} left`}</p>
                         </div>
                       </div>
@@ -405,17 +416,21 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                 )}
                 {recentMessages.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-50">Recent Messages</div>
+                    <div className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800">Recent Messages</div>
                     {recentMessages.map(m => {
                       const chatPartner = m.recipientId ? (m.senderId === currentUser?.uid ? m.recipientId : m.senderId) : null
+                      const isUnread = m.senderId !== currentUser?.uid && (!notifRead || m.createdAt > notifRead)
                       return (
-                        <div key={m.id} className="flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => { setPendingChatTarget(chatPartner); onNavigate('messages'); setNotifOpen(false) }}>
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div key={m.id} className={`flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer ${isUnread ? 'bg-teal-50/60 dark:bg-teal-500/10' : ''}`} onClick={() => { setPendingChatTarget(chatPartner); onNavigate('messages'); setNotifOpen(false) }}>
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <MessageSquare size={13} className="text-blue-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-slate-700">{m.senderName}{chatPartner ? ' (private)' : ''}</p>
-                            <p className="text-xs text-slate-400 truncate">{m.text}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className={`text-xs truncate ${isUnread ? 'font-bold text-slate-800 dark:text-slate-200' : 'font-semibold text-slate-700 dark:text-slate-300'}`}>{m.senderName}{chatPartner ? ' (private)' : ''}</p>
+                              {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />}
+                            </div>
+                            <p className={`text-xs truncate ${isUnread ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-600'}`}>{m.text}</p>
                           </div>
                         </div>
                       )
@@ -423,7 +438,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                   </div>
                 )}
                 {taskCount === 0 && recentMessages.length === 0 && (
-                  <div className="px-4 py-8 text-center text-sm text-slate-400">
+                  <div className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-600">
                     <Bell size={24} className="text-slate-200 mx-auto mb-2" />
                     All caught up!
                   </div>
@@ -437,8 +452,8 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
         <div className="flex items-center gap-2 ml-1">
           <Avatar name={currentUser?.name} src={currentUser?.avatar} size="sm" />
           <div className="hidden md:block">
-            <p className="text-sm font-semibold text-slate-700 leading-tight">{currentUser?.name || 'Admin'}</p>
-            <p className="text-xs text-slate-400">{currentUser?.role || 'Admin'}</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 leading-tight">{currentUser?.name || 'Admin'}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600">{currentUser?.role || 'Admin'}</p>
           </div>
         </div>
       </div>

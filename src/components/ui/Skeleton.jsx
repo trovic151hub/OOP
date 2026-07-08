@@ -1,7 +1,7 @@
 import React from 'react'
 
 function Shimmer({ className = '' }) {
-  return <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+  return <div className={`animate-pulse bg-slate-200 dark:bg-slate-700 rounded ${className}`} />
 }
 
 export function SkeletonRow({ cols = 6 }) {
@@ -50,13 +50,13 @@ export function SkeletonStat() {
 export function SkeletonTable({ rows = 5, cols = 6 }) {
   return (
     <div className="card overflow-hidden animate-pulse">
-      <div className="bg-slate-50 px-4 py-3 flex gap-4">
+      <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 flex gap-4">
         {Array.from({ length: cols }).map((_, i) => (
           <Shimmer key={i} className={`h-3 ${i === 0 ? 'w-32' : 'w-20'}`} />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="px-4 py-4 border-t border-slate-100 flex gap-4 items-center">
+        <div key={i} className="px-4 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-4 items-center">
           <div className="flex items-center gap-3 flex-shrink-0">
             <Shimmer className="w-8 h-8 rounded-full" />
             <div className="flex flex-col gap-1">

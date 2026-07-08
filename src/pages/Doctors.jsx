@@ -14,7 +14,6 @@ import { useToast } from '../context/ToastContext'
 import { exportDoctors } from '../utils/exportCSV'
 
 const EMPTY_FORM   = { name: '', specialty: '', department: '', phone: '', email: '', availability: 'Available', schedule: '', about: '', experience: '', photo: '' }
-const SPECIALTIES  = ['All','General Medicine','Pediatrics','Cardiology','Orthopedics','Dermatology','Neurology','Pulmonology','Radiology','Oncology']
 const AVAILABILITIES = ['Available','Unavailable','Busy','On Leave']
 
 function DoctorForm({ form, setForm, departments }) {
@@ -46,7 +45,7 @@ function DoctorForm({ form, setForm, departments }) {
               type="button"
               onClick={() => setForm(f => ({ ...f, photo: '' }))}
               title="Remove photo"
-              className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200"
+              className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-slate-400 dark:text-slate-600 hover:text-red-500 hover:border-red-200"
             >
               <XIcon size={11} />
             </button>
@@ -129,20 +128,20 @@ function LinkAccountModal({ open, onClose, doctor, users, doctors }) {
   return (
     <Modal open={open} onClose={handleClose} title="Link to User Account" icon={Link2} accentColor="teal">
       <div className="flex flex-col gap-4">
-        <div className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 flex items-center gap-3">
           <Avatar name={doctor?.name} size="sm" />
           <div>
-            <p className="text-sm font-bold text-slate-800">{doctor?.name}</p>
-            <p className="text-xs text-slate-400">{doctor?.specialty}</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{doctor?.name}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600">{doctor?.specialty}</p>
           </div>
         </div>
 
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Select the staff account that belongs to this doctor. This lets them manage their own profile and see doctor-specific features after logging in.
         </p>
 
         {doctorUsers.length === 0 ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700">
+          <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4 text-xs text-amber-700">
             No available Doctor accounts found. Go to <strong>User Management</strong> and assign the Doctor role to the user first, then come back to link.
           </div>
         ) : (
@@ -159,7 +158,7 @@ function LinkAccountModal({ open, onClose, doctor, users, doctors }) {
         <div className="flex gap-3 mt-2">
           <button onClick={handleClose} className="btn-ghost flex-1 justify-center">Cancel</button>
           <button onClick={link} disabled={saving || !selected} className="btn-primary flex-1 justify-center">
-            {saving ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Link2 size={13} /> Link Account</>}
+            {saving ? <span className="w-3 h-3 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" /> : <><Link2 size={13} /> Link Account</>}
           </button>
         </div>
       </div>
@@ -185,10 +184,14 @@ export default function Doctors({ currentUser }) {
 
   const isAdmin = currentUser?.role === 'Admin'
 
+  // Built from real department names (not a hardcoded list) so the tabs never
+  // drift out of sync with what doctors are actually assigned to.
+  const specialtyTabs = ['All', ...departments.map(d => d.name)]
+
   const filtered = doctors.filter(d => {
     const q = search.toLowerCase()
     const matchSearch = d.name?.toLowerCase().includes(q) || d.specialty?.toLowerCase().includes(q)
-    const matchSpec   = activeSpecialty === 'All' || d.specialty === activeSpecialty
+    const matchSpec   = activeSpecialty === 'All' || d.department === activeSpecialty
     const matchAvail  = filterAvail === 'All Status' || d.availability === filterAvail
     return matchSearch && matchSpec && matchAvail
   })
@@ -240,9 +243,9 @@ export default function Doctors({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Doctors</h2>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Doctors</h2>
           <div className="flex items-center gap-3 mt-0.5">
-            <p className="text-sm text-slate-400">{doctors.length} doctors on staff</p>
+            <p className="text-sm text-slate-400 dark:text-slate-600">{doctors.length} doctors on staff</p>
             {linkedCount > 0 && (
               <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold">
                 <CheckCircle2 size={12} /> {linkedCount} linked
@@ -274,7 +277,7 @@ export default function Doctors({ currentUser }) {
       </div>
 
       {isAdmin && unlinkedCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
+        <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
           <Link2 size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="text-xs text-amber-700">
             <strong>{unlinkedCount} doctor profile{unlinkedCount !== 1 ? 's are' : ' is'} not linked</strong> to a login account. Click <strong>"Link Account"</strong> on a card to connect it — this lets doctors log in and manage their own profile. Alternatively, go to <strong>User Management</strong> and change a staff member's role to Doctor; the system will auto-link by matching email.
@@ -283,29 +286,29 @@ export default function Doctors({ currentUser }) {
       )}
 
       <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {SPECIALTIES.map(s => (
+        {specialtyTabs.map(s => (
           <button key={s} onClick={() => setActiveSpecialty(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0
-              ${activeSpecialty === s ? 'bg-teal-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+              ${activeSpecialty === s ? 'bg-teal-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {s}
           </button>
         ))}
       </div>
 
       <div className="relative mb-4 max-w-md">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or specialty…"
           style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-          className="input-field border-slate-200 focus:shadow-sm"
+          className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
           >
             <XIcon size={14} />
           </button>
@@ -313,7 +316,7 @@ export default function Doctors({ currentUser }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
           <Stethoscope size={36} className="text-slate-200 mb-3" />
           <p className="text-sm font-medium">{search ? 'No results found' : 'No doctors yet'}</p>
           {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-4"><Plus size={13} /> Add First Doctor</button>}
@@ -328,10 +331,10 @@ export default function Doctors({ currentUser }) {
                   <Badge status={d.availability || 'Available'} />
                   {isAdmin && (
                     <div className="flex gap-1">
-                      <button onClick={() => openEdit(d)} className="p-1 rounded text-slate-300 hover:text-slate-600 transition-colors">
+                      <button onClick={() => openEdit(d)} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                         <Pencil size={13} />
                       </button>
-                      <button onClick={() => { setConfirmId(d.id); setConfirmName(d.name) }} className="p-1 rounded text-slate-300 hover:text-red-400 transition-colors">
+                      <button onClick={() => { setConfirmId(d.id); setConfirmName(d.name) }} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-red-400 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -340,13 +343,13 @@ export default function Doctors({ currentUser }) {
                 <div className="flex flex-col items-center text-center gap-2">
                   <PassportPhoto src={d.photo || linkedUser?.avatar} name={d.name} size="sm" />
                   <div>
-                    <p className="font-bold text-slate-800 text-sm">{d.name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{d.specialty}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{d.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{d.specialty}</p>
                     {d.department && <p className="text-xs text-teal-500 mt-0.5">{d.department}</p>}
                   </div>
                 </div>
                 {d.schedule && (
-                  <p className="text-xs text-slate-400 text-center bg-slate-50 rounded-lg px-2 py-1.5">{d.schedule}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600 text-center bg-slate-50 dark:bg-slate-800 rounded-lg px-2 py-1.5">{d.schedule}</p>
                 )}
 
                 {isAdmin && (
@@ -355,14 +358,14 @@ export default function Doctors({ currentUser }) {
                       <div className="flex items-center gap-1.5 group">
                         <CheckCircle2 size={12} className="text-emerald-500 flex-shrink-0" />
                         <span className="text-xs text-emerald-600 font-semibold truncate max-w-28" title={linkedUser.name}>{linkedUser.name}</span>
-                        <button onClick={() => unlinkAccount(d)} title="Unlink account" className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-300 hover:text-red-400 transition-all">
+                        <button onClick={() => unlinkAccount(d)} title="Unlink account" className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-300 dark:text-slate-700 hover:text-red-400 transition-all">
                           <Unlink size={11} />
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => setLinkDoctor(d)}
-                        className="flex items-center gap-1 text-xs text-amber-600 font-semibold bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors"
+                        className="flex items-center gap-1 text-xs text-amber-600 font-semibold bg-amber-50 dark:bg-amber-500/12 hover:bg-amber-100 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1 rounded-lg transition-colors"
                       >
                         <Link2 size={11} /> Link Account
                       </button>
@@ -372,26 +375,26 @@ export default function Doctors({ currentUser }) {
 
                 <div className="flex gap-2 mt-auto pt-1">
                   {d.email ? (
-                    <a href={`mailto:${d.email}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-teal-600 text-xs transition-colors" title={d.email}>
+                    <a href={`mailto:${d.email}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-teal-600 text-xs transition-colors" title={d.email}>
                       <MessageSquare size={12} />
                     </a>
                   ) : (
-                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-200 text-xs cursor-not-allowed" title="No email">
+                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-200 text-xs cursor-not-allowed" title="No email">
                       <MessageSquare size={12} />
                     </button>
                   )}
                   {d.phone ? (
-                    <a href={`tel:${d.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-teal-600 text-xs transition-colors" title={d.phone}>
+                    <a href={`tel:${d.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-teal-600 text-xs transition-colors" title={d.phone}>
                       <Phone size={12} />
                     </a>
                   ) : (
-                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 text-slate-200 text-xs cursor-not-allowed" title="No phone">
+                    <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-200 text-xs cursor-not-allowed" title="No phone">
                       <Phone size={12} />
                     </button>
                   )}
                   <button
                     onClick={() => setDrawerDoctor(d)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 hover:bg-teal-100 text-xs font-semibold transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-teal-50 dark:bg-teal-500/12 border border-teal-100 dark:border-teal-500/20 text-teal-600 hover:bg-teal-100 text-xs font-semibold transition-colors"
                   >
                     View Profile
                   </button>
@@ -406,7 +409,7 @@ export default function Doctors({ currentUser }) {
         <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Doctor' : 'Onboard Doctor'} icon={Stethoscope} accentColor="purple">
           <DoctorForm form={form} setForm={setForm} departments={departments} />
           {!editId && (
-            <p className="text-[11px] text-slate-400 mt-3">
+            <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-3">
               This creates a login account for this doctor (role: Doctor) along with their profile, already linked. You'll get a one-time temporary password to share with them.
             </p>
           )}
@@ -414,7 +417,7 @@ export default function Doctors({ currentUser }) {
             <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
             <button onClick={handleSubmit} disabled={saving} className="btn-primary flex-1 justify-center">
               {saving
-                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
                 : editId ? 'Save Changes' : 'Onboard Doctor'}
             </button>
           </div>
@@ -424,20 +427,20 @@ export default function Doctors({ currentUser }) {
       <Modal open={!!onboardResult} onClose={() => setOnboardResult(null)} title="Doctor Onboarded" icon={CheckCircle2} accentColor="teal">
         {onboardResult && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               <strong>{onboardResult.doctor?.name}</strong>'s account and profile were created and linked. Share this one-time temporary password with them — it won't be shown again.
             </p>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-3">
+            <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs text-slate-400 mb-1">Email</p>
-                <p className="text-sm font-semibold text-slate-800">{onboardResult.doctor?.email}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-600 mb-1">Email</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{onboardResult.doctor?.email}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 mb-1">Temporary Password</p>
+                <p className="text-xs text-slate-400 dark:text-slate-600 mb-1">Temporary Password</p>
                 <p className="text-sm font-mono font-bold text-teal-700">{onboardResult.tempPassword}</p>
               </div>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 text-xs text-amber-700">
               They'll be required to set a new password the first time they log in.
             </div>
             <button

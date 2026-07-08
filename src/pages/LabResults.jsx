@@ -141,8 +141,8 @@ export default function LabResults({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Lab Results</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{counts.total} results · {counts.pending} pending</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Lab Results</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{counts.total} results · {counts.pending} pending</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-ghost text-xs"><Download size={13} /> Export CSV</button>
@@ -152,13 +152,13 @@ export default function LabResults({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total', value: counts.total, color: 'text-slate-700', bg: 'border-slate-200' },
-          { label: 'Pending', value: counts.pending, color: 'text-amber-600', bg: 'border-amber-200' },
-          { label: 'Normal', value: counts.normal, color: 'text-emerald-600', bg: 'border-emerald-200' },
-          { label: 'Abnormal', value: counts.abnormal, color: 'text-red-600', bg: 'border-red-200' },
+          { label: 'Total', value: counts.total, color: 'text-slate-700 dark:text-slate-300', bg: 'border-slate-200 dark:border-slate-700' },
+          { label: 'Pending', value: counts.pending, color: 'text-amber-600', bg: 'border-amber-200 dark:border-amber-500/30' },
+          { label: 'Normal', value: counts.normal, color: 'text-emerald-600', bg: 'border-emerald-200 dark:border-emerald-500/30' },
+          { label: 'Abnormal', value: counts.abnormal, color: 'text-red-600', bg: 'border-red-200 dark:border-red-500/30' },
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={`card p-4 border ${bg}`}>
-            <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-semibold mb-1">{label}</p>
             <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
@@ -166,18 +166,18 @@ export default function LabResults({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search patient, test, doctor…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -194,7 +194,7 @@ export default function LabResults({ currentUser }) {
           {(search || filterCat !== 'All' || filterStatus !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterCat('All'); setFilterStatus('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -205,7 +205,7 @@ export default function LabResults({ currentUser }) {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="table-th">Patient</th>
                 <th className="table-th">Test</th>
@@ -221,7 +221,7 @@ export default function LabResults({ currentUser }) {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                       <FlaskConical size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No lab results yet'}</p>
                       {!search && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Add First Result</button>}
@@ -233,30 +233,30 @@ export default function LabResults({ currentUser }) {
                   <td className="table-td">
                     <div className="flex items-center gap-2">
                       <Avatar name={l.patientName} size="sm" />
-                      <p className="text-sm font-semibold text-slate-800">{l.patientName}</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{l.patientName}</p>
                     </div>
                   </td>
                   <td className="table-td">
-                    <p className="text-sm font-medium text-slate-700">{l.testName}</p>
-                    <p className="text-xs text-slate-400">{l.category}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{l.testName}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{l.category}</p>
                   </td>
                   <td className="table-td text-slate-500 text-xs">{l.date ? formatDate(l.date) : '—'}</td>
                   <td className="table-td">
                     {l.result ? (
-                      <span className={`text-sm font-bold ${l.status === 'Abnormal' ? 'text-red-600' : l.status === 'Normal' ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      <span className={`text-sm font-bold ${l.status === 'Abnormal' ? 'text-red-600' : l.status === 'Normal' ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-400'}`}>
                         {l.result} {l.unit}
                       </span>
-                    ) : <span className="text-slate-300 text-xs">Pending</span>}
+                    ) : <span className="text-slate-300 dark:text-slate-700 text-xs">Pending</span>}
                   </td>
-                  <td className="table-td text-slate-400 text-xs">{l.normalRange || '—'}</td>
+                  <td className="table-td text-slate-400 dark:text-slate-600 text-xs">{l.normalRange || '—'}</td>
                   <td className="table-td"><Badge status={l.status} /></td>
                   <td className="table-td text-slate-500 text-sm">{l.orderedBy || '—'}</td>
                   <td className="table-td text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => openEdit(l)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                      <button onClick={() => openEdit(l)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400">
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => setConfirmId(l.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500">
+                      <button onClick={() => setConfirmId(l.id)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -267,7 +267,7 @@ export default function LabResults({ currentUser }) {
           </table>
         </div>
         {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-600">
             Showing {filtered.length} of {visibleResults.length} results
           </div>
         )}

@@ -16,13 +16,13 @@ const FLOORS       = ['Ground', '1st', '2nd', '3rd', '4th', '5th']
 const EMPTY_FORM = { roomNumber: '', type: 'General Ward', status: 'Vacant', floor: 'Ground', capacity: '1', patientName: '', patientId: '', notes: '' }
 
 const TYPE_ICON_COLOR = {
-  'General Ward':    'bg-blue-50 text-blue-600',
-  'Private':         'bg-purple-50 text-purple-600',
-  'ICU':             'bg-red-50 text-red-600',
+  'General Ward':    'bg-blue-50 dark:bg-blue-500/12 text-blue-600',
+  'Private':         'bg-purple-50 dark:bg-purple-500/12 text-purple-600',
+  'ICU':             'bg-red-50 dark:bg-red-500/12 text-red-600',
   'Emergency':       'bg-rose-50 text-rose-600',
-  'Consultation':    'bg-teal-50 text-teal-600',
-  'Operating Room':  'bg-amber-50 text-amber-600',
-  'Pediatric':       'bg-pink-50 text-pink-600',
+  'Consultation':    'bg-teal-50 dark:bg-teal-500/12 text-teal-600',
+  'Operating Room':  'bg-amber-50 dark:bg-amber-500/12 text-amber-600',
+  'Pediatric':       'bg-pink-50 dark:bg-pink-500/12 text-pink-600',
   'Maternity':       'bg-fuchsia-50 text-fuchsia-600',
 }
 
@@ -53,7 +53,7 @@ function RoomForm({ form, setForm, patients }) {
             {ROOM_STATUSES.map(s => (
               <button key={s} type="button"
                 onClick={() => setForm(f => ({ ...f, status: s, patientName: s !== 'Occupied' ? '' : f.patientName, patientId: s !== 'Occupied' ? '' : f.patientId }))}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${form.status === s ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${form.status === s ? 'border-teal-500 bg-teal-50 dark:bg-teal-500/12 text-teal-700' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                 {s}
               </button>
             ))}
@@ -136,8 +136,8 @@ export default function Rooms({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Rooms & Beds</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{counts.total} rooms · {counts.occupied} occupied · {counts.vacant} vacant</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Rooms & Beds</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{counts.total} rooms · {counts.occupied} occupied · {counts.vacant} vacant</p>
         </div>
         {canEdit && (
           <button onClick={openAdd} className="btn-primary">
@@ -148,13 +148,13 @@ export default function Rooms({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Rooms', value: counts.total,       color: 'text-slate-700 bg-slate-50',   border: 'border-slate-200' },
-          { label: 'Vacant',      value: counts.vacant,      color: 'text-emerald-700 bg-emerald-50', border: 'border-emerald-200' },
-          { label: 'Occupied',    value: counts.occupied,    color: 'text-blue-700 bg-blue-50',     border: 'border-blue-200' },
-          { label: 'Maintenance', value: counts.maintenance, color: 'text-amber-700 bg-amber-50',   border: 'border-amber-200' },
+          { label: 'Total Rooms', value: counts.total,       color: 'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800',   border: 'border-slate-200 dark:border-slate-700' },
+          { label: 'Vacant',      value: counts.vacant,      color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-500/12', border: 'border-emerald-200 dark:border-emerald-500/30' },
+          { label: 'Occupied',    value: counts.occupied,    color: 'text-blue-700 bg-blue-50 dark:bg-blue-500/12',     border: 'border-blue-200 dark:border-blue-500/30' },
+          { label: 'Maintenance', value: counts.maintenance, color: 'text-amber-700 bg-amber-50 dark:bg-amber-500/12',   border: 'border-amber-200 dark:border-amber-500/30' },
         ].map(({ label, value, color, border }) => (
           <div key={label} className={`card p-4 border ${border}`}>
-            <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-semibold mb-1">{label}</p>
             <p className={`text-2xl font-extrabold ${color.split(' ')[0]}`}>{value}</p>
           </div>
         ))}
@@ -162,18 +162,18 @@ export default function Rooms({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search room number, type, patient…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -194,7 +194,7 @@ export default function Rooms({ currentUser }) {
         {(search || filterType !== 'All' || filterStatus !== 'All') && (
           <button
             onClick={() => { setSearch(''); setFilterType('All'); setFilterStatus('All') }}
-            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
           >
             Clear
           </button>
@@ -202,7 +202,7 @@ export default function Rooms({ currentUser }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
           <BedDouble size={36} className="text-slate-200 mb-3" />
           <p className="text-sm font-medium">{search ? 'No results found' : 'No rooms added yet'}</p>
           {!search && canEdit && <button onClick={openAdd} className="btn-primary text-xs mt-4"><Plus size={13} /> Add First Room</button>}
@@ -210,7 +210,7 @@ export default function Rooms({ currentUser }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map(r => {
-            const iconColor = TYPE_ICON_COLOR[r.type] || 'bg-slate-50 text-slate-500'
+            const iconColor = TYPE_ICON_COLOR[r.type] || 'bg-slate-50 dark:bg-slate-800 text-slate-500'
             return (
               <div key={r.id} className={`card p-5 flex flex-col gap-3 border-l-4 transition-shadow hover:shadow-md ${r.status === 'Occupied' ? 'border-l-blue-400' : r.status === 'Maintenance' ? 'border-l-amber-400' : 'border-l-emerald-400'}`}>
                 <div className="flex items-start justify-between">
@@ -219,22 +219,22 @@ export default function Rooms({ currentUser }) {
                   </div>
                   {canEdit && (
                     <div className="flex gap-1">
-                      <button onClick={() => openEdit(r)} className="p-1 rounded text-slate-300 hover:text-slate-600"><Pencil size={13} /></button>
-                      <button onClick={() => { setConfirmId(r.id); setConfirmLabel(r.roomNumber) }} className="p-1 rounded text-slate-300 hover:text-red-400"><Trash2 size={13} /></button>
+                      <button onClick={() => openEdit(r)} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-slate-600 dark:hover:text-slate-400"><Pencil size={13} /></button>
+                      <button onClick={() => { setConfirmId(r.id); setConfirmLabel(r.roomNumber) }} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-red-400"><Trash2 size={13} /></button>
                     </div>
                   )}
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-extrabold text-slate-800 text-lg">Room {r.roomNumber}</p>
+                    <p className="font-extrabold text-slate-800 dark:text-slate-200 text-lg">Room {r.roomNumber}</p>
                     <Badge status={r.status} />
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">{r.type} · {r.floor} Floor · {r.capacity} bed{r.capacity !== '1' ? 's' : ''}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{r.type} · {r.floor} Floor · {r.capacity} bed{r.capacity !== '1' ? 's' : ''}</p>
                 </div>
 
                 {r.status === 'Occupied' && r.patientName && (
-                  <div className="bg-blue-50 rounded-xl px-3 py-2 flex items-center gap-2">
+                  <div className="bg-blue-50 dark:bg-blue-500/12 rounded-xl px-3 py-2 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-[10px] font-bold text-blue-700 flex-shrink-0">
                       {r.patientName.charAt(0)}
                     </div>
@@ -245,22 +245,22 @@ export default function Rooms({ currentUser }) {
                   </div>
                 )}
 
-                {r.notes && <p className="text-xs text-slate-400 italic truncate">{r.notes}</p>}
+                {r.notes && <p className="text-xs text-slate-400 dark:text-slate-600 italic truncate">{r.notes}</p>}
 
                 {canEdit && (
                   <div className="flex gap-1.5 mt-auto pt-1">
                     {r.status !== 'Vacant' && (
-                      <button onClick={() => quickStatus(r, 'Vacant')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 transition-colors">
+                      <button onClick={() => quickStatus(r, 'Vacant')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-500/30 transition-colors">
                         Mark Vacant
                       </button>
                     )}
                     {r.status !== 'Occupied' && (
-                      <button onClick={() => openEdit({ ...r, status: 'Occupied' })} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">
+                      <button onClick={() => openEdit({ ...r, status: 'Occupied' })} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-500/12 text-blue-600 hover:bg-blue-100 border border-blue-200 dark:border-blue-500/30 transition-colors">
                         Admit Patient
                       </button>
                     )}
                     {r.status !== 'Maintenance' && (
-                      <button onClick={() => quickStatus(r, 'Maintenance')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 transition-colors">
+                      <button onClick={() => quickStatus(r, 'Maintenance')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-500/12 text-amber-600 hover:bg-amber-100 border border-amber-200 dark:border-amber-500/30 transition-colors">
                         Maintenance
                       </button>
                     )}

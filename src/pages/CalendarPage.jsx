@@ -66,14 +66,14 @@ export default function CalendarPage({ onNavigate }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Calendar</h2>
-          <p className="text-sm text-slate-400">Visual overview of appointment schedule</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Calendar</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600">Visual overview of appointment schedule</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setCurrent(new Date(year, month - 1, 1))} className="btn-ghost p-2">
             <ChevronLeft size={16} />
           </button>
-          <span className="text-sm font-bold text-slate-700 w-36 text-center">{MONTHS[month]} {year}</span>
+          <span className="text-sm font-bold text-slate-700 dark:text-slate-300 w-36 text-center">{MONTHS[month]} {year}</span>
           <button onClick={() => setCurrent(new Date(year, month + 1, 1))} className="btn-ghost p-2">
             <ChevronRight size={16} />
           </button>
@@ -81,11 +81,11 @@ export default function CalendarPage({ onNavigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         <div className="lg:col-span-2 card p-4">
           <div className="grid grid-cols-7 mb-2">
             {DAYS.map(d => (
-              <div key={d} className="text-center text-xs font-bold text-slate-400 py-2">{d}</div>
+              <div key={d} className="text-center text-xs font-bold text-slate-400 dark:text-slate-600 py-2">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -100,10 +100,10 @@ export default function CalendarPage({ onNavigate }) {
                   onClick={() => setSelected(cell)}
                   className={`min-h-16 p-1.5 rounded-xl flex flex-col gap-1 text-left transition-all
                     ${!cell.current ? 'opacity-30' : ''}
-                    ${isToday ? 'bg-teal-600 text-white' : isSel ? 'bg-teal-50 border-2 border-teal-400' : 'hover:bg-slate-50 border border-transparent'}
+                    ${isToday ? 'bg-teal-600 text-white' : isSel ? 'bg-teal-50 dark:bg-teal-500/12 border-2 border-teal-400' : 'hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'}
                   `}
                 >
-                  <span className={`text-xs font-bold ${isToday ? 'text-white' : isSel ? 'text-teal-700' : 'text-slate-600'}`}>
+                  <span className={`text-xs font-bold ${isToday ? 'text-white' : isSel ? 'text-teal-700' : 'text-slate-600 dark:text-slate-400'}`}>
                     {cell.day}
                   </span>
                   {dayAppts.length > 0 && (
@@ -112,7 +112,7 @@ export default function CalendarPage({ onNavigate }) {
                         <span key={j} className={`w-1.5 h-1.5 rounded-full ${isToday ? 'bg-white/80' : STATUS_DOT[a.status] || 'bg-slate-300'}`} />
                       ))}
                       {dayAppts.length > 3 && (
-                        <span className={`text-[9px] font-bold ${isToday ? 'text-white/80' : 'text-slate-400'}`}>+{dayAppts.length - 3}</span>
+                        <span className={`text-[9px] font-bold ${isToday ? 'text-white/80' : 'text-slate-400 dark:text-slate-600'}`}>+{dayAppts.length - 3}</span>
                       )}
                     </div>
                   )}
@@ -126,7 +126,7 @@ export default function CalendarPage({ onNavigate }) {
             })}
           </div>
 
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
             {Object.entries(STATUS_DOT).map(([status, cls]) => (
               <div key={status} className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span className={`w-2 h-2 rounded-full ${cls}`} />
@@ -136,19 +136,19 @@ export default function CalendarPage({ onNavigate }) {
           </div>
         </div>
 
-        <div className="card p-5">
+        <div className="card p-5 lg:max-h-[560px] flex flex-col">
           {!selected ? (
-            <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 py-12">
+            <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 dark:text-slate-600 py-12">
               <CalendarDays size={36} className="text-slate-200 mb-3" />
               <p className="text-sm font-medium">Select a day</p>
               <p className="text-xs mt-1">Click any date to see its appointments</p>
             </div>
           ) : (
-            <div>
-              <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div>
-                  <h3 className="font-bold text-slate-800">{selLabel}</h3>
-                  <p className="text-xs text-slate-400">{selectedAppts.length} appointment{selectedAppts.length !== 1 ? 's' : ''}</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-200">{selLabel}</h3>
+                  <p className="text-xs text-slate-400 dark:text-slate-600">{selectedAppts.length} appointment{selectedAppts.length !== 1 ? 's' : ''}</p>
                 </div>
                 <button onClick={() => onNavigate('appointments')} className="btn-primary text-xs py-1.5 px-3">
                   <Plus size={13} /> Schedule
@@ -156,19 +156,19 @@ export default function CalendarPage({ onNavigate }) {
               </div>
 
               {selectedAppts.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
+                <div className="text-center py-8 text-slate-400 dark:text-slate-600">
                   <CalendarDays size={28} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">No appointments this day</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 overflow-y-auto pr-1">
                   {selectedAppts.map(a => (
-                    <div key={a.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div key={a.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
                       <Avatar name={a.patientName} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{a.patientName}</p>
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{a.patientName}</p>
                         <p className="text-xs text-slate-500 truncate">{a.doctorName}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-400 dark:text-slate-600">
                           {a.type} {a.timeStart ? `· ${a.timeStart}${a.timeEnd ? ` – ${a.timeEnd}` : ''}` : ''}
                         </p>
                       </div>
@@ -190,7 +190,7 @@ export default function CalendarPage({ onNavigate }) {
           { label: 'Cancelled',  value: appointments.filter(a => a.status === 'Cancelled').length,  color: 'text-red-500'    },
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4 text-center">
-            <p className="text-xs text-slate-400 font-medium mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-medium mb-1">{label}</p>
             <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}

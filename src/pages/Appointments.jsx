@@ -19,9 +19,9 @@ const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', t
 const APPT_TYPES = ['Consultation','Follow-up','Surgery','Telemedicine','Check-up']
 
 const STATUS_ACTIONS = {
-  'Scheduled':   { label: 'Check In',    icon: UserCheck,  next: 'Checked In',  color: 'bg-violet-50 text-violet-600 hover:bg-violet-100 border-violet-200' },
-  'Checked In':  { label: 'Start',       icon: PlayCircle, next: 'In Progress',  color: 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200' },
-  'In Progress': { label: 'Complete',    icon: CheckCheck, next: 'Completed',    color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200' },
+  'Scheduled':   { label: 'Check In',    icon: UserCheck,  next: 'Checked In',  color: 'bg-violet-50 dark:bg-violet-500/12 text-violet-600 hover:bg-violet-100 border-violet-200 dark:border-violet-500/30' },
+  'Checked In':  { label: 'Start',       icon: PlayCircle, next: 'In Progress',  color: 'bg-blue-50 dark:bg-blue-500/12 text-blue-600 hover:bg-blue-100 border-blue-200 dark:border-blue-500/30' },
+  'In Progress': { label: 'Complete',    icon: CheckCheck, next: 'Completed',    color: 'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 hover:bg-emerald-100 border-emerald-200 dark:border-emerald-500/30' },
   'Completed':   null,
   'Cancelled':   null,
 }
@@ -84,7 +84,7 @@ function AppointmentForm({ form, setForm, patients, doctors, settings }) {
             <div className="flex-1 min-w-0">
               <TimePicker value={form.timeStart} onChange={setTimeStart} min={settings?.workingHoursStart} max={settings?.workingHoursEnd} />
             </div>
-            <ArrowRight size={14} className="text-slate-300 flex-shrink-0" />
+            <ArrowRight size={14} className="text-slate-300 dark:text-slate-700 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <TimePicker value={form.timeEnd} onChange={setDirect('timeEnd')} min={settings?.workingHoursStart} max={settings?.workingHoursEnd} />
             </div>
@@ -113,7 +113,7 @@ function AppointmentForm({ form, setForm, patients, doctors, settings }) {
         <label className="label">Notes / Reason</label>
         <textarea className="input-field resize-none" rows={2} placeholder="Reason for visit, symptoms…" value={form.notes} onChange={set('notes')} />
       </div>
-      <div className="border border-dashed border-teal-200 rounded-xl p-4 bg-teal-50/40">
+      <div className="border border-dashed border-teal-200 dark:border-teal-500/30 rounded-xl p-4 bg-teal-50/40 dark:bg-teal-500/10">
         <label className="flex items-center gap-2.5 cursor-pointer mb-3">
           <input
             type="checkbox"
@@ -121,7 +121,7 @@ function AppointmentForm({ form, setForm, patients, doctors, settings }) {
             checked={!!form.requiresFollowUp}
             onChange={e => setForm(f => ({ ...f, requiresFollowUp: e.target.checked, followUpDate: e.target.checked ? f.followUpDate : '' }))}
           />
-          <span className="text-sm font-semibold text-slate-700">Requires Follow-up</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Requires Follow-up</span>
         </label>
         {form.requiresFollowUp && (
           <div className="flex flex-col gap-3">
@@ -209,19 +209,19 @@ export default function Appointments({ currentUser }) {
   }, {})
 
   const STATUS_COLORS = {
-    'Scheduled':   'text-teal-600 bg-teal-50',
-    'Checked In':  'text-violet-600 bg-violet-50',
-    'In Progress': 'text-blue-600 bg-blue-50',
-    'Completed':   'text-emerald-600 bg-emerald-50',
-    'Cancelled':   'text-red-500 bg-red-50',
+    'Scheduled':   'text-teal-600 bg-teal-50 dark:bg-teal-500/12',
+    'Checked In':  'text-violet-600 bg-violet-50 dark:bg-violet-500/12',
+    'In Progress': 'text-blue-600 bg-blue-50 dark:bg-blue-500/12',
+    'Completed':   'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/12',
+    'Cancelled':   'text-red-500 bg-red-50 dark:bg-red-500/12',
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Appointments</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{appointments.length} total appointments</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Appointments</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{appointments.length} total appointments</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportAppointments(appointments)} className="btn-ghost text-xs">
@@ -235,10 +235,10 @@ export default function Appointments({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
         {APPOINTMENT_STATUSES.map(s => {
-          const [tc, bc] = (STATUS_COLORS[s] || 'text-slate-600 bg-slate-50').split(' ')
+          const [tc, bc] = (STATUS_COLORS[s] || 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800').split(' ')
           return (
             <div key={s} className="card p-4">
-              <p className="text-xs font-semibold text-slate-400 mb-1">{s}</p>
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-600 mb-1">{s}</p>
               <p className={`text-2xl font-extrabold ${tc}`}>{statusCounts[s]}</p>
             </div>
           )
@@ -247,19 +247,19 @@ export default function Appointments({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by patient or doctor…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -269,7 +269,7 @@ export default function Appointments({ currentUser }) {
           {isDoctor && (
             <button
               onClick={() => setMyOnly(v => !v)}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border transition-colors ${myOnly ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border transition-colors ${myOnly ? 'bg-teal-50 dark:bg-teal-500/12 border-teal-300 text-teal-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
             >
               <Stethoscope size={12} />
               {myOnly ? 'My Appointments' : 'All Appointments'}
@@ -290,7 +290,7 @@ export default function Appointments({ currentUser }) {
           {(search || filterStatus !== 'All' || filterType !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterStatus('All'); setFilterType('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -301,7 +301,7 @@ export default function Appointments({ currentUser }) {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="table-th">Patient</th>
                 <th className="table-th">Doctor</th>
@@ -316,7 +316,7 @@ export default function Appointments({ currentUser }) {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                       <Calendar size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No appointments yet'}</p>
                       {!search && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Schedule First</button>}
@@ -335,19 +335,19 @@ export default function Appointments({ currentUser }) {
                       <div className="flex items-center gap-3">
                         <Avatar name={a.patientName} size="sm" />
                         <div>
-                          <p className="font-semibold text-slate-800 text-sm">{a.patientName}</p>
-                          <p className="text-xs text-slate-400">{pat?.phone || '—'}</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{a.patientName}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-600">{pat?.phone || '—'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="table-td">
-                      <p className="text-sm font-medium text-slate-700">{a.doctorName}</p>
-                      <p className="text-xs text-slate-400">{doc?.specialty || '—'}</p>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{a.doctorName}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-600">{doc?.specialty || '—'}</p>
                     </td>
                     <td className="table-td text-slate-500 text-sm">{a.type || '—'}</td>
-                    <td className="table-td text-slate-600 text-xs whitespace-nowrap">
+                    <td className="table-td text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
                       {a.date ? formatDate(a.date) : '—'}
-                      {a.timeStart && <><br /><span className="text-slate-400">{a.timeStart}{a.timeEnd ? ` – ${a.timeEnd}` : ''}</span></>}
+                      {a.timeStart && <><br /><span className="text-slate-400 dark:text-slate-600">{a.timeStart}{a.timeEnd ? ` – ${a.timeEnd}` : ''}</span></>}
                     </td>
                     <td className="table-td">
                       <Badge status={a.status} />
@@ -362,15 +362,15 @@ export default function Appointments({ currentUser }) {
                             <ActionIcon size={11} /> {action.label}
                           </button>
                         ) : action ? (
-                          <span className="text-xs text-slate-300" title="Check-in becomes available on the scheduled date">Not yet</span>
+                          <span className="text-xs text-slate-300 dark:text-slate-700" title="Check-in becomes available on the scheduled date">Not yet</span>
                         ) : (
-                          <span className="text-xs text-slate-300">—</span>
+                          <span className="text-xs text-slate-300 dark:text-slate-700">—</span>
                         )}
                         {(a.status === 'Scheduled' || a.status === 'Checked In') && (
                           <button
                             onClick={() => cancelAppt(a)}
                             title="Cancel appointment"
-                            className="p-1.5 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-400 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-300 dark:text-slate-700 hover:bg-red-50 hover:text-red-400 transition-colors"
                           >
                             <XIcon size={12} />
                           </button>
@@ -379,10 +379,10 @@ export default function Appointments({ currentUser }) {
                     </td>
                     <td className="table-td text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                        <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                           <Pencil size={14} />
                         </button>
-                        <button onClick={() => { setConfirmId(a.id); setConfirmLabel(`${a.patientName} w/ ${a.doctorName}`) }} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                        <button onClick={() => { setConfirmId(a.id); setConfirmLabel(`${a.patientName} w/ ${a.doctorName}`) }} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500 transition-colors">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -394,7 +394,7 @@ export default function Appointments({ currentUser }) {
           </table>
         </div>
         {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-600">
             Showing {filtered.length} of {visibleAppts.length} appointments · Use Quick Action to advance status
           </div>
         )}

@@ -5,33 +5,33 @@ import { SkeletonTable } from '../components/ui/Skeleton'
 import FilterDropdown from '../components/ui/FilterDropdown'
 
 const ENTITY_COLORS = {
-  Patient:          'bg-blue-100 text-blue-700',
-  Doctor:           'bg-purple-100 text-purple-700',
-  'Doctor Profile': 'bg-purple-100 text-purple-700',
-  Appointment:      'bg-teal-100 text-teal-700',
-  Department:       'bg-amber-100 text-amber-700',
-  Inventory:        'bg-emerald-100 text-emerald-700',
+  Patient:          'bg-blue-100 dark:bg-blue-500/18 text-blue-700',
+  Doctor:           'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  'Doctor Profile': 'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  Appointment:      'bg-teal-100 dark:bg-teal-500/18 text-teal-700',
+  Department:       'bg-amber-100 dark:bg-amber-500/18 text-amber-700',
+  Inventory:        'bg-emerald-100 dark:bg-emerald-500/18 text-emerald-700',
   Invoice:          'bg-rose-100 text-rose-700',
-  User:             'bg-slate-100 text-slate-700',
-  'User Profile':   'bg-slate-100 text-slate-700',
+  User:             'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300',
+  'User Profile':   'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300',
   Shift:            'bg-indigo-100 text-indigo-700',
   Expense:          'bg-orange-100 text-orange-700',
   Room:             'bg-cyan-100 text-cyan-700',
   Document:         'bg-pink-100 text-pink-700',
   Prescription:     'bg-lime-100 text-lime-700',
-  Claim:            'bg-violet-100 text-violet-700',
+  Claim:            'bg-violet-100 dark:bg-violet-500/18 text-violet-700',
   'Pharmacy Order': 'bg-fuchsia-100 text-fuchsia-700',
   'Medical Record': 'bg-sky-100 text-sky-700',
   Settings:         'bg-gray-100 text-gray-700',
 }
 
 const ACTION_COLORS = {
-  Added:          'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  Updated:        'bg-blue-50 text-blue-700 border border-blue-200',
-  Deleted:        'bg-red-50 text-red-700 border border-red-200',
-  'Role Changed': 'bg-purple-50 text-purple-700 border border-purple-200',
-  Linked:         'bg-teal-50 text-teal-700 border border-teal-200',
-  Deducted:       'bg-amber-50 text-amber-700 border border-amber-200',
+  Added:          'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700 border border-emerald-200 dark:border-emerald-500/30',
+  Updated:        'bg-blue-50 dark:bg-blue-500/12 text-blue-700 border border-blue-200 dark:border-blue-500/30',
+  Deleted:        'bg-red-50 dark:bg-red-500/12 text-red-700 border border-red-200 dark:border-red-500/30',
+  'Role Changed': 'bg-purple-50 dark:bg-purple-500/12 text-purple-700 border border-purple-200',
+  Linked:         'bg-teal-50 dark:bg-teal-500/12 text-teal-700 border border-teal-200 dark:border-teal-500/30',
+  Deducted:       'bg-amber-50 dark:bg-amber-500/12 text-amber-700 border border-amber-200 dark:border-amber-500/30',
 }
 
 function formatTimestamp(iso, timeZone) {
@@ -82,8 +82,8 @@ export default function AuditLog() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Audit Log</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{logs.length} total activity records</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Audit Log</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{logs.length} total activity records</p>
         </div>
         <button onClick={loadLogs} disabled={loading} className="btn-ghost text-xs">
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
@@ -98,26 +98,26 @@ export default function AuditLog() {
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4 text-center">
             <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{label}</p>
           </div>
         ))}
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, entity, or user…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -129,7 +129,7 @@ export default function AuditLog() {
           {(search || filterEntity !== 'All' || filterAction !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterEntity('All'); setFilterAction('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -143,7 +143,7 @@ export default function AuditLog() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-50 dark:bg-slate-800">
                 <tr>
                   <th className="table-th">Timestamp</th>
                   <th className="table-th">User</th>
@@ -156,7 +156,7 @@ export default function AuditLog() {
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-16 text-center">
-                      <div className="flex flex-col items-center gap-2 text-slate-400">
+                      <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                         <ClipboardList size={32} className="text-slate-200" />
                         <p className="text-sm font-medium">{search ? 'No results found' : 'No audit logs yet'}</p>
                         <p className="text-xs">Actions will appear here as you use the system</p>
@@ -165,28 +165,28 @@ export default function AuditLog() {
                   </tr>
                 ) : filtered.map(log => (
                   <tr key={log.id} className="table-row">
-                    <td className="table-td text-xs text-slate-400 whitespace-nowrap">{formatTimestamp(log.timestamp, settings?.timezone)}</td>
+                    <td className="table-td text-xs text-slate-400 dark:text-slate-600 whitespace-nowrap">{formatTimestamp(log.timestamp, settings?.timezone)}</td>
                     <td className="table-td">
-                      <p className="text-sm font-semibold text-slate-700">{log.userName}</p>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{log.userName}</p>
                     </td>
                     <td className="table-td">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ACTION_COLORS[log.action] || 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ACTION_COLORS[log.action] || 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'}`}>
                         {log.action}
                       </span>
                     </td>
                     <td className="table-td">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ENTITY_COLORS[log.entity] || 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ENTITY_COLORS[log.entity] || 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'}`}>
                         {log.entity}
                       </span>
                     </td>
-                    <td className="table-td text-slate-600 text-sm">{log.entityName}</td>
+                    <td className="table-td text-slate-600 dark:text-slate-400 text-sm">{log.entityName}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {filtered.length > 0 && (
-            <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+            <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-600">
               Showing {filtered.length} of {logs.length} log entries
             </div>
           )}

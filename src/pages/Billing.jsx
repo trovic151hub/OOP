@@ -17,10 +17,10 @@ const EMPTY_FORM = { patientName: '', patientId: '', description: '', date: '', 
 const STATUSES = ['Pending', 'Paid', 'Overdue', 'Waived']
 
 const STATUS_STYLE = {
-  Paid:    'bg-emerald-100 text-emerald-700',
-  Pending: 'bg-amber-100 text-amber-700',
-  Overdue: 'bg-red-100 text-red-600',
-  Waived:  'bg-slate-100 text-slate-600',
+  Paid:    'bg-emerald-100 dark:bg-emerald-500/18 text-emerald-700',
+  Pending: 'bg-amber-100 dark:bg-amber-500/18 text-amber-700',
+  Overdue: 'bg-red-100 dark:bg-red-500/18 text-red-600',
+  Waived:  'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400',
 }
 
 function InvoiceForm({ form, setForm, patients, settings }) {
@@ -79,7 +79,7 @@ function InvoiceForm({ form, setForm, patients, settings }) {
         </div>
         <div className="col-span-2">
           <label className="label">Total ({symbol}){taxRate > 0 ? ` — incl. ${taxRate}% tax` : ''}</label>
-          <input type="number" className="input-field bg-slate-50" placeholder="0.00" value={form.total} onChange={set('total')} />
+          <input type="number" className="input-field bg-slate-50 dark:bg-slate-800" placeholder="0.00" value={form.total} onChange={set('total')} />
         </div>
         <div className="col-span-2">
           <label className="label">Notes</label>
@@ -199,8 +199,8 @@ export default function Billing({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Billing & Invoicing</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{billing.length} invoices</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Billing & Invoicing</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{billing.length} invoices</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportCSV(
@@ -220,13 +220,13 @@ export default function Billing({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Invoices', value: billing.length,                              color: 'text-slate-700' },
+          { label: 'Total Invoices', value: billing.length,                              color: 'text-slate-700 dark:text-slate-300' },
           { label: 'Revenue',        value: formatCurrency(totalRevenue, settings?.currency),  color: 'text-emerald-600' },
           { label: 'Pending',        value: formatCurrency(totalPending, settings?.currency),  color: 'text-amber-600' },
           { label: 'Overdue',        value: formatCurrency(totalOverdue, settings?.currency),  color: 'text-red-500' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4">
-            <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-600 mb-1">{label}</p>
             <p className={`text-xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
@@ -234,19 +234,19 @@ export default function Billing({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search patient or description…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -262,7 +262,7 @@ export default function Billing({ currentUser }) {
           {(search || filterStatus !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterStatus('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -273,7 +273,7 @@ export default function Billing({ currentUser }) {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="table-th">Invoice</th>
                 <th className="table-th">Patient</th>
@@ -288,7 +288,7 @@ export default function Billing({ currentUser }) {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
                       <NairaIcon size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No invoices yet'}</p>
                       {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Create First Invoice</button>}
@@ -297,27 +297,27 @@ export default function Billing({ currentUser }) {
                 </tr>
               ) : filtered.map(b => (
                 <tr key={b.id} className="table-row">
-                  <td className="table-td text-xs font-mono text-slate-400">{invoiceNumber(settings?.invoicePrefix, b.id)}</td>
-                  <td className="table-td font-semibold text-slate-800 text-sm">{b.patientName}</td>
+                  <td className="table-td text-xs font-mono text-slate-400 dark:text-slate-600">{invoiceNumber(settings?.invoicePrefix, b.id)}</td>
+                  <td className="table-td font-semibold text-slate-800 dark:text-slate-200 text-sm">{b.patientName}</td>
                   <td className="table-td text-slate-500 text-xs max-w-40 truncate">{b.description || '—'}</td>
                   <td className="table-td text-slate-500 text-xs">{b.date ? formatDate(b.date) : '—'}</td>
-                  <td className="table-td font-bold text-slate-800">{formatCurrency(b.total, settings?.currency)}</td>
+                  <td className="table-td font-bold text-slate-800 dark:text-slate-200">{formatCurrency(b.total, settings?.currency)}</td>
                   <td className="table-td">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[b.status] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[b.status] || 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'}`}>
                       {b.status}
                     </span>
                   </td>
                   <td className="table-td text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => printInvoice(b, settings)} className="p-1.5 rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-500 transition-colors" title="Print Invoice">
+                      <button onClick={() => printInvoice(b, settings)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-blue-50 hover:text-blue-500 transition-colors" title="Print Invoice">
                         <Printer size={14} />
                       </button>
                       {isAdmin && (
                         <>
-                          <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                          <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                             <Pencil size={14} />
                           </button>
-                          <button onClick={() => setConfirmId(b.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                          <button onClick={() => setConfirmId(b.id)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500 transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </>
@@ -330,7 +330,7 @@ export default function Billing({ currentUser }) {
           </table>
         </div>
         {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+          <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-600">
             Showing {filtered.length} of {billing.length} invoices
           </div>
         )}

@@ -16,16 +16,16 @@ const STATUSES = ['Active', 'Inactive', 'Under Maintenance']
 // department color is a static lookup instead of a string template.
 const DEPT_COLORS = ['teal', 'red', 'rose', 'purple', 'blue', 'amber', 'green', 'orange', 'pink', 'indigo']
 const DEPT_COLOR_STYLES = {
-  teal:   { bg: 'bg-teal-50',   border: 'border-teal-100',   icon: 'text-teal-600' },
-  red:    { bg: 'bg-red-50',    border: 'border-red-100',    icon: 'text-red-600' },
+  teal:   { bg: 'bg-teal-50 dark:bg-teal-500/12',   border: 'border-teal-100 dark:border-teal-500/20',   icon: 'text-teal-600' },
+  red:    { bg: 'bg-red-50 dark:bg-red-500/12',    border: 'border-red-100 dark:border-red-500/20',    icon: 'text-red-600' },
   rose:   { bg: 'bg-rose-50',   border: 'border-rose-100',   icon: 'text-rose-600' },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-100', icon: 'text-purple-600' },
-  blue:   { bg: 'bg-blue-50',   border: 'border-blue-100',   icon: 'text-blue-600' },
-  amber:  { bg: 'bg-amber-50',  border: 'border-amber-100',  icon: 'text-amber-600' },
-  green:  { bg: 'bg-green-50',  border: 'border-green-100',  icon: 'text-green-600' },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-100', icon: 'text-orange-600' },
-  pink:   { bg: 'bg-pink-50',   border: 'border-pink-100',   icon: 'text-pink-600' },
-  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-100', icon: 'text-indigo-600' },
+  purple: { bg: 'bg-purple-50 dark:bg-purple-500/12', border: 'border-purple-100 dark:border-purple-500/20', icon: 'text-purple-600' },
+  blue:   { bg: 'bg-blue-50 dark:bg-blue-500/12',   border: 'border-blue-100 dark:border-blue-500/20',   icon: 'text-blue-600' },
+  amber:  { bg: 'bg-amber-50 dark:bg-amber-500/12',  border: 'border-amber-100 dark:border-amber-500/20',  icon: 'text-amber-600' },
+  green:  { bg: 'bg-green-50 dark:bg-green-500/12',  border: 'border-green-100',  icon: 'text-green-600' },
+  orange: { bg: 'bg-orange-50 dark:bg-orange-500/12', border: 'border-orange-100', icon: 'text-orange-600' },
+  pink:   { bg: 'bg-pink-50 dark:bg-pink-500/12',   border: 'border-pink-100',   icon: 'text-pink-600' },
+  indigo: { bg: 'bg-indigo-50 dark:bg-indigo-500/12', border: 'border-indigo-100', icon: 'text-indigo-600' },
 }
 const DEPT_COLOR_SWATCH = {
   teal: 'bg-teal-500', red: 'bg-red-500', rose: 'bg-rose-500', purple: 'bg-purple-500',
@@ -116,8 +116,8 @@ export default function Departments({ currentUser }) {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Departments</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{departments.length} departments · {doctors.length} doctors on staff</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Departments</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{departments.length} departments · {doctors.length} doctors on staff</p>
         </div>
         {isAdmin && (
           <button onClick={openAdd} className="btn-primary">
@@ -128,19 +128,19 @@ export default function Departments({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name, head, or floor…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -156,7 +156,7 @@ export default function Departments({ currentUser }) {
           {(search || filterStatus !== 'All') && (
             <button
               onClick={() => { setSearch(''); setFilterStatus('All') }}
-              className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+              className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
             >
               Clear
             </button>
@@ -165,7 +165,7 @@ export default function Departments({ currentUser }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
           <Building2 size={36} className="text-slate-200 mb-3" />
           <p className="text-sm font-medium">{search ? 'No results found' : 'No departments yet'}</p>
           {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-4"><Plus size={13} /> Add First Department</button>}
@@ -188,10 +188,10 @@ export default function Departments({ currentUser }) {
                     <Badge status={dept.status || 'Active'} />
                     {isAdmin && (
                       <>
-                        <button onClick={() => openEdit(dept)} className="p-1 rounded text-slate-300 hover:text-slate-600 transition-colors">
+                        <button onClick={() => openEdit(dept)} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                           <Pencil size={13} />
                         </button>
-                        <button onClick={() => setConfirmId(dept.id)} className="p-1 rounded text-slate-300 hover:text-red-400 transition-colors">
+                        <button onClick={() => setConfirmId(dept.id)} className="p-1 rounded text-slate-300 dark:text-slate-700 hover:text-red-400 transition-colors">
                           <Trash2 size={13} />
                         </button>
                       </>
@@ -199,40 +199,40 @@ export default function Departments({ currentUser }) {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800">{dept.name}</h3>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-200">{dept.name}</h3>
                   {dept.head && <p className="text-xs text-teal-600 font-medium mt-0.5">{dept.head}</p>}
-                  {dept.description && <p className="text-xs text-slate-400 mt-1 line-clamp-2">{dept.description}</p>}
+                  {dept.description && <p className="text-xs text-slate-400 dark:text-slate-600 mt-1 line-clamp-2">{dept.description}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
-                  {dept.floor && <div className="flex items-center gap-1.5"><span className="text-slate-300">📍</span>{dept.floor}</div>}
-                  {dept.phone && <div className="flex items-center gap-1.5"><span className="text-slate-300">📞</span>{dept.phone}</div>}
+                  {dept.floor && <div className="flex items-center gap-1.5"><span className="text-slate-300 dark:text-slate-700">📍</span>{dept.floor}</div>}
+                  {dept.phone && <div className="flex items-center gap-1.5"><span className="text-slate-300 dark:text-slate-700">📞</span>{dept.phone}</div>}
                 </div>
 
                 {totalBeds > 0 && (
-                  <div className="bg-slate-50 rounded-xl p-3">
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="font-semibold text-slate-600">Bed Occupancy</span>
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Bed Occupancy</span>
                       <span className={`font-bold ${occupancy >= 90 ? 'text-red-500' : occupancy >= 70 ? 'text-amber-500' : 'text-emerald-600'}`}>
                         {admittedPats.length}/{totalBeds} ({occupancy}%)
                       </span>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-1.5">
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full transition-all ${occupancy >= 90 ? 'bg-red-500' : occupancy >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                         style={{ width: `${Math.min(occupancy, 100)}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                    <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-600 mt-1">
                       <span>{admittedPats.length} occupied</span>
                       <span>{Math.max(0, totalBeds - admittedPats.length)} available</span>
                     </div>
                   </div>
                 )}
-                <div className="pt-2 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
-                  <Users size={12} className="text-slate-300" />
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 text-xs text-slate-500">
+                  <Users size={12} className="text-slate-300 dark:text-slate-700" />
                   <span>{deptDoctors.length} doctor{deptDoctors.length !== 1 ? 's' : ''} assigned</span>
                   {deptDoctors.slice(0, 3).map(d => (
-                    <span key={d.id} className="bg-slate-100 text-slate-600 rounded px-1 py-0.5 text-[10px] font-medium truncate max-w-20">{d.name?.split(' ').pop()}</span>
+                    <span key={d.id} className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded px-1 py-0.5 text-[10px] font-medium truncate max-w-20">{d.name?.split(' ').pop()}</span>
                   ))}
                 </div>
               </div>

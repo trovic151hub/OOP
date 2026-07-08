@@ -38,7 +38,7 @@ function MedRow({ med, idx, onChange, onRemove, canRemove }) {
       </div>
       <div className="col-span-1 sm:col-span-1 flex items-center justify-center pt-2.5">
         {canRemove && (
-          <button type="button" onClick={() => onRemove(idx)} className="text-slate-300 hover:text-red-400 transition-colors">
+          <button type="button" onClick={() => onRemove(idx)} className="text-slate-300 dark:text-slate-700 hover:text-red-400 transition-colors">
             <Trash2 size={14} />
           </button>
         )}
@@ -82,7 +82,7 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
         </div>
         <div className="hidden sm:grid grid-cols-12 gap-2 mb-1 px-0.5">
           {['Name', 'Dosage', 'Frequency', 'Duration', ''].map((h, i) => (
-            <div key={i} className={`text-[9px] font-bold text-slate-400 uppercase tracking-wide ${i === 0 ? 'col-span-4' : i === 1 ? 'col-span-2' : i === 2 ? 'col-span-3' : i === 3 ? 'col-span-2' : 'col-span-1'}`}>{h}</div>
+            <div key={i} className={`text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide ${i === 0 ? 'col-span-4' : i === 1 ? 'col-span-2' : i === 2 ? 'col-span-3' : i === 3 ? 'col-span-2' : 'col-span-1'}`}>{h}</div>
           ))}
         </div>
         <div className="flex flex-col gap-2">
@@ -102,7 +102,7 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
 
 function PrintPreview({ rx, settings }) {
   return (
-    <div id="rx-print" className="font-sans text-slate-800 p-6">
+    <div id="rx-print" className="font-sans text-slate-800 dark:text-slate-200 p-6">
       <div className="border-b-2 border-teal-600 pb-4 mb-4">
         <h1 className="text-2xl font-extrabold text-teal-700">{settings?.hospitalName || 'MedCore'}</h1>
         <p className="text-xs text-slate-500">Medical Practice Management System</p>
@@ -115,16 +115,16 @@ function PrintPreview({ rx, settings }) {
         <div className="text-right">
           <p className="font-bold text-slate-500 text-xs uppercase">Doctor</p>
           <p className="font-semibold">{rx.doctorName}</p>
-          <p className="text-xs text-slate-400">{rx.date ? formatDate(rx.date) : '—'}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-600">{rx.date ? formatDate(rx.date) : '—'}</p>
         </div>
       </div>
-      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Medications</p>
+      <p className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide mb-2">Medications</p>
       <table className="w-full text-sm mb-4">
-        <thead><tr className="border-b border-slate-200">
+        <thead><tr className="border-b border-slate-200 dark:border-slate-700">
           {['Medication','Dosage','Frequency','Duration'].map(h => <th key={h} className="text-left py-1 text-xs font-bold text-slate-500">{h}</th>)}
         </tr></thead>
         <tbody>{(rx.medications || []).map((m, i) => (
-          <tr key={i} className="border-b border-slate-50">
+          <tr key={i} className="border-b border-slate-50 dark:border-slate-800">
             <td className="py-2 font-semibold">{m.name}</td>
             <td className="py-2">{m.dosage}</td>
             <td className="py-2">{m.frequency}</td>
@@ -132,8 +132,8 @@ function PrintPreview({ rx, settings }) {
           </tr>
         ))}</tbody>
       </table>
-      {rx.notes && <div className="bg-slate-50 rounded-lg p-3 text-sm"><span className="font-bold">Notes: </span>{rx.notes}</div>}
-      <div className="mt-8 pt-4 border-t border-slate-200 text-xs text-slate-400 flex justify-between">
+      {rx.notes && <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm"><span className="font-bold">Notes: </span>{rx.notes}</div>}
+      <div className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-400 dark:text-slate-600 flex justify-between">
         <span>Rx ID: {rx.id}</span>
         <span>Printed: {new Date().toLocaleDateString()}</span>
       </div>
@@ -212,15 +212,15 @@ export default function Prescriptions({ currentUser }) {
   return (
     <div>
       {printRx && (
-        <div className="fixed inset-0 bg-white z-[999] print-only">
+        <div className="fixed inset-0 bg-white dark:bg-slate-800 z-[999] print-only">
           <PrintPreview rx={printRx} settings={settings} />
         </div>
       )}
 
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Prescriptions</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{visible.length} total · {counts.Active} active</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Prescriptions</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{visible.length} total · {counts.Active} active</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-ghost text-xs"><Download size={13} /> Export</button>
@@ -230,13 +230,13 @@ export default function Prescriptions({ currentUser }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total',     value: counts.All,       color: 'text-slate-700',   border: 'border-slate-200' },
-          { label: 'Active',    value: counts.Active,    color: 'text-teal-700',    border: 'border-teal-200' },
-          { label: 'Completed', value: counts.Completed, color: 'text-emerald-700', border: 'border-emerald-200' },
-          { label: 'Cancelled', value: counts.Cancelled, color: 'text-red-600',     border: 'border-red-200' },
+          { label: 'Total',     value: counts.All,       color: 'text-slate-700 dark:text-slate-300',   border: 'border-slate-200 dark:border-slate-700' },
+          { label: 'Active',    value: counts.Active,    color: 'text-teal-700',    border: 'border-teal-200 dark:border-teal-500/30' },
+          { label: 'Completed', value: counts.Completed, color: 'text-emerald-700', border: 'border-emerald-200 dark:border-emerald-500/30' },
+          { label: 'Cancelled', value: counts.Cancelled, color: 'text-red-600',     border: 'border-red-200 dark:border-red-500/30' },
         ].map(({ label, value, color, border }) => (
           <div key={label} className={`card p-4 border ${border}`}>
-            <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-semibold mb-1">{label}</p>
             <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
@@ -244,27 +244,27 @@ export default function Prescriptions({ currentUser }) {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by patient or doctor…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
-        <Filter size={14} className="text-slate-400" />
+        <Filter size={14} className="text-slate-400 dark:text-slate-600" />
         {['All','Active','Completed','Cancelled'].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 dark:bg-teal-500/12 border-teal-300 text-teal-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {s} ({counts[s] ?? ''})
           </button>
         ))}
@@ -272,7 +272,7 @@ export default function Prescriptions({ currentUser }) {
 
       <div className="flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
             <Pill size={36} className="text-slate-200 mb-3" />
             <p className="text-sm font-medium">{search ? 'No results' : 'No prescriptions yet'}</p>
             {!search && <button onClick={openAdd} className="btn-primary text-xs mt-4"><Plus size={13} /> Add First</button>}
@@ -283,19 +283,19 @@ export default function Prescriptions({ currentUser }) {
               <div className="flex items-center gap-3">
                 <Avatar name={r.patientName} size="md" />
                 <div>
-                  <p className="font-bold text-slate-800">{r.patientName}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{withDrPrefix(r.doctorName)} · {r.date ? formatDate(r.date) : '—'}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200">{r.patientName}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{withDrPrefix(r.doctorName)} · {r.date ? formatDate(r.date) : '—'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge status={r.status} />
-                <button onClick={() => printPrescription(r)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" title="Print prescription">
+                <button onClick={() => printPrescription(r)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors" title="Print prescription">
                   <Printer size={14} />
                 </button>
-                <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                   <Pencil size={14} />
                 </button>
-                <button onClick={() => setConfirmId(r.id)} className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                <button onClick={() => setConfirmId(r.id)} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500 transition-colors">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -303,14 +303,14 @@ export default function Prescriptions({ currentUser }) {
 
             <div className="mt-4 flex flex-wrap gap-2">
               {(r.medications || []).map((m, i) => (
-                <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs">
-                  <p className="font-bold text-slate-700">{m.name} <span className="font-normal text-teal-600">{m.dosage}</span></p>
-                  <p className="text-slate-400">{m.frequency} · {m.duration}</p>
+                <div key={i} className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl px-3 py-2 text-xs">
+                  <p className="font-bold text-slate-700 dark:text-slate-300">{m.name} <span className="font-normal text-teal-600">{m.dosage}</span></p>
+                  <p className="text-slate-400 dark:text-slate-600">{m.frequency} · {m.duration}</p>
                 </div>
               ))}
             </div>
 
-            {r.notes && <p className="mt-3 text-xs text-slate-500 italic border-t border-slate-50 pt-2">📝 {r.notes}</p>}
+            {r.notes && <p className="mt-3 text-xs text-slate-500 italic border-t border-slate-50 dark:border-slate-800 pt-2">📝 {r.notes}</p>}
           </div>
         ))}
       </div>

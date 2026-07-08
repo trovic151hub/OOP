@@ -19,19 +19,19 @@ export default function FormDropdown({ value, onChange, options }) {
         onClick={() => setOpen(v => !v)}
         className={`input-field w-full flex items-center justify-between text-left cursor-pointer transition-colors ${open ? 'border-teal-400 shadow-[0_0_0_3px_rgba(20,184,166,0.15)]' : ''}`}
       >
-        <span className="text-slate-700">{current?.label || value}</span>
-        <ChevronDown size={14} className={`text-slate-400 transition-transform duration-150 flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
+        <span className="text-slate-700 dark:text-slate-300">{current?.label || value}</span>
+        <ChevronDown size={14} className={`text-slate-400 dark:text-slate-600 transition-transform duration-150 flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
-          <div className="absolute top-full mt-1.5 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] overflow-hidden py-1 max-h-56 overflow-y-auto">
+          <div className="absolute top-full mt-1.5 left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-[100] overflow-hidden py-1 max-h-56 overflow-y-auto">
             {allOptions.map(o => (
               <button
                 type="button"
                 key={o.value}
                 onClick={() => { onChange(o.value); setOpen(false) }}
-                className={`w-full text-left px-3.5 py-2 text-sm transition-colors ${value === o.value ? 'bg-teal-50 text-teal-700 font-semibold' : 'text-slate-600 hover:bg-slate-50'}`}
+                className={`w-full text-left px-3.5 py-2 text-sm transition-colors ${value === o.value ? 'bg-teal-50 dark:bg-teal-500/12 text-teal-700 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               >
                 {o.label}
               </button>

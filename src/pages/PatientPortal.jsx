@@ -19,12 +19,12 @@ const NAV = [
 
 function StatCard({ icon: Icon, label, value, sub, color = 'teal' }) {
   const cols = {
-    teal:    'bg-teal-50    text-teal-700    border-teal-200',
-    blue:    'bg-blue-50    text-blue-700    border-blue-200',
-    violet:  'bg-violet-50  text-violet-700  border-violet-200',
-    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    amber:   'bg-amber-50   text-amber-700   border-amber-200',
-    red:     'bg-red-50     text-red-700     border-red-200',
+    teal:    'bg-teal-50 dark:bg-teal-500/12    text-teal-700    border-teal-200 dark:border-teal-500/30',
+    blue:    'bg-blue-50 dark:bg-blue-500/12    text-blue-700    border-blue-200 dark:border-blue-500/30',
+    violet:  'bg-violet-50 dark:bg-violet-500/12  text-violet-700  border-violet-200 dark:border-violet-500/30',
+    emerald: 'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700 border-emerald-200 dark:border-emerald-500/30',
+    amber:   'bg-amber-50 dark:bg-amber-500/12   text-amber-700   border-amber-200 dark:border-amber-500/30',
+    red:     'bg-red-50 dark:bg-red-500/12     text-red-700     border-red-200 dark:border-red-500/30',
   }
   return (
     <div className={`rounded-2xl border p-4 ${cols[color]}`}>
@@ -64,7 +64,7 @@ export default function PatientPortal({ currentUser }) {
 
   const Sidebar = (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-6 border-b border-slate-100">
+      <div className="px-5 py-6 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
             <Activity size={16} className="text-white" />
@@ -74,7 +74,7 @@ export default function PatientPortal({ currentUser }) {
         <div className="flex items-center gap-3">
           <Avatar name={name} size="md" />
           <div>
-            <p className="font-bold text-slate-800 text-sm truncate max-w-32">{name}</p>
+            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm truncate max-w-32">{name}</p>
             <p className="text-[11px] text-teal-600 font-medium">Patient Portal</p>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function PatientPortal({ currentUser }) {
           </button>
         ))}
       </nav>
-      <div className="px-3 pb-4 border-t border-slate-100 pt-3">
+      <div className="px-3 pb-4 border-t border-slate-100 dark:border-slate-800 pt-3">
         <button onClick={handleSignOut}
           className="sidebar-link w-full text-red-500 hover:bg-red-50 hover:text-red-600">
           <LogOut size={15} />
@@ -110,10 +110,10 @@ export default function PatientPortal({ currentUser }) {
   )
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-teal-50 to-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-gradient-to-br from-teal-50 to-slate-100 dark:from-slate-900 dark:to-slate-900 overflow-hidden">
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-56 lg:w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0">
+      <div className="hidden md:flex w-56 lg:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col flex-shrink-0">
         {Sidebar}
       </div>
 
@@ -121,10 +121,10 @@ export default function PatientPortal({ currentUser }) {
       {mobileNavOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl">
+          <div className="absolute left-0 top-0 h-full w-64 bg-white dark:bg-slate-800 shadow-xl">
             <button
               onClick={() => setMobileNavOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900">
               <X size={18} />
             </button>
             {Sidebar}
@@ -136,10 +136,10 @@ export default function PatientPortal({ currentUser }) {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Mobile Top Bar */}
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
           <button
             onClick={() => setMobileNavOpen(true)}
-            className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800">
             <Menu size={18} />
           </button>
           <div className="flex items-center gap-2">
@@ -160,12 +160,12 @@ export default function PatientPortal({ currentUser }) {
             {page === 'overview' && (
               <>
                 <div className="mb-5">
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800">Welcome back, {name.split(' ')[0]}!</h1>
-                  <p className="text-sm text-slate-400 mt-1">Your health summary at a glance</p>
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-200">Welcome back, {name.split(' ')[0]}!</h1>
+                  <p className="text-sm text-slate-400 dark:text-slate-600 mt-1">Your health summary at a glance</p>
                 </div>
 
                 {abnormalLabs.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-5 flex items-start gap-3">
+                  <div className="bg-red-50 dark:bg-red-500/12 border border-red-200 dark:border-red-500/30 rounded-2xl px-4 py-3 mb-5 flex items-start gap-3">
                     <AlertCircle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-bold text-red-700">Abnormal Lab Result{abnormalLabs.length > 1 ? 's' : ''}</p>
@@ -198,24 +198,24 @@ export default function PatientPortal({ currentUser }) {
                 </div>
 
                 {activeRx.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="font-bold text-slate-700">Current Medications</p>
+                      <p className="font-bold text-slate-700 dark:text-slate-300">Current Medications</p>
                       <button onClick={() => navigate('prescriptions')} className="text-xs text-teal-600 font-semibold hover:underline flex items-center gap-0.5">
                         View all <ChevronRight size={12} />
                       </button>
                     </div>
                     <div className="flex flex-col gap-2">
                       {activeRx.slice(0, 3).map(r => (
-                        <div key={r.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                          <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div key={r.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                          <div className="w-8 h-8 bg-teal-100 dark:bg-teal-500/18 rounded-lg flex items-center justify-center flex-shrink-0">
                             <Pill size={14} className="text-teal-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-700 truncate">{(r.medications||[])[0]?.name || r.medications || 'Prescription'}</p>
-                            <p className="text-xs text-slate-400">{(r.medications||[])[0]?.frequency} · {(r.medications||[])[0]?.duration}</p>
+                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{(r.medications||[])[0]?.name || r.medications || 'Prescription'}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-600">{(r.medications||[])[0]?.frequency} · {(r.medications||[])[0]?.duration}</p>
                           </div>
-                          <p className="text-xs text-slate-400 truncate max-w-20 flex-shrink-0">Dr. {r.doctorName}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-600 truncate max-w-20 flex-shrink-0">Dr. {r.doctorName}</p>
                         </div>
                       ))}
                     </div>
@@ -226,22 +226,22 @@ export default function PatientPortal({ currentUser }) {
 
             {page === 'appointments' && (
               <>
-                <h2 className="text-xl font-bold text-slate-800 mb-5">My Appointments</h2>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-5">My Appointments</h2>
                 {myAppts.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
                     <Calendar size={36} className="text-slate-200 mb-3" />
                     <p className="text-sm font-medium">No appointments found</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     {myAppts.sort((a,b) => b.date.localeCompare(a.date)).map(a => (
-                      <div key={a.id} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex items-start sm:items-center gap-3 sm:gap-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div key={a.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 flex items-start sm:items-center gap-3 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-50 dark:bg-teal-500/12 rounded-xl flex items-center justify-center flex-shrink-0">
                           <Stethoscope size={16} className="text-teal-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-800 text-sm sm:text-base">{a.type}</p>
-                          <p className="text-xs text-slate-400 mt-0.5 truncate">Dr. {a.doctorName} · {a.date ? formatDate(a.date) : '—'}{a.timeStart ? ` at ${a.timeStart}` : ''}</p>
+                          <p className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">{a.type}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5 truncate">Dr. {a.doctorName} · {a.date ? formatDate(a.date) : '—'}{a.timeStart ? ` at ${a.timeStart}` : ''}</p>
                           {a.notes && <p className="text-xs text-slate-500 mt-1 italic line-clamp-1">{a.notes}</p>}
                         </div>
                         <Badge status={a.status} />
@@ -254,35 +254,35 @@ export default function PatientPortal({ currentUser }) {
 
             {page === 'prescriptions' && (
               <>
-                <h2 className="text-xl font-bold text-slate-800 mb-5">My Prescriptions</h2>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-5">My Prescriptions</h2>
                 {myRx.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
                     <Pill size={36} className="text-slate-200 mb-3" />
                     <p className="text-sm font-medium">No prescriptions found</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
                     {myRx.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(r => (
-                      <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
+                      <div key={r.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5">
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <div>
-                            <p className="font-bold text-slate-800">Prescription</p>
-                            <p className="text-xs text-slate-400">Dr. {r.doctorName} · {r.date ? formatDate(r.date) : '—'}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">Prescription</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-600">Dr. {r.doctorName} · {r.date ? formatDate(r.date) : '—'}</p>
                           </div>
                           <Badge status={r.status} />
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {(r.medications||[]).map((m, i) => (
-                            <div key={i} className="bg-teal-50 border border-teal-100 rounded-xl px-3 py-2 text-xs">
-                              <p className="font-bold text-teal-700">{m.name} <span className="font-normal text-slate-600">{m.dosage}</span></p>
-                              <p className="text-slate-400">{m.frequency} · {m.duration}</p>
+                            <div key={i} className="bg-teal-50 dark:bg-teal-500/12 border border-teal-100 dark:border-teal-500/20 rounded-xl px-3 py-2 text-xs">
+                              <p className="font-bold text-teal-700">{m.name} <span className="font-normal text-slate-600 dark:text-slate-400">{m.dosage}</span></p>
+                              <p className="text-slate-400 dark:text-slate-600">{m.frequency} · {m.duration}</p>
                             </div>
                           ))}
                           {(!r.medications || r.medications.length === 0) && (
                             <p className="text-xs text-slate-500">{typeof r.medications === 'string' ? r.medications : 'No medication details'}</p>
                           )}
                         </div>
-                        {r.notes && <p className="mt-3 text-xs text-slate-500 italic pt-2 border-t border-slate-50">📝 {r.notes}</p>}
+                        {r.notes && <p className="mt-3 text-xs text-slate-500 italic pt-2 border-t border-slate-50 dark:border-slate-800">📝 {r.notes}</p>}
                       </div>
                     ))}
                   </div>
@@ -292,16 +292,16 @@ export default function PatientPortal({ currentUser }) {
 
             {page === 'lab' && (
               <>
-                <h2 className="text-xl font-bold text-slate-800 mb-5">Lab Results</h2>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-5">Lab Results</h2>
                 {myLabs.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
                     <FlaskConical size={36} className="text-slate-200 mb-3" />
                     <p className="text-sm font-medium">No lab results found</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     {myLabs.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(l => (
-                      <div key={l.id} className={`bg-white rounded-2xl border p-4 sm:p-5 ${l.status === 'Abnormal' ? 'border-red-200' : 'border-slate-200'}`}>
+                      <div key={l.id} className={`bg-white dark:bg-slate-800 rounded-2xl border p-4 sm:p-5 ${l.status === 'Abnormal' ? 'border-red-200 dark:border-red-500/30' : 'border-slate-200 dark:border-slate-700'}`}>
                         {l.status === 'Abnormal' && (
                           <div className="flex items-center gap-1.5 text-xs text-red-600 font-bold mb-2">
                             <AlertCircle size={13} /> Abnormal Result — Please consult your doctor
@@ -309,15 +309,15 @@ export default function PatientPortal({ currentUser }) {
                         )}
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="font-bold text-slate-800">{l.testName}</p>
-                            <p className="text-xs text-slate-400">{l.category} · {l.date ? formatDate(l.date) : '—'}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">{l.testName}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-600">{l.category} · {l.date ? formatDate(l.date) : '—'}</p>
                           </div>
                           <Badge status={l.status} />
                         </div>
                         {(l.result || l.normalRange) && (
-                          <div className="mt-3 grid grid-cols-2 gap-3 bg-slate-50 rounded-xl p-3">
-                            {l.result && <div><p className="text-[10px] font-bold text-slate-400 uppercase">Result</p><p className="text-sm font-bold text-slate-700">{l.result}</p></div>}
-                            {l.normalRange && <div><p className="text-[10px] font-bold text-slate-400 uppercase">Normal Range</p><p className="text-sm text-slate-600">{l.normalRange}</p></div>}
+                          <div className="mt-3 grid grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                            {l.result && <div><p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase">Result</p><p className="text-sm font-bold text-slate-700 dark:text-slate-300">{l.result}</p></div>}
+                            {l.normalRange && <div><p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase">Normal Range</p><p className="text-sm text-slate-600 dark:text-slate-400">{l.normalRange}</p></div>}
                           </div>
                         )}
                       </div>
@@ -330,32 +330,32 @@ export default function PatientPortal({ currentUser }) {
             {page === 'billing' && (
               <>
                 <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-                  <h2 className="text-xl font-bold text-slate-800">My Bills</h2>
+                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">My Bills</h2>
                   {pendingTotal > 0 && (
-                    <span className="text-sm font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                    <span className="text-sm font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 px-3 py-1.5 rounded-xl">
                       Outstanding: {formatCurrency(pendingTotal)}
                     </span>
                   )}
                 </div>
                 {myBills.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center py-20 text-slate-400">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
                     <FileText size={36} className="text-slate-200 mb-3" />
                     <p className="text-sm font-medium">No bills found</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     {myBills.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(i => (
-                      <div key={i.id} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${i.status === 'Paid' ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                      <div key={i.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${i.status === 'Paid' ? 'bg-emerald-50 dark:bg-emerald-500/12' : 'bg-amber-50 dark:bg-amber-500/12'}`}>
                           <FileText size={16} className={i.status === 'Paid' ? 'text-emerald-600' : 'text-amber-600'} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-800 text-sm sm:text-base">Invoice #{i.invoiceNumber || i.id?.slice(0,8)}</p>
-                          <p className="text-xs text-slate-400">{i.date ? formatDate(i.date) : '—'}</p>
+                          <p className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">Invoice #{i.invoiceNumber || i.id?.slice(0,8)}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-600">{i.date ? formatDate(i.date) : '—'}</p>
                           {i.description && <p className="text-xs text-slate-500 mt-0.5 truncate">{i.description}</p>}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="font-extrabold text-slate-800 text-base sm:text-lg">{formatCurrency(i.totalAmount || i.total || 0)}</p>
+                          <p className="font-extrabold text-slate-800 dark:text-slate-200 text-base sm:text-lg">{formatCurrency(i.totalAmount || i.total || 0)}</p>
                           <Badge status={i.status} />
                         </div>
                       </div>
@@ -368,14 +368,14 @@ export default function PatientPortal({ currentUser }) {
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <div className="md:hidden flex items-center bg-white border-t border-slate-200 safe-bottom">
+        <div className="md:hidden flex items-center bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-bottom">
           {NAV.map(({ id, label, icon: Icon }) => {
             const active = page === id
             const hasAlert = (id === 'lab' && abnormalLabs.length > 0) || (id === 'billing' && pendingBills.length > 0)
             return (
               <button key={id} onClick={() => navigate(id)}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors relative min-h-[56px] touch-manipulation
-                  ${active ? 'text-teal-600' : 'text-slate-400'}`}>
+                  ${active ? 'text-teal-600' : 'text-slate-400 dark:text-slate-600'}`}>
                 {hasAlert && <span className="absolute top-1.5 right-1/4 w-1.5 h-1.5 rounded-full bg-red-500" />}
                 <Icon size={19} strokeWidth={active ? 2.5 : 1.8} />
                 <span className="text-[9px] font-semibold leading-none mt-0.5">{label.split(' ')[0]}</span>

@@ -60,7 +60,7 @@ function ExpenseForm({ form, setForm, settings }) {
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={form.recurring} onChange={set('recurring')} className="w-4 h-4 accent-teal-600" />
-        <span className="text-sm text-slate-600 font-medium">Recurring expense</span>
+        <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">Recurring expense</span>
       </label>
     </div>
   )
@@ -133,8 +133,8 @@ export default function Expenses() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Expense Tracking</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{expenses.length} expenses · Net P&amp;L: <span className={netProfit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{fmt(netProfit)}</span></p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Expense Tracking</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{expenses.length} expenses · Net P&amp;L: <span className={netProfit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{fmt(netProfit)}</span></p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setView(v => v === 'list' ? 'chart' : 'list')} className="btn-ghost text-xs"><BarChart2 size={13} /> {view === 'list' ? 'Analytics' : 'List'}</button>
@@ -145,20 +145,20 @@ export default function Expenses() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Expenses',    value: fmt(totalExpenses), color: 'text-red-600',     border: 'border-red-200' },
-          { label: 'This Month',        value: fmt(thisMonthExp),  color: 'text-amber-600',   border: 'border-amber-200' },
-          { label: 'Total Revenue',     value: fmt(totalRevenue),  color: 'text-teal-600',    border: 'border-teal-200' },
-          { label: 'Net Profit / Loss', value: fmt(netProfit),     color: netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', border: netProfit >= 0 ? 'border-emerald-200' : 'border-red-200' },
+          { label: 'Total Expenses',    value: fmt(totalExpenses), color: 'text-red-600',     border: 'border-red-200 dark:border-red-500/30' },
+          { label: 'This Month',        value: fmt(thisMonthExp),  color: 'text-amber-600',   border: 'border-amber-200 dark:border-amber-500/30' },
+          { label: 'Total Revenue',     value: fmt(totalRevenue),  color: 'text-teal-600',    border: 'border-teal-200 dark:border-teal-500/30' },
+          { label: 'Net Profit / Loss', value: fmt(netProfit),     color: netProfit >= 0 ? 'text-emerald-600' : 'text-red-600', border: netProfit >= 0 ? 'border-emerald-200 dark:border-emerald-500/30' : 'border-red-200 dark:border-red-500/30' },
         ].map(({ label, value, color, border }) => (
           <div key={label} className={`card p-4 border ${border}`}>
-            <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-semibold mb-1">{label}</p>
             <p className={`text-xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
       </div>
 
       {pendingExp > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2 text-sm text-amber-700">
+        <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 mb-4 flex items-center gap-2 text-sm text-amber-700">
           <NairaIcon size={15} /> <strong>{fmt(pendingExp)}</strong> in pending expenses awaiting payment
         </div>
       )}
@@ -166,7 +166,7 @@ export default function Expenses() {
       {view === 'chart' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           <div className="card p-5">
-            <p className="text-sm font-bold text-slate-600 mb-4">Revenue vs Expenses ({currentYear})</p>
+            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-4">Revenue vs Expenses ({currentYear})</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byMonth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -180,7 +180,7 @@ export default function Expenses() {
             </ResponsiveContainer>
           </div>
           <div className="card p-5">
-            <p className="text-sm font-bold text-slate-600 mb-4">Expenses by Category</p>
+            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-4">Expenses by Category</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={byCat} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
@@ -196,18 +196,18 @@ export default function Expenses() {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search expenses…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
@@ -218,7 +218,7 @@ export default function Expenses() {
         {(search || filterCat !== 'All' || filterMonth !== 'All') && (
           <button
             onClick={() => { setSearch(''); setFilterCat('All'); setFilterMonth('All') }}
-            className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-1"
+            className="text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors px-1"
           >
             Clear
           </button>
@@ -233,7 +233,7 @@ export default function Expenses() {
           </tr></thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-16 text-slate-400">
+              <tr><td colSpan={7} className="text-center py-16 text-slate-400 dark:text-slate-600">
                 <TrendingDown size={30} className="text-slate-200 mx-auto mb-2" />
                 <p className="text-sm">{search ? 'No results' : 'No expenses yet'}</p>
                 {!search && <button onClick={openAdd} className="btn-primary text-xs mt-3"><Plus size={13} /> Add First</button>}
@@ -241,20 +241,20 @@ export default function Expenses() {
             ) : filtered.map(e => (
               <tr key={e.id} className="table-row">
                 <td className="table-td">
-                  <p className="font-semibold text-slate-800">{e.description}</p>
-                  {e.recurring && <span className="text-[10px] bg-violet-50 text-violet-600 font-bold px-1.5 py-0.5 rounded">Recurring</span>}
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">{e.description}</p>
+                  {e.recurring && <span className="text-[10px] bg-violet-50 dark:bg-violet-500/12 text-violet-600 font-bold px-1.5 py-0.5 rounded">Recurring</span>}
                 </td>
                 <td className="table-td">
-                  <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded-full">{e.category}</span>
+                  <span className="text-xs bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-medium px-2 py-0.5 rounded-full">{e.category}</span>
                 </td>
                 <td className="table-td font-bold text-red-600">{fmt(e.amount || 0)}</td>
-                <td className="table-td text-slate-400 text-xs">{e.date ? formatDate(e.date) : '—'}</td>
+                <td className="table-td text-slate-400 dark:text-slate-600 text-xs">{e.date ? formatDate(e.date) : '—'}</td>
                 <td className="table-td"><Badge status={e.status} /></td>
                 <td className="table-td text-xs text-slate-500">{e.vendor || '—'}</td>
                 <td className="table-td">
                   <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(e)} className="p-1.5 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600"><Pencil size={13} /></button>
-                    <button onClick={() => setConfirmId(e.id)} className="p-1.5 rounded text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
+                    <button onClick={() => openEdit(e)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400"><Pencil size={13} /></button>
+                    <button onClick={() => setConfirmId(e.id)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
                   </div>
                 </td>
               </tr>

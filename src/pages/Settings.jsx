@@ -12,11 +12,11 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'AED', 'INR', 'NGN', 'KES', 'GHS', 'ZAR
 function Section({ title, icon: Icon, children }) {
   return (
     <div className="card p-6">
-      <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100">
-        <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
+      <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center">
           <Icon size={16} className="text-teal-600" />
         </div>
-        <h3 className="text-sm font-bold text-slate-700">{title}</h3>
+        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">{title}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {children}
@@ -60,8 +60,8 @@ export default function Settings() {
     <div className="max-w-3xl">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Hospital Settings</h2>
-          <p className="text-sm text-slate-400 mt-0.5">Configure your hospital's information and preferences</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Hospital Settings</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">Configure your hospital's information and preferences</p>
         </div>
         <button onClick={handleSave} className={`btn-primary ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
           {saved ? <CheckCircle size={15} /> : <Save size={15} />}
@@ -87,8 +87,8 @@ export default function Settings() {
             <input className="input-field" placeholder="https://example.com/logo.png" value={form.logo || ''} onChange={set('logo')} />
           </Field>
           {form.logo && (
-            <div className="sm:col-span-2 flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-              <img src={form.logo} alt="Logo preview" className="w-12 h-12 object-contain rounded-lg border border-slate-200" onError={e => e.target.style.display = 'none'} />
+            <div className="sm:col-span-2 flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+              <img src={form.logo} alt="Logo preview" className="w-12 h-12 object-contain rounded-lg border border-slate-200 dark:border-slate-700" onError={e => e.target.style.display = 'none'} />
               <p className="text-xs text-slate-500">Logo preview</p>
             </div>
           )}
@@ -97,25 +97,25 @@ export default function Settings() {
         <Section title="Contact Information" icon={Phone}>
           <Field label="Phone Number">
             <div className="relative">
-              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
               <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="+1 (555) 000-0000" value={form.phone || ''} onChange={set('phone')} />
             </div>
           </Field>
           <Field label="Email Address">
             <div className="relative">
-              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
               <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="info@hospital.com" type="email" value={form.email || ''} onChange={set('email')} />
             </div>
           </Field>
           <Field label="Website">
             <div className="relative">
-              <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Globe size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
               <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="https://www.hospital.com" value={form.website || ''} onChange={set('website')} />
             </div>
           </Field>
           <Field label="Emergency Contact">
             <div className="relative">
-              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
               <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="+1 (555) 911-0000" value={form.emergencyPhone || ''} onChange={set('emergencyPhone')} />
             </div>
           </Field>

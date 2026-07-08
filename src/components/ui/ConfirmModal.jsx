@@ -4,9 +4,9 @@ import Modal from './Modal'
 
 export default function ConfirmModal({ open, onClose, onConfirm, title = 'Delete Record', message = 'This action cannot be undone.' }) {
   return (
-    <Modal open={open} onClose={onClose} title={title} icon={AlertTriangle} accentColor="red" maxWidth="max-w-sm">
+    <Modal open={open} onClose={onClose} title={title} icon={AlertTriangle} accentColor="red" maxWidth="max-w-sm" fullScreenOnMobile={false}>
       <div className="text-center">
-        <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-4">
+        <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-500/12 border border-red-100 dark:border-red-500/20 flex items-center justify-center mx-auto mb-4">
           <Trash2 size={22} className="text-red-500" />
         </div>
         <p className="text-sm text-slate-500 mb-6">{message}</p>

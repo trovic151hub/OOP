@@ -129,19 +129,19 @@ export default function Insurance() {
   }
 
   const STATUS_BADGE = {
-    Submitted:  'bg-blue-50 text-blue-700 border border-blue-200',
-    Processing: 'bg-amber-50 text-amber-700 border border-amber-200',
-    Approved:   'bg-teal-50 text-teal-700 border border-teal-200',
-    Rejected:   'bg-red-50 text-red-700 border border-red-200',
-    Paid:       'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    Submitted:  'bg-blue-50 dark:bg-blue-500/12 text-blue-700 border border-blue-200 dark:border-blue-500/30',
+    Processing: 'bg-amber-50 dark:bg-amber-500/12 text-amber-700 border border-amber-200 dark:border-amber-500/30',
+    Approved:   'bg-teal-50 dark:bg-teal-500/12 text-teal-700 border border-teal-200 dark:border-teal-500/30',
+    Rejected:   'bg-red-50 dark:bg-red-500/12 text-red-700 border border-red-200 dark:border-red-500/30',
+    Paid:       'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-700 border border-emerald-200 dark:border-emerald-500/30',
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Insurance &amp; Claims</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{claims.length} claims · {fmt(totalClaimed)} total claimed</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Insurance &amp; Claims</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{claims.length} claims · {fmt(totalClaimed)} total claimed</p>
         </div>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-ghost text-xs"><Download size={13} /> Export</button>
@@ -151,13 +151,13 @@ export default function Insurance() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Claimed',   value: fmt(totalClaimed),  color: 'text-slate-700',   border: 'border-slate-200' },
-          { label: 'Approved',        value: fmt(totalApproved), color: 'text-teal-700',    border: 'border-teal-200' },
-          { label: 'Paid Out',        value: fmt(totalPaid),     color: 'text-emerald-700', border: 'border-emerald-200' },
-          { label: 'Pending Review',  value: (counts.Submitted || 0) + (counts.Processing || 0), color: 'text-amber-700', border: 'border-amber-200' },
+          { label: 'Total Claimed',   value: fmt(totalClaimed),  color: 'text-slate-700 dark:text-slate-300',   border: 'border-slate-200 dark:border-slate-700' },
+          { label: 'Approved',        value: fmt(totalApproved), color: 'text-teal-700',    border: 'border-teal-200 dark:border-teal-500/30' },
+          { label: 'Paid Out',        value: fmt(totalPaid),     color: 'text-emerald-700', border: 'border-emerald-200 dark:border-emerald-500/30' },
+          { label: 'Pending Review',  value: (counts.Submitted || 0) + (counts.Processing || 0), color: 'text-amber-700', border: 'border-amber-200 dark:border-amber-500/30' },
         ].map(({ label, value, color, border }) => (
           <div key={label} className={`card p-4 border ${border}`}>
-            <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 font-semibold mb-1">{label}</p>
             <p className={`text-xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
@@ -165,27 +165,27 @@ export default function Insurance() {
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-44">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by patient or provider…"
             style={{ paddingLeft: '2.25rem', paddingRight: '2.25rem' }}
-            className="input-field border-slate-200 focus:shadow-sm"
+            className="input-field border-slate-200 dark:border-slate-700 focus:shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700 hover:text-slate-500 transition-colors"
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
-        <Filter size={14} className="text-slate-400" />
+        <Filter size={14} className="text-slate-400 dark:text-slate-600" />
         {['All', ...CLAIM_STATUSES].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === s ? 'bg-teal-50 dark:bg-teal-500/12 border-teal-300 text-teal-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {s}{s !== 'All' ? ` (${counts[s] || 0})` : ''}
           </button>
         ))}
@@ -194,14 +194,14 @@ export default function Insurance() {
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 {['Patient','Provider / Policy','Coverage','Claim Amount','Approved','Invoice','Submitted','Status',''].map(h => <th key={h} className="table-th">{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={9} className="py-16 text-center text-slate-400">
+                <tr><td colSpan={9} className="py-16 text-center text-slate-400 dark:text-slate-600">
                   <Shield size={32} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">{search || filterStatus !== 'All' ? 'No results' : 'No claims yet'}</p>
                   {!search && filterStatus === 'All' && <button onClick={openAdd} className="btn-primary text-xs mt-3"><Plus size={13} /> New Claim</button>}
@@ -211,25 +211,25 @@ export default function Insurance() {
                   <td className="table-td">
                     <div className="flex items-center gap-2">
                       <Avatar name={c.patientName} size="sm" />
-                      <p className="font-semibold text-slate-800 text-sm">{c.patientName}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{c.patientName}</p>
                     </div>
                   </td>
                   <td className="table-td">
-                    <p className="text-sm font-medium text-slate-700">{c.insuranceProvider}</p>
-                    <p className="text-xs text-slate-400">{c.policyNumber || '—'}{c.groupNumber ? ` · ${c.groupNumber}` : ''}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{c.insuranceProvider}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{c.policyNumber || '—'}{c.groupNumber ? ` · ${c.groupNumber}` : ''}</p>
                   </td>
                   <td className="table-td text-xs text-slate-500">{c.coverageType || '—'}</td>
-                  <td className="table-td font-bold text-slate-800">{fmt(c.claimAmount || 0)}</td>
+                  <td className="table-td font-bold text-slate-800 dark:text-slate-200">{fmt(c.claimAmount || 0)}</td>
                   <td className="table-td text-emerald-700 font-semibold">{c.approvedAmount ? fmt(c.approvedAmount) : '—'}</td>
                   <td className="table-td text-xs text-slate-500">{c.invoiceNumber || '—'}</td>
-                  <td className="table-td text-xs text-slate-400 whitespace-nowrap">{c.submittedDate ? formatDate(c.submittedDate) : '—'}</td>
+                  <td className="table-td text-xs text-slate-400 dark:text-slate-600 whitespace-nowrap">{c.submittedDate ? formatDate(c.submittedDate) : '—'}</td>
                   <td className="table-td">
                     <span className={`badge text-[10px] font-bold ${STATUS_BADGE[c.status] || ''}`}>{c.status}</span>
                   </td>
                   <td className="table-td">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(c)} className="p-1.5 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600"><Pencil size={13} /></button>
-                      <button onClick={() => setConfirmId(c.id)} className="p-1.5 rounded text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
+                      <button onClick={() => openEdit(c)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400"><Pencil size={13} /></button>
+                      <button onClick={() => setConfirmId(c.id)} className="p-1.5 rounded text-slate-400 dark:text-slate-600 hover:bg-red-50 hover:text-red-500"><Trash2 size={13} /></button>
                     </div>
                   </td>
                 </tr>

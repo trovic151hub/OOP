@@ -81,7 +81,7 @@ function HeartbeatLoader({ label = 'Loading' }) {
         <svg width="12" height="12" viewBox="-18 -8 36 40" className="animate-heart-pulse text-teal-500" fill="currentColor">
           <path d="M0,4 C-6,-6 -18,-2 -18,8 C-18,18 -4,26 0,30 C4,26 18,18 18,8 C18,-2 6,-6 0,4 Z" />
         </svg>
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-400">{label}</p>
+        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-400 dark:text-slate-600">{label}</p>
       </div>
     </div>
   )
@@ -120,9 +120,9 @@ function ForcePasswordChange() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-5">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <h1 className="text-xl font-extrabold text-slate-800 mb-2">Set Your Password</h1>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-800 p-5">
+      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-8">
+        <h1 className="text-xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Set Your Password</h1>
         <p className="text-sm text-slate-500 mb-6">Your account was created with a temporary password. Set a new one to continue.</p>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div>
@@ -139,7 +139,7 @@ function ForcePasswordChange() {
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <button type="submit" disabled={saving} className="btn-primary justify-center py-2.5 mt-1">
-            {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Set Password & Continue'}
+            {saving ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" /> : 'Set Password & Continue'}
           </button>
         </form>
       </div>
@@ -199,7 +199,7 @@ function AppContent() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-800">
         <HeartbeatLoader label="Loading MedCore" />
       </div>
     )
@@ -282,7 +282,7 @@ function AppContent() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-slate-100 dark:bg-slate-900">
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/40 z-[55] md:hidden" onClick={() => setMobileOpen(false)} />
       )}
@@ -306,7 +306,7 @@ function AppContent() {
         <main className="flex-1 pt-16 pb-16 md:pb-0 px-4 md:px-6 py-6 overflow-y-auto">
           {renderPage()}
         </main>
-        <footer className="px-6 py-3 border-t border-slate-200 bg-white text-center text-xs text-slate-400 no-print hidden md:block">
+        <footer className="px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center text-xs text-slate-400 dark:text-slate-600 no-print hidden md:block">
           Copyright © 2025 MedCore. All rights reserved. ·{' '}
           <span className="text-teal-500 cursor-pointer hover:underline">Privacy Policy</span> ·{' '}
           <span className="text-teal-500 cursor-pointer hover:underline">Terms and conditions</span>

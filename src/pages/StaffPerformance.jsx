@@ -10,11 +10,11 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 
 function MetricCard({ label, value, icon: Icon, color = 'teal', sub }) {
   const cols = {
-    teal:    'bg-teal-50 text-teal-600 border-teal-200',
-    blue:    'bg-blue-50 text-blue-600 border-blue-200',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    amber:   'bg-amber-50 text-amber-600 border-amber-200',
-    violet:  'bg-violet-50 text-violet-600 border-violet-200',
+    teal:    'bg-teal-50 dark:bg-teal-500/12 text-teal-600 border-teal-200 dark:border-teal-500/30',
+    blue:    'bg-blue-50 dark:bg-blue-500/12 text-blue-600 border-blue-200 dark:border-blue-500/30',
+    emerald: 'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 border-emerald-200 dark:border-emerald-500/30',
+    amber:   'bg-amber-50 dark:bg-amber-500/12 text-amber-600 border-amber-200 dark:border-amber-500/30',
+    violet:  'bg-violet-50 dark:bg-violet-500/12 text-violet-600 border-violet-200 dark:border-violet-500/30',
   }
   return (
     <div className={`rounded-xl border p-4 ${cols[color]}`}>
@@ -57,34 +57,34 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank, currency 
             <span className="absolute -top-1 -right-1 text-base">{rankBadge}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-800">{doctor.name}</p>
-            <p className="text-xs text-slate-400">{doctor.specialty || 'General'} · {doctor.department || '—'}</p>
+            <p className="font-bold text-slate-800 dark:text-slate-200">{doctor.name}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600">{doctor.specialty || 'General'} · {doctor.department || '—'}</p>
             <div className="mt-2 flex items-center gap-1">
-              <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="flex-1 bg-slate-100 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden">
                 <div className="h-full bg-teal-500 rounded-full transition-all" style={{ width: `${rate}%` }} />
               </div>
               <span className="text-[11px] font-bold text-teal-600 ml-1 flex-shrink-0">{rate}%</span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Completion rate</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-600 mt-0.5">Completion rate</p>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-2 mt-4">
           {[
-            { label: 'Patients',   value: patientNames.length, color: 'text-blue-600 bg-blue-50' },
-            { label: 'Appts',      value: myAppts.length,      color: 'text-teal-600 bg-teal-50' },
-            { label: 'This Month', value: monthAppts,          color: 'text-violet-600 bg-violet-50' },
-            { label: 'Labs',       value: myLabs,              color: 'text-amber-600 bg-amber-50' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className={`rounded-xl p-2.5 text-center ${color.split(' ')[1]}`}>
-              <p className={`text-lg font-extrabold ${color.split(' ')[0]}`}>{value}</p>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">{label}</p>
+            { label: 'Patients',   value: patientNames.length, text: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-500/12' },
+            { label: 'Appts',      value: myAppts.length,      text: 'text-teal-600',   bg: 'bg-teal-50 dark:bg-teal-500/12' },
+            { label: 'This Month', value: monthAppts,          text: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-500/12' },
+            { label: 'Labs',       value: myLabs,              text: 'text-amber-600',  bg: 'bg-amber-50 dark:bg-amber-500/12' },
+          ].map(({ label, value, text, bg }) => (
+            <div key={label} className={`rounded-xl p-2.5 text-center ${bg}`}>
+              <p className={`text-lg font-extrabold ${text}`}>{value}</p>
+              <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide mt-0.5">{label}</p>
             </div>
           ))}
         </div>
 
         {revenue > 0 && (
-          <div className="mt-3 flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+          <div className="mt-3 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/12 border border-emerald-100 dark:border-emerald-500/20 rounded-xl px-3 py-2">
             <NairaIcon size={13} className="text-emerald-600" />
             <p className="text-xs font-bold text-emerald-700">Revenue generated: {formatCurrency(revenue, currency)}</p>
           </div>
@@ -93,7 +93,7 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank, currency 
 
       <button
         onClick={() => setExpanded(v => !v)}
-        className="w-full px-4 py-2 text-xs font-semibold text-slate-400 hover:text-teal-600 border-t border-slate-100 hover:bg-slate-50 transition-colors">
+        className="w-full px-4 py-2 text-xs font-semibold text-slate-400 dark:text-slate-600 hover:text-teal-600 border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
         {expanded ? 'Hide chart ▲' : 'Show monthly chart ▼'}
       </button>
 
@@ -155,8 +155,8 @@ export default function StaffPerformance() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Staff Performance</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{doctors.length} doctors · {overallRate}% overall completion rate</p>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Staff Performance</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{doctors.length} doctors · {overallRate}% overall completion rate</p>
         </div>
         <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs text-slate-500 font-medium">Sort by:</span>
@@ -167,7 +167,7 @@ export default function StaffPerformance() {
             { key: 'completion',   label: 'Completion' },
           ].map(({ key, label }) => (
             <button key={key} onClick={() => setSortBy(key)}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${sortBy === key ? 'bg-teal-50 border-teal-300 text-teal-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${sortBy === key ? 'bg-teal-50 dark:bg-teal-500/12 border-teal-300 text-teal-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
               {label}
             </button>
           ))}
@@ -200,7 +200,7 @@ export default function StaffPerformance() {
 
       {overviewData.length > 0 && (
         <div className="card p-5 mb-5">
-          <p className="text-sm font-bold text-slate-700 mb-4">Appointments &amp; Revenue by Doctor ({new Date().getFullYear()})</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Appointments &amp; Revenue by Doctor ({new Date().getFullYear()})</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={overviewData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -220,10 +220,10 @@ export default function StaffPerformance() {
       )}
 
       {doctors.length === 0 ? (
-        <div className="card flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600">
           <BarChart2 size={40} className="text-slate-200 mb-3" />
           <p className="text-sm font-semibold">No doctors yet</p>
-          <p className="text-xs text-slate-300 mt-1">Add doctors to see performance metrics</p>
+          <p className="text-xs text-slate-300 dark:text-slate-700 mt-1">Add doctors to see performance metrics</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

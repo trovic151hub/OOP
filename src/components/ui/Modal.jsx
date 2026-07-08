@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
 
-export default function Modal({ open, onClose, title, icon: Icon, accentColor = 'teal', children, maxWidth = 'max-w-lg' }) {
+export default function Modal({ open, onClose, title, icon: Icon, accentColor = 'teal', children, maxWidth = 'max-w-lg', fullScreenOnMobile = true }) {
   useEffect(() => {
     if (!open) return
     const esc = (e) => { if (e.key === 'Escape') onClose() }
@@ -18,22 +18,6 @@ export default function Modal({ open, onClose, title, icon: Icon, accentColor = 
     return () => { document.body.style.overflow = '' }
   }, [open])
 
-  // Measure the actual rendered bottom nav (0 on desktop, where it's
-  // display:none) so the modal stops short of it on mobile instead of
-  // rendering underneath/behind it — same approach as the sidebar.
-  const [navHeight, setNavHeight] = useState(0)
-  useEffect(() => {
-    if (!open) return
-    function measure() {
-      const nav = document.querySelector('nav.safe-bottom')
-      const visible = nav && getComputedStyle(nav).display !== 'none'
-      setNavHeight(visible ? nav.getBoundingClientRect().height : 0)
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [open])
-
   if (!open) return null
 
   const accent = {
@@ -45,32 +29,37 @@ export default function Modal({ open, onClose, title, icon: Icon, accentColor = 
 
   return (
     <div
-      style={{ paddingBottom: navHeight }}
-      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
+      className={`fixed inset-0 z-[70] flex items-center justify-center bg-black/40 ${fullScreenOnMobile ? 'md:backdrop-blur-sm p-0 md:p-4' : 'backdrop-blur-sm p-4'}`}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div
-        style={{ maxHeight: `calc(92dvh - ${navHeight}px)` }}
-        className={`
-        bg-white w-full sm:${maxWidth} overflow-hidden
-        rounded-t-2xl sm:rounded-2xl shadow-2xl
-        flex flex-col
+      {/* Full-screen takeover on mobile (matches the doctor-profile Drawer's
+          mobile behavior) — bottom nav sits underneath, hidden by this opaque
+          panel, so there's no clearance math needed like the old bottom-sheet
+          version required. Desktop reverts to a capped, centered dialog since
+          the bottom nav is md:hidden anyway. Small/quick dialogs (delete
+          confirmations) opt out via fullScreenOnMobile=false and just stay a
+          compact centered popup at every size. */}
+      <div className={`
+        bg-white dark:bg-slate-800 overflow-hidden shadow-2xl flex flex-col
+        ${fullScreenOnMobile
+          ? `w-full h-full md:h-auto md:max-h-[90vh] md:w-auto md:${maxWidth} md:rounded-2xl`
+          : `w-full ${maxWidth} max-h-[90vh] rounded-2xl`}
       `}>
         <div className={`h-1 bg-gradient-to-r ${accent[accentColor] || accent.teal} flex-shrink-0`} />
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             {Icon && (
-              <div className="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center text-teal-600 flex-shrink-0">
                 <Icon size={18} />
               </div>
             )}
-            <h3 className="text-base font-bold text-slate-800">{title}</h3>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{title}</h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-100 -mr-1">
+          <button onClick={onClose} className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 -mr-1">
             <X size={18} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-5 md:p-6">
           {children}
         </div>
       </div>

@@ -34,36 +34,36 @@ export default function Register({ onSwitch }) {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 p-10">
+      <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-slate-800 dark:to-slate-900 p-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
             <Activity size={18} className="text-teal-600" />
           </div>
-          <span className="text-lg font-bold text-slate-800">MedCore</span>
+          <span className="text-lg font-bold text-slate-800 dark:text-slate-200">MedCore</span>
         </div>
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-800 mb-3">Stay on Top of<br />Every Detail</h2>
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 mb-3">Stay on Top of<br />Every Detail</h2>
           <p className="text-slate-500 text-sm leading-relaxed">From appointments to inventory, MedCore gives you a clear view of daily hospital operations.</p>
         </div>
-        <div className="rounded-2xl bg-white/70 backdrop-blur border border-white shadow-lg p-4">
+        <div className="rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur border border-white dark:border-slate-700 shadow-lg p-4">
           {[1,2,3].map(i => (
-            <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-              <div className="w-7 h-7 rounded-full bg-teal-100 flex-shrink-0" />
+            <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+              <div className="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-500/18 flex-shrink-0" />
               <div className="flex-1">
-                <div className="w-24 h-2 rounded bg-slate-200 mb-1" />
-                <div className="w-16 h-1.5 rounded bg-slate-100" />
+                <div className="w-24 h-2 rounded bg-slate-200 dark:bg-slate-700 mb-1" />
+                <div className="w-16 h-1.5 rounded bg-slate-100 dark:bg-slate-900" />
               </div>
-              <div className="w-12 h-4 rounded-full bg-emerald-100" />
+              <div className="w-12 h-4 rounded-full bg-emerald-100 dark:bg-emerald-500/18" />
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-400">Copyright © 2025 MedCore. All rights reserved.</p>
+        <p className="text-xs text-slate-400 dark:text-slate-600">Copyright © 2025 MedCore. All rights reserved.</p>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800 overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-extrabold text-slate-800 mb-2">Create Your MedCore Account</h1>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Create Your MedCore Account</h1>
             <p className="text-sm text-slate-500">Register to access hospital dashboards, manage clinical workflows, and collaborate securely.</p>
           </div>
           <form onSubmit={handleRegister} className="flex flex-col gap-4">
@@ -80,7 +80,7 @@ export default function Register({ onSwitch }) {
                 <label className="label">Password</label>
                 <div className="relative">
                   <input type={showPass ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Min 6 characters" className="input-field pr-9" autoComplete="new-password" />
-                  <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
                     {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
@@ -94,7 +94,7 @@ export default function Register({ onSwitch }) {
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded" />
               I agree to the <span className="text-teal-600 font-semibold">Terms &amp; Conditions</span>
             </label>
-            <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-3.5 py-3 text-xs text-blue-700">
+            <div className="flex items-start gap-2.5 bg-blue-50 dark:bg-blue-500/12 border border-blue-100 dark:border-blue-500/20 rounded-xl px-3.5 py-3 text-xs text-blue-700">
               <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-500" />
               <span>
                 <strong>Staff accounts</strong> start as Receptionist by default. The Admin can update your role from the User Management page after you log in.
@@ -102,7 +102,7 @@ export default function Register({ onSwitch }) {
             </div>
             <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
               {loading
-                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
                 : <><UserPlus size={16} /> Create Account</>
               }
             </button>
