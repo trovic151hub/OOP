@@ -124,14 +124,19 @@ export function setCurrentUser(user) {
   notify()
 }
 
-// One-shot handoff for "open this specific DM" — set by a notification click,
-// read once by the Messages page on mount, then cleared. Doesn't need to be
-// part of the reactive store since nothing else observes it.
-let _pendingChatTarget = null
+// One-shot handoff for "open this specific chat" — set by a notification
+// click, read once by the Messages page on mount, then cleared. Doesn't need
+// to be part of the reactive store since nothing else observes it.
+// `undefined` = nothing pending; `null` is itself a valid target (the
+// General channel), so it must stay distinguishable from "unset" — using
+// `null` for both would make a General-message notification indistinguishable
+// from just navigating to Messages normally, and the mobile view would never
+// switch from the conversation list to the chat.
+let _pendingChatTarget
 export function setPendingChatTarget(uid) { _pendingChatTarget = uid }
 export function consumePendingChatTarget() {
   const v = _pendingChatTarget
-  _pendingChatTarget = null
+  _pendingChatTarget = undefined
   return v
 }
 

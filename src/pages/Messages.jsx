@@ -3,6 +3,7 @@ import { Send, MessageSquare, Hash, ChevronLeft } from 'lucide-react'
 import { useStore, store, consumePendingChatTarget } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { getLastSeen } from '../utils/helpers'
+import { getReadMap, markConversationRead, isMessageUnread, conversationKey } from '../utils/messageReadState'
 
 function formatTime(iso, timeZone) {
   if (!iso) return ''
@@ -43,8 +44,22 @@ export default function Messages({ currentUser }) {
   // Mobile drills down list -> conversation; jumps straight to the
   // conversation if we arrived via a notification's pending chat target.
   const [mobileView, setMobileView] = useState('list')
+  const [readMap, setReadMap] = useState(() => getReadMap())
   const consumedPendingRef = useRef(false)
   const bottomRef = useRef(null)
+  // activeChat defaults to null (General) purely as the fallback content the
+  // conversation pane shows before anything is picked — that default must
+  // NOT count as "the user opened General", or it'd be silently marked read
+  // on every visit to this page without an actual click, same as every other
+  // conversation requires. Only flips true from an explicit selectChat call.
+  const hasSelectedRef = useRef(false)
+
+  function selectChat(key) {
+    hasSelectedRef.current = true
+    setActiveChat(key)
+    setMobileView('chat')
+    setReadMap(markConversationRead(key === null ? 'general' : key))
+  }
 
   // consumePendingChatTarget() clears its value as a side effect on read, so
   // it can't safely live in a useState lazy initializer — React (Strict Mode
@@ -55,10 +70,9 @@ export default function Messages({ currentUser }) {
     if (consumedPendingRef.current) return
     consumedPendingRef.current = true
     const t = consumePendingChatTarget()
-    if (t) {
-      setActiveChat(t)
-      setMobileView('chat')
-    }
+    // undefined = no notification click happened; null is itself a valid
+    // target (General), so it must still trigger the drill-into-chat jump.
+    if (t !== undefined) selectChat(t)
   }, [])
 
   // Broadcast messages have no recipientId; a DM only belongs to this
@@ -73,6 +87,20 @@ export default function Messages({ currentUser }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [visibleMessages.length, activeChat])
+
+  // Stay caught up while already viewing a conversation — a message that
+  // arrives for the chat you have open shouldn't sit there flagged unread
+  // just because you hadn't re-selected it. Gated on hasSelectedRef so this
+  // doesn't fire from the default activeChat=null before any real selection.
+  useEffect(() => {
+    if (!hasSelectedRef.current) return
+    setReadMap(markConversationRead(activeChat === null ? 'general' : activeChat))
+  }, [activeChat, visibleMessages.length])
+
+  function hasUnread(key) {
+    return messages.some(m => conversationKey(m, currentUser?.uid) === key && isMessageUnread(m, currentUser?.uid, readMap))
+  }
+  const generalUnread = hasUnread('general')
 
   async function handleSend(e) {
     e.preventDefault()
@@ -89,7 +117,7 @@ export default function Messages({ currentUser }) {
   const grouped = groupByDate(visibleMessages, settings?.timezone)
   const staffList = users
     .filter(u => u.uid !== currentUser?.uid)
-    .map(u => ({ ...u, ...getLastSeen(u.lastSeen) }))
+    .map(u => ({ ...u, ...getLastSeen(u.lastSeen), unread: hasUnread(u.uid) }))
     .sort((a, b) => {
       if (a.online !== b.online) return a.online ? -1 : 1
       return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0)
@@ -204,11 +232,12 @@ export default function Messages({ currentUser }) {
         <div className="card p-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Channels</p>
           <button
-            onClick={() => { setActiveChat(null); setMobileView('chat') }}
+            onClick={() => selectChat(null)}
             className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === null ? 'bg-teal-50 dark:bg-teal-500/12 text-teal-700' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
           >
             <Hash size={13} className="flex-shrink-0" />
-            <span className="text-xs font-semibold truncate">General</span>
+            <span className={`text-xs truncate flex-1 ${generalUnread ? 'font-bold' : 'font-semibold'}`}>General</span>
+            {generalUnread && <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />}
           </button>
         </div>
 
@@ -218,15 +247,15 @@ export default function Messages({ currentUser }) {
             {staffList.map(u => (
               <button
                 key={u.id}
-                onClick={() => { setActiveChat(u.uid); setMobileView('chat') }}
+                onClick={() => selectChat(u.uid)}
                 className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors ${activeChat === u.uid ? 'bg-teal-50 dark:bg-teal-500/12' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               >
                 <div className="relative flex-shrink-0">
                   <Avatar name={u.name} src={u.avatar} size="sm" />
                   {u.online && <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 border border-white dark:border-slate-700" />}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{u.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-xs truncate ${u.unread ? 'font-bold text-slate-800 dark:text-slate-200' : 'font-semibold text-slate-700 dark:text-slate-300'}`}>{u.name}</p>
                   <div className="flex items-center gap-1">
                     <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${ROLE_BADGE[u.role] || 'bg-slate-100 dark:bg-slate-900 text-slate-500'}`}>
                       {u.role}
@@ -234,6 +263,7 @@ export default function Messages({ currentUser }) {
                     <span className="text-[9px] text-slate-400 dark:text-slate-600 truncate">{u.label}</span>
                   </div>
                 </div>
+                {u.unread && <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />}
               </button>
             ))}
             {staffList.length === 0 && <p className="text-xs text-slate-400 dark:text-slate-600">No other staff yet</p>}

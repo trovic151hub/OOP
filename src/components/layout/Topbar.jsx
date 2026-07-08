@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, Bell, Menu, X, AlertTriangle, Calendar, MessageSquare, ChevronRight, UserCheck, FlaskConical, Moon, Sun, Printer } from 'lucide-react'
 import { useStore, setPendingChatTarget } from '../../store/useStore'
+import { getReadMap, markConversationRead, isMessageUnread, onMessageRead } from '../../utils/messageReadState'
 import { useTheme } from '../../context/ThemeContext'
 import Avatar from '../ui/Avatar'
 import { withDrPrefix } from '../../utils/helpers'
@@ -116,7 +117,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const [searchOpen, setSearchOpen]       = useState(false)
   const [mobileSearch, setMobileSearch]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
-  const [notifRead, setNotifRead]         = useState(() => localStorage.getItem('notifReadAt') || '')
+  const [readMap, setReadMap]             = useState(() => getReadMap())
   const [notifPos, setNotifPos]           = useState(null)
   const searchRef     = useRef(null)
   const mSearchRef    = useRef(null)
@@ -153,14 +154,18 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
     }
   }, [mobileSearch])
 
-  // Messages only count as "read" once the user actually visits the Messages
-  // page — not just by opening the notification dropdown to glance at them.
+  // Read state is tracked per-conversation (see utils/messageReadState) and
+  // written by the Messages page as the user selects each chat. Re-sync our
+  // own copy whenever we navigate to/from Messages or open the bell (belt
+  // and suspenders), and — the part that makes the badge update live while
+  // the user is clicking between chats on the Messages page — whenever a
+  // read-state change happens anywhere, via a small custom event, since this
+  // is a plain localStorage read/write, not a shared reactive store.
   useEffect(() => {
-    if (activePage !== 'messages') return
-    const now = new Date().toISOString()
-    localStorage.setItem('notifReadAt', now)
-    setNotifRead(now)
-  }, [activePage])
+    setReadMap(getReadMap())
+  }, [activePage, notifOpen])
+
+  useEffect(() => onMessageRead(() => setReadMap(getReadMap())), [])
 
   const today    = new Date().toISOString().slice(0, 10)
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
@@ -178,7 +183,7 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
   const checkedInPats  = appointments.filter(a => a.status === 'Checked In' && a.date === today)
   const abnormalLabs   = labResults.filter(l => l.status === 'Abnormal')
   const recentMessages = messages.slice(-3).reverse()
-  const unreadMessages  = messages.filter(m => m.senderId !== currentUser?.uid && (!notifRead || m.createdAt > notifRead))
+  const unreadMessages  = messages.filter(m => isMessageUnread(m, currentUser?.uid, readMap))
   // These four are ongoing conditions, not discrete events — they have no
   // "read" state and stay visible until whatever they describe changes (an
   // appointment passes, stock is restocked, etc). Only messages are truly
@@ -419,9 +424,9 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
                     <div className="px-4 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide bg-slate-50 dark:bg-slate-800">Recent Messages</div>
                     {recentMessages.map(m => {
                       const chatPartner = m.recipientId ? (m.senderId === currentUser?.uid ? m.recipientId : m.senderId) : null
-                      const isUnread = m.senderId !== currentUser?.uid && (!notifRead || m.createdAt > notifRead)
+                      const isUnread = isMessageUnread(m, currentUser?.uid, readMap)
                       return (
-                        <div key={m.id} className={`flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer ${isUnread ? 'bg-teal-50/60 dark:bg-teal-500/10' : ''}`} onClick={() => { setPendingChatTarget(chatPartner); onNavigate('messages'); setNotifOpen(false) }}>
+                        <div key={m.id} className={`flex items-start gap-3 px-4 py-2.5 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer ${isUnread ? 'bg-teal-50/60 dark:bg-teal-500/10' : ''}`} onClick={() => { setPendingChatTarget(chatPartner); setReadMap(markConversationRead(chatPartner ?? 'general')); onNavigate('messages'); setNotifOpen(false) }}>
                           <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/12 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <MessageSquare size={13} className="text-blue-500" />
                           </div>

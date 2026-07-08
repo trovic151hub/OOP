@@ -1,12 +1,17 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+// Always relative: the Vite dev proxy handles this in dev, and vercel.json's
+// rewrite handles it in prod, forwarding to the Render backend server-side.
+// Routing through an absolute cross-origin URL (the old approach) made the
+// session cookie cross-site, which Safari's ITP silently blocks/purges on
+// iOS — breaking both "stay logged in after refresh" and any authenticated
+// request (e.g. photo upload) with no more specific error than a 401.
+const BASE_URL = '/api'
 
 // The CSRF token is delivered as a same-origin-readable cookie AND echoed in
-// the JSON body of auth responses. The cookie approach only works when
-// frontend and backend share an origin (e.g. the dev proxy) — cookies set by
-// a different origin (e.g. the deployed API on Render vs the app on Vercel)
-// are invisible to this page's document.cookie no matter what SameSite says.
-// So the in-memory value from the response body is the source of truth;
-// falling back to the cookie only helps in the same-origin dev case.
+// the JSON body of auth responses. Now that /api is always same-origin (dev
+// proxy, or the prod rewrite to Render), the cookie is readable in both —
+// but the in-memory value is kept as the primary source of truth regardless,
+// with the cookie only as a fallback (e.g. a fresh tab before any request
+// has populated the in-memory value yet).
 let csrfToken = null
 
 function getCookie(name) {
