@@ -9,9 +9,11 @@ import { makeCrudRouter } from '../utils/crudRouter.js'
 import { Router } from 'express'
 import { logAudit } from '../utils/audit.js'
 import { requireRole } from '../middleware/role.middleware.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const controller = makeCrudController(Doctor, {
   entity: 'Doctor',
+  key: 'doctors',
   sort: { createdAt: -1 },
   label: (d) => d.name,
   audit: { add: true, update: true, delete: true },
@@ -58,6 +60,8 @@ router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
         createdAt: new Date().toISOString(),
       })
       await logAudit(req, 'Added', 'Doctor', name)
+      emitChanged(req, 'doctors')
+      emitChanged(req, 'users')
       res.status(201).json({ doctor, tempPassword })
     } catch (err) {
       await User.findByIdAndDelete(user._id)
@@ -72,6 +76,7 @@ router.put('/:id/link-user', async (req, res, next) => {
     const doctor = await Doctor.findByIdAndUpdate(req.params.id, { uid: userId }, { new: true })
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' })
     await logAudit(req, 'Linked', 'Doctor Profile', `doctorId:${req.params.id} -> uid:${userId}`)
+    emitChanged(req, 'doctors')
     res.json(doctor)
   } catch (err) { next(err) }
 })

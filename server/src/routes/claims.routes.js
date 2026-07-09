@@ -4,6 +4,7 @@ import { makeCrudRouter } from '../utils/crudRouter.js'
 
 const controller = makeCrudController(Claim, {
   entity: 'Claim',
+  key: 'claims',
   sort: { submittedDate: -1 },
   label: (d) => `${d.patientName} - ${d.insuranceProvider}`,
   audit: { add: true, update: true, delete: true },

@@ -2,9 +2,11 @@ import { Router } from 'express'
 import Inventory from '../models/Inventory.js'
 import { makeCrudController } from '../utils/crudFactory.js'
 import { logAudit } from '../utils/audit.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const controller = makeCrudController(Inventory, {
   entity: 'Inventory',
+  key: 'inventory',
   sort: { createdAt: -1 },
   label: (d) => d.name,
   audit: { add: true, update: true, delete: true },
@@ -32,6 +34,7 @@ router.post('/deduct-for-prescription', async (req, res, next) => {
         deducted.push(item.name)
       }
     }
+    if (deducted.length) emitChanged(req, 'inventory')
     res.json({ deducted })
   } catch (err) { next(err) }
 })

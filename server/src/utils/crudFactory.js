@@ -1,12 +1,17 @@
 import { logAudit } from './audit.js'
+import { emitChanged } from './realtime.js'
 
 // Builds list/create/update/delete handlers shared by the ~14 collections that
 // follow the same CRUD + optional-audit-logging shape the old Firestore store
 // methods used. Per-collection differences (sort order, which operations audit-log,
 // how the audited label is derived, cascading deletes) are passed in via opts.
+// `key` is the matching frontend store key (see src/store/useStore.js's
+// COLLECTIONS list) — it's how a change here tells every other connected
+// client which collection to refetch in real time.
 export function makeCrudController(Model, opts = {}) {
   const {
     entity,
+    key,
     sort = { createdAt: -1 },
     label = (doc) => doc.name || doc.title || String(doc._id),
     audit = { add: true, update: false, delete: true },
@@ -32,6 +37,7 @@ export function makeCrudController(Model, opts = {}) {
         const doc = await Model.create({ ...req.body, createdAt: new Date().toISOString() })
         const labelFn = auditLabelFn('add')
         if (labelFn) await logAudit(req, 'Added', entity, labelFn(doc))
+        if (key) emitChanged(req, key)
         res.status(201).json(doc)
       } catch (err) { next(err) }
     },
@@ -46,6 +52,7 @@ export function makeCrudController(Model, opts = {}) {
         if (!doc) return res.status(404).json({ message: 'Not found' })
         const labelFn = auditLabelFn('update')
         if (labelFn) await logAudit(req, 'Updated', entity, labelFn(doc))
+        if (key) emitChanged(req, key)
         res.json(doc)
       } catch (err) { next(err) }
     },
@@ -58,6 +65,7 @@ export function makeCrudController(Model, opts = {}) {
         await Model.findByIdAndDelete(req.params.id)
         const labelFn = auditLabelFn('delete')
         if (labelFn) await logAudit(req, 'Deleted', entity, labelFn(doc))
+        if (key) emitChanged(req, key)
         res.status(204).end()
       } catch (err) { next(err) }
     },

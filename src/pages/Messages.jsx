@@ -222,7 +222,10 @@ export default function Messages({ currentUser }) {
               disabled={!text.trim() || sending}
               className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white hover:bg-teal-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
             >
-              <Send size={15} />
+              {sending
+                ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Send size={15} />
+              }
             </button>
           </form>
         </div>

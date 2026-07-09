@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import Message from '../models/Message.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const router = Router()
 
@@ -30,6 +31,7 @@ router.post('/', async (req, res, next) => {
       recipientId: recipientId || null,
       createdAt: new Date().toISOString(),
     })
+    emitChanged(req, 'messages')
     res.status(201).json(doc)
   } catch (err) { next(err) }
 })

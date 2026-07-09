@@ -3,6 +3,7 @@ import User from '../models/User.js'
 import Doctor from '../models/Doctor.js'
 import { requireRole } from '../middleware/role.middleware.js'
 import { logAudit } from '../utils/audit.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const router = Router()
 
@@ -23,6 +24,7 @@ router.put('/:id', async (req, res, next) => {
     const user = await User.findByIdAndUpdate(req.params.id, body, { new: true })
     if (!user) return res.status(404).json({ message: 'Not found' })
     await logAudit(req, 'Updated', 'User Profile', body.name || req.params.id)
+    emitChanged(req, 'users')
     res.json(user)
   } catch (err) { next(err) }
 })
@@ -56,6 +58,8 @@ router.delete('/:id', requireRole('Admin'), async (req, res, next) => {
     await Doctor.updateMany({ uid: targetId }, { uid: '' })
     await User.findByIdAndDelete(targetId)
     await logAudit(req, 'Deleted', 'User', `${user.name} (${user.email})`)
+    emitChanged(req, 'users')
+    emitChanged(req, 'doctors')
     res.status(204).end()
   } catch (err) { next(err) }
 })
@@ -91,9 +95,11 @@ router.put('/:id/role', requireRole('Admin'), async (req, res, next) => {
             createdAt: new Date().toISOString(),
           })
         }
+        emitChanged(req, 'doctors')
       }
     }
 
+    emitChanged(req, 'users')
     res.json(user)
   } catch (err) { next(err) }
 })

@@ -4,6 +4,7 @@ import { makeCrudRouter } from '../utils/crudRouter.js'
 
 const controller = makeCrudController(Shift, {
   entity: 'Shift',
+  key: 'shifts',
   sort: { createdAt: 1 },
   audit: { add: false, update: false, delete: false },
 })

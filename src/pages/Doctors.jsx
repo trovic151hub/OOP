@@ -202,10 +202,17 @@ export default function Doctors({ currentUser }) {
   async function handleSubmit() {
     if (!form.name.trim() || !form.specialty.trim()) { showToast('Name and specialty are required.', 'error'); return }
     if (editId) {
-      await store.updateDoctor(editId, form)
-      if (form.uid) await store.updateUserProfile(form.uid, { avatar: form.photo || '' })
-      showToast('Doctor updated.')
-      setModal(false)
+      setSaving(true)
+      try {
+        await store.updateDoctor(editId, form)
+        if (form.uid) await store.updateUserProfile(form.uid, { avatar: form.photo || '' })
+        showToast('Doctor updated.')
+        setModal(false)
+      } catch (err) {
+        showToast(err.message || 'Failed to update doctor.', 'error')
+      } finally {
+        setSaving(false)
+      }
       return
     }
     if (!form.email.trim()) { showToast('Email is required to create the doctor\'s login account.', 'error'); return }

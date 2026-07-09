@@ -4,6 +4,7 @@ import { makeCrudRouter } from '../utils/crudRouter.js'
 
 const controller = makeCrudController(LabResult, {
   entity: 'Lab Result',
+  key: 'labResults',
   sort: { date: -1 },
   label: (d) => `${d.testName} - ${d.patientName}`,
   audit: { add: true, update: false, delete: true },

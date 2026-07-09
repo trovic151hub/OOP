@@ -75,7 +75,7 @@ async function refetch(key, path) {
   notify()
 }
 
-async function refetchSettings() {
+export async function refetchSettings() {
   try {
     state.settings = { ...DEFAULT_SETTINGS, ...(await api.get('/settings')) }
   } catch (err) {

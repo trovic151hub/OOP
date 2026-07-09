@@ -5,6 +5,7 @@ import User from '../models/User.js'
 import { env, crossSiteCookieOptions } from '../config/env.js'
 import { issueCsrfToken } from '../middleware/csrf.middleware.js'
 import { sendPasswordResetEmail } from '../utils/mailer.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const SESSION_COOKIE = 'mc_token'
 
@@ -61,6 +62,7 @@ export async function register(req, res, next) {
     const token = signToken(user)
     setSessionCookie(res, token)
     const csrfToken = issueCsrfToken(res)
+    emitChanged(req, 'users')
     res.status(201).json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
 }

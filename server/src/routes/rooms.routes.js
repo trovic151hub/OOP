@@ -4,6 +4,7 @@ import { makeCrudRouter } from '../utils/crudRouter.js'
 
 const controller = makeCrudController(Room, {
   entity: 'Room',
+  key: 'rooms',
   sort: { createdAt: -1 },
   label: (d) => d.roomNumber || d.name,
   audit: { add: true, update: true, delete: true },

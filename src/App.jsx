@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { initSubscriptions, ensureUserProfile, setCurrentUser, store, useStore, refetchCollection } from './store/useStore'
+import { connectRealtime, disconnectRealtime } from './realtime'
 import { api } from './api/client'
 import { ToastProvider } from './context/ToastContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -195,6 +196,16 @@ function AppContent() {
     store.updateLastSeen(authUser.uid)
     const interval = setInterval(() => store.updateLastSeen(authUser.uid), 5 * 60 * 1000)
     return () => clearInterval(interval)
+  }, [authUser])
+
+  // Live updates: connects once per login session, disconnects on logout.
+  // Driven by authUser (not tied to which code path called
+  // initSubscriptions) so it fires correctly whether we arrived here via a
+  // fresh login/register or an existing session found on page load.
+  useEffect(() => {
+    if (!authUser) return
+    connectRealtime()
+    return () => disconnectRealtime()
   }, [authUser])
 
   if (!authChecked) {
