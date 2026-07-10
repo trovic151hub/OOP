@@ -6,6 +6,8 @@ const shiftSchema = new mongoose.Schema({
   shiftType:  String,
   doctorId:   String,
   doctorName: String,
+  nurseId:    String,
+  nurseName:  String,
   weekStart:  String,
 }, docSchemaOpts)
 

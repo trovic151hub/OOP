@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import User from '../models/User.js'
 import Doctor from '../models/Doctor.js'
+import Nurse from '../models/Nurse.js'
 import { requireRole } from '../middleware/role.middleware.js'
 import { logAudit } from '../utils/audit.js'
 import { emitChanged } from '../utils/realtime.js'
@@ -52,14 +53,16 @@ router.delete('/:id', requireRole('Admin'), async (req, res, next) => {
       }
     }
 
-    // Unlink rather than delete their Doctor profile — the professional record
-    // (appointments, patient history references) should survive the account
-    // being removed; it just goes back to the "not linked" state.
+    // Unlink rather than delete their Doctor/Nurse profile — the professional
+    // record (appointments, patient history references) should survive the
+    // account being removed; it just goes back to the "not linked" state.
     await Doctor.updateMany({ uid: targetId }, { uid: '' })
+    await Nurse.updateMany({ uid: targetId }, { uid: '' })
     await User.findByIdAndDelete(targetId)
     await logAudit(req, 'Deleted', 'User', `${user.name} (${user.email})`)
     emitChanged(req, 'users')
     emitChanged(req, 'doctors')
+    emitChanged(req, 'nurses')
     res.status(204).end()
   } catch (err) { next(err) }
 })
@@ -96,6 +99,33 @@ router.put('/:id/role', requireRole('Admin'), async (req, res, next) => {
           })
         }
         emitChanged(req, 'doctors')
+      }
+    }
+
+    if (role === 'Nurse') {
+      const alreadyLinked = await Nurse.findOne({ uid })
+      if (!alreadyLinked) {
+        const byEmail = user.email ? await Nurse.findOne({ email: user.email }) : null
+        if (byEmail) {
+          byEmail.uid = uid
+          await byEmail.save()
+          await logAudit(req, 'Linked', 'Nurse Profile', `${user.email} -> uid:${uid}`)
+        } else {
+          await Nurse.create({
+            uid,
+            name: user.name || 'Nurse',
+            email: user.email || '',
+            phone: user.phone || '',
+            specialty: '',
+            department: '',
+            availability: 'Available',
+            schedule: '',
+            about: '',
+            experience: '',
+            createdAt: new Date().toISOString(),
+          })
+        }
+        emitChanged(req, 'nurses')
       }
     }
 

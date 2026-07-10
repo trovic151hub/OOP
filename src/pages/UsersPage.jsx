@@ -6,12 +6,13 @@ import ConfirmModal from '../components/ui/ConfirmModal'
 import { useToast } from '../context/ToastContext'
 import { getLastSeen } from '../utils/helpers'
 
-const ROLES = ['Admin', 'Doctor', 'Receptionist', 'Patient']
-const TABS  = ['All', 'Admin', 'Doctor', 'Receptionist', 'Patient']
+const ROLES = ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']
+const TABS  = ['All', 'Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']
 
 const ROLE_BADGE = {
   Admin:        'bg-teal-100 dark:bg-teal-500/18 text-teal-700 border border-teal-200 dark:border-teal-500/30',
   Doctor:       'bg-purple-100 dark:bg-purple-500/18 text-purple-700 border border-purple-200',
+  Nurse:        'bg-rose-100 dark:bg-rose-500/18 text-rose-700 border border-rose-200 dark:border-rose-500/30',
   Receptionist: 'bg-blue-100 dark:bg-blue-500/18 text-blue-700 border border-blue-200 dark:border-blue-500/30',
   Patient:      'bg-emerald-100 dark:bg-emerald-500/18 text-emerald-700 border border-emerald-200 dark:border-emerald-500/30',
 }
@@ -26,7 +27,7 @@ function RoleSelector({ userId, currentRole, disabled, onRoleChange }) {
     try {
       await store.updateUserRole(userId, role)
       onRoleChange()
-      showToast(`Role updated to ${role}.${role === 'Doctor' ? ' Doctor profile auto-created.' : ''}`)
+      showToast(`Role updated to ${role}.${role === 'Doctor' ? ' Doctor profile auto-created.' : role === 'Nurse' ? ' Nurse profile auto-created.' : ''}`)
     } catch {
       showToast('Failed to update role.', 'error')
     }
@@ -100,6 +101,7 @@ export default function UsersPage({ currentUser }) {
     All:         users.length,
     Admin:        users.filter(u => u.role === 'Admin').length,
     Doctor:       users.filter(u => u.role === 'Doctor').length,
+    Nurse:        users.filter(u => u.role === 'Nurse').length,
     Receptionist: users.filter(u => u.role === 'Receptionist').length,
     Patient:      users.filter(u => u.role === 'Patient').length,
   }
@@ -125,7 +127,7 @@ export default function UsersPage({ currentUser }) {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {Object.entries({ Admin: counts.Admin, Doctor: counts.Doctor, Receptionist: counts.Receptionist }).map(([role, count]) => (
+          {Object.entries({ Admin: counts.Admin, Doctor: counts.Doctor, Nurse: counts.Nurse, Receptionist: counts.Receptionist }).map(([role, count]) => (
             <span key={role} className={`font-bold px-2.5 py-1 rounded-full text-xs ${ROLE_BADGE[role]}`}>
               {count} {role}{count !== 1 ? 's' : ''}
             </span>
@@ -136,7 +138,7 @@ export default function UsersPage({ currentUser }) {
       <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
         <Shield size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
         <div className="text-xs text-amber-700">
-          <strong>How roles work:</strong> The first person to register becomes Admin (you). All other staff sign up and land as Receptionist by default. Click any role badge below to assign the correct role — Doctor or Receptionist — before they start using the system. Assigning a Doctor role automatically creates their doctor profile.
+          <strong>How roles work:</strong> The first person to register becomes Admin (you). All other staff sign up and land as Receptionist by default. Click any role badge below to assign the correct role — Doctor, Nurse, or Receptionist — before they start using the system. Assigning a Doctor or Nurse role automatically creates their profile.
         </div>
       </div>
 
@@ -267,7 +269,7 @@ export default function UsersPage({ currentUser }) {
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleDeleteUser}
         title="Delete User"
-        message={confirmDelete ? `Are you sure you want to delete ${confirmDelete.name}'s account? Their login access will be revoked immediately. If they have a linked doctor profile, it will be unlinked but not deleted. This action cannot be undone.` : ''}
+        message={confirmDelete ? `Are you sure you want to delete ${confirmDelete.name}'s account? Their login access will be revoked immediately. If they have a linked doctor or nurse profile, it will be unlinked but not deleted. This action cannot be undone.` : ''}
       />
     </div>
   )

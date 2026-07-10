@@ -4,32 +4,33 @@ import {
   CalendarDays, Package, MessageSquare, LogOut, Activity,
   UserCog, ClipboardList, Clock, X, BarChart2, ChevronLeft,
   UserCircle, BedDouble, FlaskConical, UserCheck, Pill, TrendingDown,
-  FileText, Shield, BarChart, FlaskRound, Settings
+  FileText, Shield, BarChart, FlaskRound, Settings, HeartPulse
 } from 'lucide-react'
 import NairaIcon from '../ui/NairaIcon'
 import Avatar from '../ui/Avatar'
 import { store, useStore } from '../../store/useStore'
 
 const ALL_NAV = [
-  { id: 'dashboard',        label: 'Dashboard',         icon: LayoutDashboard, roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'my-profile',       label: 'My Profile',        icon: UserCircle,      roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'dashboard',        label: 'Dashboard',         icon: LayoutDashboard, roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'my-profile',       label: 'My Profile',        icon: UserCircle,      roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'queue',            label: 'Waiting Room',      icon: UserCheck,       roles: ['Admin','Receptionist'] },
-  { id: 'appointments',     label: 'Appointments',      icon: Calendar,        roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'patients',         label: 'Patients',          icon: Users,           roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'prescriptions',    label: 'Prescriptions',     icon: Pill,            roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'appointments',     label: 'Appointments',      icon: Calendar,        roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'patients',         label: 'Patients',          icon: Users,           roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'prescriptions',    label: 'Prescriptions',     icon: Pill,            roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'pharmacy',         label: 'Pharmacy',          icon: FlaskRound,      roles: ['Admin','Receptionist'] },
-  { id: 'documents',        label: 'Documents',         icon: FileText,        roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'documents',        label: 'Documents',         icon: FileText,        roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'doctors',          label: 'Doctors',           icon: Stethoscope,     roles: ['Admin','Receptionist'] },
+  { id: 'nurses',           label: 'Nurses',            icon: HeartPulse,      roles: ['Admin','Receptionist'] },
   { id: 'departments',      label: 'Departments',       icon: Building2,       roles: ['Admin','Receptionist'] },
   { id: 'rooms',            label: 'Rooms & Beds',      icon: BedDouble,       roles: ['Admin','Receptionist'] },
-  { id: 'lab-results',      label: 'Lab Results',       icon: FlaskConical,    roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'calendar',         label: 'Calendar',          icon: CalendarDays,    roles: ['Admin','Doctor','Receptionist'] },
-  { id: 'shifts',           label: 'Shifts',            icon: Clock,           roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'lab-results',      label: 'Lab Results',       icon: FlaskConical,    roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'calendar',         label: 'Calendar',          icon: CalendarDays,    roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'shifts',           label: 'Shifts',            icon: Clock,           roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'inventory',        label: 'Inventory',         icon: Package,         roles: ['Admin'] },
   { id: 'billing',          label: 'Billing',           icon: NairaIcon,       roles: ['Admin','Receptionist'] },
   { id: 'insurance',        label: 'Insurance & Claims',icon: Shield,          roles: ['Admin','Receptionist'] },
   { id: 'expenses',         label: 'Expenses',          icon: TrendingDown,    roles: ['Admin'] },
-  { id: 'messages',         label: 'Messages',          icon: MessageSquare,   roles: ['Admin','Doctor','Receptionist'] },
+  { id: 'messages',         label: 'Messages',          icon: MessageSquare,   roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'staff-performance',label: 'Staff Performance', icon: BarChart,        roles: ['Admin'] },
   { id: 'users',            label: 'User Management',   icon: UserCog,         roles: ['Admin'] },
   { id: 'reports',          label: 'Reports',           icon: BarChart2,       roles: ['Admin'] },
@@ -40,6 +41,7 @@ const ALL_NAV = [
 const ROLE_BADGE = {
   Admin:        'bg-teal-100 dark:bg-teal-500/18 text-teal-700',
   Doctor:       'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  Nurse:        'bg-rose-100 dark:bg-rose-500/18 text-rose-700',
   Receptionist: 'bg-blue-100 dark:bg-blue-500/18 text-blue-700',
 }
 

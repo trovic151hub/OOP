@@ -9,6 +9,7 @@ import { notFound, errorHandler } from './middleware/error.middleware.js'
 import authRoutes from './routes/auth.routes.js'
 import patientsRoutes from './routes/patients.routes.js'
 import doctorsRoutes from './routes/doctors.routes.js'
+import nursesRoutes from './routes/nurses.routes.js'
 import appointmentsRoutes from './routes/appointments.routes.js'
 import departmentsRoutes from './routes/departments.routes.js'
 import inventoryRoutes from './routes/inventory.routes.js'
@@ -46,6 +47,7 @@ export function createApp() {
 
   app.use('/api/patients', patientsRoutes)
   app.use('/api/doctors', doctorsRoutes)
+  app.use('/api/nurses', nursesRoutes)
   app.use('/api/appointments', appointmentsRoutes)
   app.use('/api/departments', departmentsRoutes)
   app.use('/api/inventory', inventoryRoutes)

@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS = {
 const COLLECTIONS = [
   ['patients', '/patients'],
   ['doctors', '/doctors'],
+  ['nurses', '/nurses'],
   ['appointments', '/appointments'],
   ['departments', '/departments'],
   ['inventory', '/inventory'],
@@ -41,6 +42,7 @@ const COLLECTIONS = [
 const state = {
   patients:       [],
   doctors:        [],
+  nurses:         [],
   appointments:   [],
   departments:    [],
   inventory:      [],
@@ -109,7 +111,7 @@ export async function initSubscriptions() {
 export function clearSubscriptions() {
   _initialized = false
   Object.assign(state, {
-    patients: [], doctors: [], appointments: [], departments: [],
+    patients: [], doctors: [], nurses: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
     prescriptions: [], expenses: [], documents: [], claims: [],
@@ -189,6 +191,10 @@ export const store = {
     await Promise.all([refetch('appointments', '/appointments'), refetch('shifts', '/shifts')])
   },
 
+  async addNurse(data)          { return addItem('nurses', '/nurses', data) },
+  async updateNurse(id, data)   { return updateItem('nurses', '/nurses', id, data) },
+  async deleteNurse(id)         { return deleteItem('nurses', '/nurses', id) },
+
   async addAppointment(data)        { return addItem('appointments', '/appointments', data) },
   async updateAppointment(id, data) { return updateItem('appointments', '/appointments', id, data) },
   async deleteAppointment(id)       { return deleteItem('appointments', '/appointments', id) },
@@ -218,7 +224,7 @@ export const store = {
   async updateUserProfile(uid, data) { return updateItem('users', '/users', uid, data) },
   async deleteUser(uid) {
     await deleteItem('users', '/users', uid)
-    await refetch('doctors', '/doctors')
+    await Promise.all([refetch('doctors', '/doctors'), refetch('nurses', '/nurses')])
   },
 
   async updateLastSeen(uid) {
@@ -227,7 +233,7 @@ export const store = {
 
   async updateUserRole(uid, role) {
     await api.put(`/users/${uid}/role`, { role })
-    await Promise.all([refetch('users', '/users'), refetch('doctors', '/doctors')])
+    await Promise.all([refetch('users', '/users'), refetch('doctors', '/doctors'), refetch('nurses', '/nurses')])
   },
 
   async linkDoctorToUser(doctorId, uid) {
@@ -241,6 +247,20 @@ export const store = {
   async onboardDoctor(data) {
     const result = await api.post('/doctors/onboard', data)
     await Promise.all([refetch('doctors', '/doctors'), refetch('users', '/users')])
+    return result
+  },
+
+  async linkNurseToUser(nurseId, uid) {
+    await api.put(`/nurses/${nurseId}/link-user`, { userId: uid })
+    await refetch('nurses', '/nurses')
+  },
+
+  // Creates the login account and nurse profile together, already linked.
+  // Returns { nurse, tempPassword } — the temp password is shown to the
+  // Admin once, at creation time, then never retrievable again.
+  async onboardNurse(data) {
+    const result = await api.post('/nurses/onboard', data)
+    await Promise.all([refetch('nurses', '/nurses'), refetch('users', '/users')])
     return result
   },
 
@@ -295,6 +315,7 @@ export function useStore() {
   return {
     patients:       state.patients,
     doctors:        state.doctors,
+    nurses:         state.nurses,
     appointments:   state.appointments,
     departments:    state.departments,
     inventory:      state.inventory,

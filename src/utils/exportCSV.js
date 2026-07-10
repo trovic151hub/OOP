@@ -44,6 +44,17 @@ export function exportDoctors(doctors) {
   )
 }
 
+export function exportNurses(nurses) {
+  exportCSV(
+    ['Name', 'Specialty', 'Department', 'Phone', 'Email', 'Availability', 'Experience', 'Schedule'],
+    nurses.map(n => [
+      n.name, n.specialty, n.department, n.phone, n.email,
+      n.availability, n.experience, n.schedule
+    ]),
+    `nurses_${new Date().toISOString().slice(0, 10)}.csv`
+  )
+}
+
 export function exportAppointments(appointments) {
   exportCSV(
     ['ID', 'Patient', 'Doctor', 'Date', 'Start Time', 'End Time', 'Type', 'Status', 'Notes'],

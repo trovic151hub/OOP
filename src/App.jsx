@@ -12,6 +12,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Patients from './pages/Patients'
 import Doctors from './pages/Doctors'
+import Nurses from './pages/Nurses'
 import Appointments from './pages/Appointments'
 import Departments from './pages/Departments'
 import CalendarPage from './pages/CalendarPage'
@@ -267,6 +268,7 @@ function AppContent() {
       case 'dashboard':         return <Dashboard onNavigate={navigate} currentUser={currentUser} />
       case 'patients':          return <Patients currentUser={currentUser} onNavigate={navigate} />
       case 'doctors':           return <Doctors currentUser={currentUser} />
+      case 'nurses':            return <Nurses currentUser={currentUser} />
       case 'appointments':      return <Appointments currentUser={currentUser} />
       case 'departments':       return <Departments currentUser={currentUser} />
       case 'calendar':          return <CalendarPage onNavigate={navigate} />

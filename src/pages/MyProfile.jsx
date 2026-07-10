@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { User, Phone, Mail, Stethoscope, Building2, Award, Clock, Save, Pencil, X, BadgeCheck, Lock, Camera } from 'lucide-react'
+import { User, Phone, Mail, Stethoscope, HeartPulse, Building2, Award, Clock, Save, Pencil, X, BadgeCheck, Lock, Camera } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import { api } from '../api/client'
 import Avatar from '../components/ui/Avatar'
@@ -13,20 +13,24 @@ const SPECIALTIES    = ['General Medicine','Pediatrics','Cardiology','Orthopedic
 const ROLE_BADGE = {
   Admin:        'bg-teal-100 dark:bg-teal-500/18 text-teal-700',
   Doctor:       'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  Nurse:        'bg-rose-100 dark:bg-rose-500/18 text-rose-700',
   Receptionist: 'bg-blue-100 dark:bg-blue-500/18 text-blue-700',
 }
 
 export default function MyProfile({ currentUser }) {
-  const { doctors, departments } = useStore()
+  const { doctors, nurses, departments } = useStore()
   const showToast = useToast()
 
   const linkedDoctor = doctors.find(d => d.uid === currentUser?.uid)
+  const linkedNurse  = nurses.find(n => n.uid === currentUser?.uid)
 
   const [editingBasic, setEditingBasic]     = useState(false)
   const [editingDoctor, setEditingDoctor]   = useState(false)
+  const [editingNurse, setEditingNurse]     = useState(false)
   const [editingPassword, setEditingPassword] = useState(false)
   const [savingBasic, setSavingBasic]       = useState(false)
   const [savingDoctor, setSavingDoctor]     = useState(false)
+  const [savingNurse, setSavingNurse]       = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
@@ -45,6 +49,15 @@ export default function MyProfile({ currentUser }) {
     schedule:     linkedDoctor?.schedule     || '',
     availability: linkedDoctor?.availability || 'Available',
     about:        linkedDoctor?.about        || '',
+  })
+
+  const [nurseForm, setNurseForm] = useState({
+    specialty:    linkedNurse?.specialty    || '',
+    department:   linkedNurse?.department   || '',
+    experience:   linkedNurse?.experience   || '',
+    schedule:     linkedNurse?.schedule     || '',
+    availability: linkedNurse?.availability || 'Available',
+    about:        linkedNurse?.about        || '',
   })
 
   useEffect(() => {
@@ -68,8 +81,22 @@ export default function MyProfile({ currentUser }) {
     }
   }, [linkedDoctor?.id])
 
+  useEffect(() => {
+    if (linkedNurse) {
+      setNurseForm({
+        specialty:    linkedNurse.specialty    || '',
+        department:   linkedNurse.department   || '',
+        experience:   linkedNurse.experience   || '',
+        schedule:     linkedNurse.schedule     || '',
+        availability: linkedNurse.availability || 'Available',
+        about:        linkedNurse.about        || '',
+      })
+    }
+  }, [linkedNurse?.id])
+
   function setBasic(k) { return e => setBasicForm(f => ({ ...f, [k]: e.target.value })) }
   function setDoc(k)   { return e => setDoctorForm(f => ({ ...f, [k]: e.target.value })) }
+  function setNurse(k) { return e => setNurseForm(f => ({ ...f, [k]: e.target.value })) }
 
   async function saveBasic() {
     if (!basicForm.name.trim()) { showToast('Name is required.', 'error'); return }
@@ -106,6 +133,7 @@ export default function MyProfile({ currentUser }) {
       })
       await store.updateUserProfile(currentUser.uid, { avatar: dataUrl })
       if (linkedDoctor) await store.updateDoctor(linkedDoctor.id, { photo: dataUrl })
+      if (linkedNurse) await store.updateNurse(linkedNurse.id, { photo: dataUrl })
       showToast('Profile photo updated.', 'success')
     } catch {
       showToast('Failed to upload photo.', 'error')
@@ -119,6 +147,7 @@ export default function MyProfile({ currentUser }) {
     try {
       await store.updateUserProfile(currentUser.uid, { avatar: '' })
       if (linkedDoctor) await store.updateDoctor(linkedDoctor.id, { photo: '' })
+      if (linkedNurse) await store.updateNurse(linkedNurse.id, { photo: '' })
       showToast('Profile photo removed.', 'success')
     } catch {
       showToast('Failed to remove photo.', 'error')
@@ -147,6 +176,26 @@ export default function MyProfile({ currentUser }) {
     }
   }
 
+  async function saveNurseProfile() {
+    if (!linkedNurse) { showToast('No linked nurse profile found.', 'error'); return }
+    setSavingNurse(true)
+    try {
+      await store.updateNurse(linkedNurse.id, {
+        ...linkedNurse,
+        ...nurseForm,
+        name:  currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone || linkedNurse.phone,
+      })
+      showToast('Nurse profile updated.', 'success')
+      setEditingNurse(false)
+    } catch {
+      showToast('Failed to save nurse profile.', 'error')
+    } finally {
+      setSavingNurse(false)
+    }
+  }
+
   async function savePassword() {
     if (!passwordForm.currentPassword || !passwordForm.newPassword) { showToast('Both password fields are required.', 'error'); return }
     if (passwordForm.newPassword.length < 6) { showToast('New password must be at least 6 characters.', 'error'); return }
@@ -168,6 +217,7 @@ export default function MyProfile({ currentUser }) {
   }
 
   const isDoctor = currentUser?.role === 'Doctor'
+  const isNurse  = currentUser?.role === 'Nurse'
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
@@ -204,7 +254,7 @@ export default function MyProfile({ currentUser }) {
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${ROLE_BADGE[currentUser?.role] || 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'}`}>
                 {currentUser?.role}
               </span>
-              {isDoctor && linkedDoctor && (
+              {((isDoctor && linkedDoctor) || (isNurse && linkedNurse)) && (
                 <span className="flex items-center gap-1 text-xs text-teal-600 font-semibold">
                   <BadgeCheck size={13} /> Profile linked
                 </span>
@@ -420,6 +470,101 @@ export default function MyProfile({ currentUser }) {
                 <div className="bg-purple-50 dark:bg-purple-500/12 rounded-xl p-3 mt-1">
                   <p className="text-xs text-purple-400 mb-1 font-bold uppercase tracking-wide">About</p>
                   <p className="text-sm text-slate-600 dark:text-slate-400">{linkedDoctor.about}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isNurse && (
+        <div className="card overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HeartPulse size={16} className="text-rose-500" />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Nurse Profile</p>
+            </div>
+            {linkedNurse ? (
+              !editingNurse ? (
+                <button onClick={() => setEditingNurse(true)} className="btn-ghost text-xs py-1.5 px-3">
+                  <Pencil size={12} /> Edit
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingNurse(false)} className="btn-ghost text-xs py-1.5 px-3">
+                    <X size={12} /> Cancel
+                  </button>
+                  <button onClick={saveNurseProfile} disabled={savingNurse} className="btn-primary text-xs py-1.5 px-3">
+                    {savingNurse ? <span className="w-3 h-3 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" /> : <><Save size={12} /> Save</>}
+                  </button>
+                </div>
+              )
+            ) : (
+              <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-500/12 px-2.5 py-1 rounded-full font-semibold">Profile not linked yet</span>
+            )}
+          </div>
+
+          {!linkedNurse ? (
+            <div className="p-6 text-center text-slate-400 dark:text-slate-600">
+              <HeartPulse size={32} className="text-slate-200 mx-auto mb-3" />
+              <p className="text-sm font-medium">Your nurse profile hasn't been set up yet.</p>
+              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Ask the Admin to assign your Nurse role from User Management — this will automatically create your profile.</p>
+            </div>
+          ) : editingNurse ? (
+            <div className="p-6 flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Specialty</label>
+                  <input className="input-field" value={nurseForm.specialty} onChange={setNurse('specialty')} placeholder="e.g. ICU Nursing" />
+                </div>
+                <div>
+                  <label className="label">Department</label>
+                  <FormDropdown
+                    value={nurseForm.department}
+                    onChange={v => setNurseForm(f => ({ ...f, department: v }))}
+                    options={[{ value: '', label: 'None' }, ...departments.map(d => ({ value: d.name, label: d.name }))]}
+                  />
+                </div>
+                <div>
+                  <label className="label">Experience</label>
+                  <input className="input-field" value={nurseForm.experience} onChange={setNurse('experience')} placeholder="e.g. 5+ years" />
+                </div>
+                <div>
+                  <label className="label">Availability</label>
+                  <FormDropdown value={nurseForm.availability} onChange={v => setNurseForm(f => ({ ...f, availability: v }))} options={AVAILABILITIES.map(v => ({ value: v, label: v }))} />
+                </div>
+                <div className="col-span-2">
+                  <label className="label">Schedule</label>
+                  <input className="input-field" value={nurseForm.schedule} onChange={setNurse('schedule')} placeholder="e.g. Mon – Fri (08:00 – 17:00)" />
+                </div>
+                <div className="col-span-2">
+                  <label className="label">About / Specialization</label>
+                  <textarea className="input-field resize-none" rows={3} value={nurseForm.about} onChange={setNurse('about')} placeholder="Describe your specialization and experience…" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 flex flex-col gap-3">
+              {[
+                { icon: HeartPulse, label: 'Specialty',    val: linkedNurse.specialty    || '—' },
+                { icon: Building2,  label: 'Department',   val: linkedNurse.department   || '—' },
+                { icon: Award,      label: 'Experience',   val: linkedNurse.experience   || '—' },
+                { icon: Clock,      label: 'Schedule',     val: linkedNurse.schedule     || '—' },
+              ].map(({ icon: Icon, label, val }) => (
+                <div key={label} className="flex items-center gap-3 py-2 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-500/12 flex items-center justify-center flex-shrink-0">
+                    <Icon size={14} className="text-rose-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 dark:text-slate-600">{label}</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{val}</p>
+                  </div>
+                </div>
+              ))}
+              {linkedNurse.about && (
+                <div className="bg-rose-50 dark:bg-rose-500/12 rounded-xl p-3 mt-1">
+                  <p className="text-xs text-rose-400 mb-1 font-bold uppercase tracking-wide">About</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{linkedNurse.about}</p>
                 </div>
               )}
             </div>

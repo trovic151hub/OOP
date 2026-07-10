@@ -96,6 +96,8 @@ export default function Dashboard({ onNavigate, currentUser }) {
 
   const today     = new Date().toISOString().slice(0, 10)
   const isDoctor  = currentUser?.role === 'Doctor'
+  const isReceptionist = currentUser?.role === 'Receptionist'
+  const isAdmin   = currentUser?.role === 'Admin'
   const linkedDoc = isDoctor ? doctors.find(d => d.uid === currentUser?.uid) : null
 
   const myAppointments = linkedDoc
@@ -175,7 +177,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Dashboard</h2>
         <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">
           {greeting()}, {currentUser?.name?.split(' ')[0] || 'there'}!{' '}
-          {isDoctor ? `Here's your schedule for today.` : `Here's what's happening today.`}
+          {isDoctor ? `Here's your schedule for today.` : isReceptionist ? `Here's the front desk overview for today.` : `Here's what's happening today.`}
         </p>
       </div>
 
@@ -185,6 +187,13 @@ export default function Dashboard({ onNavigate, currentUser }) {
           <StatCard label="My Appointments"  value={myAppointments.length} sub="All time"   icon={Calendar}  color="teal" />
           <StatCard label="Today's Schedule" value={todayAppts.length}  sub="Today"         icon={Clock}     color="purple" />
           <StatCard label="Lab Results"      value={labResults.filter(l => l.orderedBy === linkedDoc?.name).length} sub={`${labResults.filter(l => l.status === 'Pending' && l.orderedBy === linkedDoc?.name).length} pending`} icon={FlaskConical} color="amber" />
+        </div>
+      ) : isReceptionist ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <StatCard label="Patients"          value={patients.length}   sub="Registered"    icon={Users}     color="blue"   trend={trendFor(patients)} />
+          <StatCard label="Today's Appts"     value={todayAppts.length} sub={`${todayAppts.filter(a => a.status === 'Scheduled').length} awaiting check-in`} icon={Calendar} color="teal" />
+          <StatCard label="Waiting Now"       value={checkedIn}         sub="In queue"       icon={UserCheck} color="purple" />
+          <StatCard label="Rooms"             value={rooms.length}      sub={`${vacantRooms} vacant · ${occupiedRooms} occupied`} icon={BedDouble} color="amber" />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
@@ -320,7 +329,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
         </div>
       </div>
 
-      {!isDoctor && (
+      {isAdmin && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
           <div className="card p-5 lg:col-span-2">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Revenue — Last 6 Months</p>
