@@ -4,6 +4,7 @@ import { useStore, store, consumePendingChatTarget } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { getLastSeen } from '../utils/helpers'
 import { getReadMap, markConversationRead, isMessageUnread, conversationKey } from '../utils/messageReadState'
+import { SkeletonMessages } from '../components/ui/Skeleton'
 
 function formatTime(iso, timeZone) {
   if (!iso) return ''
@@ -33,11 +34,12 @@ function groupByDate(messages, timeZone) {
 const ROLE_BADGE = {
   Admin:        'bg-teal-100 dark:bg-teal-500/18 text-teal-700',
   Doctor:       'bg-purple-100 dark:bg-purple-500/18 text-purple-700',
+  Nurse:        'bg-rose-100 dark:bg-rose-500/18 text-rose-700',
   Receptionist: 'bg-blue-100 dark:bg-blue-500/18 text-blue-700',
 }
 
 export default function Messages({ currentUser }) {
-  const { messages, users, settings } = useStore()
+  const { messages, users, settings, loading } = useStore()
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [activeChat, setActiveChat] = useState(null) // null = General channel, else a user's uid
@@ -124,6 +126,8 @@ export default function Messages({ currentUser }) {
     })
 
   const activeChatUser = activeChat ? staffList.find(u => u.uid === activeChat) : null
+
+  if (loading) return <SkeletonMessages />
 
   return (
     <div className="flex gap-5 h-[calc(100vh-10rem)]">

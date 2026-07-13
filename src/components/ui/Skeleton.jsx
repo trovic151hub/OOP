@@ -73,4 +73,56 @@ export function SkeletonTable({ rows = 5, cols = 6 }) {
   )
 }
 
+export function SkeletonListRow() {
+  return (
+    <div className="flex items-center gap-2.5 px-2 py-1.5">
+      <Shimmer className="w-7 h-7 rounded-full flex-shrink-0" />
+      <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+        <Shimmer className="w-20 h-3" />
+        <Shimmer className="w-14 h-2.5 rounded" />
+      </div>
+    </div>
+  )
+}
+
+export function SkeletonMessages() {
+  return (
+    <div className="flex gap-5 h-[calc(100vh-10rem)] animate-pulse">
+      <div className="hidden lg:flex flex-1 flex-col card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <Shimmer className="w-9 h-9 rounded-xl flex-shrink-0" />
+          <div className="flex flex-col gap-1.5">
+            <Shimmer className="w-32 h-3.5" />
+            <Shimmer className="w-20 h-2.5" />
+          </div>
+        </div>
+        <div className="flex-1 px-5 py-4 flex flex-col gap-4">
+          {[0, 1, 2, 3, 4].map(i => (
+            <div key={i} className={`flex ${i % 2 ? 'flex-row-reverse' : ''} gap-3`}>
+              <Shimmer className="w-7 h-7 rounded-full flex-shrink-0" />
+              <Shimmer className={`h-9 rounded-2xl ${i % 3 === 0 ? 'w-64' : 'w-40'}`} />
+            </div>
+          ))}
+        </div>
+        <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
+          <Shimmer className="w-full h-9 rounded-xl" />
+        </div>
+      </div>
+
+      <div className="w-full lg:w-56 flex-shrink-0 flex flex-col gap-4">
+        <div className="card p-4">
+          <Shimmer className="w-16 h-2.5 mb-3" />
+          <Shimmer className="w-24 h-4" />
+        </div>
+        <div className="card p-4 flex-1">
+          <Shimmer className="w-24 h-2.5 mb-3" />
+          <div className="flex flex-col gap-1">
+            {[1, 2, 3, 4].map(i => <SkeletonListRow key={i} />)}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default Shimmer

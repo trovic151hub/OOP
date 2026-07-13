@@ -6,6 +6,7 @@ import Avatar from '../components/ui/Avatar'
 import FormDropdown from '../components/ui/FormDropdown'
 import Combobox from '../components/ui/Combobox'
 import { useToast } from '../context/ToastContext'
+import { resizeImageToDataUrl } from '../utils/image'
 
 const AVAILABILITIES = ['Available', 'Unavailable', 'Busy', 'On Leave']
 const SPECIALTIES    = ['General Medicine','Pediatrics','Cardiology','Orthopedics','Dermatology','Neurology','Pulmonology','Radiology','Oncology','Other']
@@ -125,12 +126,7 @@ export default function MyProfile({ currentUser }) {
 
     setUploadingAvatar(true)
     try {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-      })
+      const dataUrl = await resizeImageToDataUrl(file)
       await store.updateUserProfile(currentUser.uid, { avatar: dataUrl })
       if (linkedDoctor) await store.updateDoctor(linkedDoctor.id, { photo: dataUrl })
       if (linkedNurse) await store.updateNurse(linkedNurse.id, { photo: dataUrl })

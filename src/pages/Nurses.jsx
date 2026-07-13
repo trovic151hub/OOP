@@ -12,6 +12,7 @@ import { SkeletonCard } from '../components/ui/Skeleton'
 import NurseDrawer from '../components/NurseDrawer'
 import { useToast } from '../context/ToastContext'
 import { exportNurses } from '../utils/exportCSV'
+import { resizeImageToDataUrl } from '../utils/image'
 
 const EMPTY_FORM   = { name: '', specialty: '', department: '', phone: '', email: '', availability: 'Available', schedule: '', about: '', experience: '', photo: '' }
 const AVAILABILITIES = ['Available','Unavailable','Busy','On Leave']
@@ -26,9 +27,9 @@ function NurseForm({ form, setForm, departments }) {
     if (!file) return
     if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', 'error'); return }
     if (file.size > 1.5 * 1024 * 1024) { showToast('Image must be smaller than 1.5MB.', 'error'); return }
-    const reader = new FileReader()
-    reader.onload = () => setForm(f => ({ ...f, photo: reader.result }))
-    reader.readAsDataURL(file)
+    resizeImageToDataUrl(file)
+      .then(dataUrl => setForm(f => ({ ...f, photo: dataUrl })))
+      .catch(() => showToast('Failed to process image.', 'error'))
   }
 
   return (
