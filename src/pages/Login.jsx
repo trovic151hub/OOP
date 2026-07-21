@@ -40,7 +40,7 @@ export default function Login({ onSwitch }) {
     if (!email || !password) { showToast('Please fill in all fields.', 'error'); return }
     setLoading(true)
     try {
-      const { user } = await api.post('/auth/login', { email, password })
+      const { user } = await api.post('/auth/login', { email, password, remember })
       setCurrentUser(user)
       initSubscriptions()
       showToast('Welcome back!', 'success')
@@ -191,7 +191,7 @@ export default function Login({ onSwitch }) {
           </div>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div>
-              <label className="label">Email or Username</label>
+              <label className="label">Email Address</label>
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="Input your email"

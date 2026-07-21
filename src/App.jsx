@@ -153,6 +153,14 @@ function AppContent() {
   const [authChecked, setAuthChecked] = useState(false)
   const [authPage, setAuthPage]       = useState('login')
   const [activePage, setActivePage]   = useState(() => localStorage.getItem(ACTIVE_PAGE_KEY) || 'dashboard')
+
+  // <main> has no fixed height (its ancestor only sets min-h-screen), so it
+  // grows with its content and the actual scrolling happens on the window —
+  // which otherwise keeps whatever position the previous page left it at.
+  // Reset to the top on every navigation so a page never opens mid-scroll.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [activePage])
   const [mobileOpen, setMobileOpen]   = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
   const { users, currentUser: authUser, settings } = useStore()

@@ -1,15 +1,34 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, UserPlus, Info } from 'lucide-react'
+import { Eye, EyeOff, Activity, UserPlus, Info, FileText } from 'lucide-react'
 import { api } from '../api/client'
 import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
+import Modal from '../components/ui/Modal'
+
+function getPasswordStrength(password) {
+  if (!password) return null
+  let score = 0
+  if (password.length >= 6) score++
+  if (password.length >= 10) score++
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++
+  if (/\d/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+
+  if (score <= 1) return { level: 1, label: 'Weak',   bar: 'bg-red-500',     text: 'text-red-600' }
+  if (score === 2) return { level: 2, label: 'Fair',   bar: 'bg-amber-500',   text: 'text-amber-600' }
+  if (score <= 4)  return { level: 3, label: 'Good',   bar: 'bg-blue-500',    text: 'text-blue-600' }
+  return              { level: 4, label: 'Strong', bar: 'bg-emerald-500', text: 'text-emerald-600' }
+}
 
 export default function Register({ onSwitch }) {
-  const [form, setForm]         = useState({ name: '', email: '', password: '', confirm: '' })
-  const [showPass, setShowPass] = useState(false)
-  const [agreed, setAgreed]     = useState(false)
-  const [loading, setLoading]   = useState(false)
+  const [form, setForm]             = useState({ name: '', email: '', password: '', confirm: '' })
+  const [showPass, setShowPass]     = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [agreed, setAgreed]         = useState(false)
+  const [loading, setLoading]       = useState(false)
+  const [showTerms, setShowTerms]   = useState(false)
   const showToast = useToast()
+  const strength = getPasswordStrength(form.password)
 
   function set(k) { return e => setForm(f => ({ ...f, [k]: e.target.value })) }
 
@@ -84,15 +103,33 @@ export default function Register({ onSwitch }) {
                     {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
+                {strength && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="flex-1 flex gap-1">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className={`h-1 flex-1 rounded-full ${i <= strength.level ? strength.bar : 'bg-slate-100 dark:bg-slate-800'}`} />
+                      ))}
+                    </div>
+                    <span className={`text-[11px] font-semibold ${strength.text}`}>{strength.label}</span>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="label">Confirm Password</label>
-                <input type="password" value={form.confirm} onChange={set('confirm')} placeholder="Confirm" className="input-field" autoComplete="new-password" />
+                <div className="relative">
+                  <input type={showConfirm ? 'text' : 'password'} value={form.confirm} onChange={set('confirm')} placeholder="Confirm" className="input-field pr-9" autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-500">
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded" />
-              I agree to the <span className="text-teal-600 font-semibold">Terms &amp; Conditions</span>
+              I agree to the{' '}
+              <button type="button" onClick={() => setShowTerms(true)} className="text-teal-600 font-semibold hover:underline">
+                Terms &amp; Conditions
+              </button>
             </label>
             <div className="flex items-start gap-2.5 bg-blue-50 dark:bg-blue-500/12 border border-blue-100 dark:border-blue-500/20 rounded-xl px-3.5 py-3 text-xs text-blue-700">
               <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-500" />
@@ -113,6 +150,34 @@ export default function Register({ onSwitch }) {
           </form>
         </div>
       </div>
+
+      <Modal open={showTerms} onClose={() => setShowTerms(false)} title="Terms & Conditions" icon={FileText} accentColor="teal">
+        <div className="flex flex-col gap-4 text-sm text-slate-600 dark:text-slate-400 max-h-[60vh] overflow-y-auto pr-1">
+          <p>
+            By creating a MedCore account, you agree to use this system only for legitimate hospital
+            operations you're authorised to perform, and to keep your login credentials confidential.
+          </p>
+          <p>
+            Patient records, medical history, and other clinical data accessible through MedCore are
+            confidential. You agree to access only the information required for your role, and not to
+            share, export, or disclose it outside of authorised hospital workflows.
+          </p>
+          <p>
+            Your account role (Admin, Doctor, Nurse, Receptionist) determines what you can see and do in
+            the system. Roles are assigned and changed only by an Administrator.
+          </p>
+          <p>
+            MedCore logs key actions (record changes, role updates, deletions) for audit purposes. This
+            activity may be reviewed by hospital administrators.
+          </p>
+          <p className="text-xs text-slate-400 dark:text-slate-600">
+            This is placeholder text for demonstration purposes and does not constitute a binding legal agreement.
+          </p>
+        </div>
+        <button onClick={() => setShowTerms(false)} className="btn-primary justify-center mt-5 w-full">
+          Close
+        </button>
+      </Modal>
     </div>
   )
 }

@@ -9,19 +9,22 @@ import { emitChanged } from '../utils/realtime.js'
 
 const SESSION_COOKIE = 'mc_token'
 
-function signToken(user) {
+function signToken(user, remember) {
   return jwt.sign(
     { sub: user._id.toString(), role: user.role, name: user.name, email: user.email },
     env.jwtSecret,
-    { expiresIn: env.jwtExpiresIn }
+    { expiresIn: remember ? '30d' : '1d' }
   )
 }
 
-function setSessionCookie(res, token) {
+// "Remember Me" unchecked gets a real browser session cookie (no maxAge, so
+// it's gone once the browser closes) instead of just a shorter fixed expiry —
+// that's the behavior the checkbox promises, not just a shorter timer.
+function setSessionCookie(res, token, remember) {
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
     ...crossSiteCookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    ...(remember ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {}),
   })
 }
 
@@ -59,8 +62,11 @@ export async function register(req, res, next) {
       role: isFirstUser ? 'Admin' : 'Receptionist',
     })
 
-    const token = signToken(user)
-    setSessionCookie(res, token)
+    // No "remember me" checkbox on the registration form — a freshly created
+    // account stays signed in like a remembered session rather than expiring
+    // the moment the browser closes.
+    const token = signToken(user, true)
+    setSessionCookie(res, token, true)
     const csrfToken = issueCsrfToken(res)
     emitChanged(req, 'users')
     res.status(201).json({ user: toPublicUser(user), csrfToken })
@@ -69,7 +75,7 @@ export async function register(req, res, next) {
 
 export async function login(req, res, next) {
   try {
-    const { email, password } = req.body
+    const { email, password, remember } = req.body
     if (!email || !password) return res.status(400).json({ message: 'Email and password are required.' })
 
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password')
@@ -78,8 +84,8 @@ export async function login(req, res, next) {
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) return res.status(401).json({ message: 'Invalid email or password.' })
 
-    const token = signToken(user)
-    setSessionCookie(res, token)
+    const token = signToken(user, remember)
+    setSessionCookie(res, token, remember)
     const csrfToken = issueCsrfToken(res)
     res.json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
