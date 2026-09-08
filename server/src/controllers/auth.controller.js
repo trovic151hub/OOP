@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
+import Patient from '../models/Patient.js'
 import { env, crossSiteCookieOptions } from '../config/env.js'
 import { issueCsrfToken } from '../middleware/csrf.middleware.js'
 import { sendPasswordResetEmail } from '../utils/mailer.js'
@@ -50,17 +51,36 @@ export async function register(req, res, next) {
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required.' })
     }
-    const existing = await User.findOne({ email: email.toLowerCase() })
+    const normalizedEmail = email.toLowerCase().trim()
+    const existing = await User.findOne({ email: normalizedEmail })
     if (existing) return res.status(409).json({ message: 'An account with this email already exists.' })
 
     const isFirstUser = (await User.countDocuments({})) === 0
     const passwordHash = await bcrypt.hash(password, 10)
     const user = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password: passwordHash,
-      role: isFirstUser ? 'Admin' : 'Receptionist',
+      role: isFirstUser ? 'Admin' : 'Patient',
     })
+
+    if (!isFirstUser) {
+      const existingPatient = await Patient.findOne({ email: normalizedEmail })
+      if (existingPatient) {
+        existingPatient.uid = user._id.toString()
+        existingPatient.name = existingPatient.name || name
+        await existingPatient.save()
+      } else {
+        await Patient.create({
+          uid: user._id.toString(),
+          name,
+          email: normalizedEmail,
+          status: 'Active',
+          patientType: 'Outpatient',
+          createdAt: new Date().toISOString(),
+        })
+      }
+    }
 
     // No "remember me" checkbox on the registration form — a freshly created
     // account stays signed in like a remembered session rather than expiring
@@ -69,6 +89,7 @@ export async function register(req, res, next) {
     setSessionCookie(res, token, true)
     const csrfToken = issueCsrfToken(res)
     emitChanged(req, 'users')
+    if (!isFirstUser) emitChanged(req, 'patients')
     res.status(201).json({ user: toPublicUser(user), csrfToken })
   } catch (err) { next(err) }
 }
@@ -93,6 +114,10 @@ export async function login(req, res, next) {
 
 export async function me(req, res, next) {
   try {
+    if (!req.user) {
+      const csrfToken = issueCsrfToken(res)
+      return res.json({ user: null, csrfToken })
+    }
     const user = await User.findById(req.user.id)
     if (!user) return res.status(401).json({ message: 'Not authenticated' })
     const csrfToken = issueCsrfToken(res)

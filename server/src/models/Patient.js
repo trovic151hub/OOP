@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { docSchemaOpts } from './plugins.js'
 
 const patientSchema = new mongoose.Schema({
+  uid:              String,
   name:             String,
   age:              Number,
   gender:           String,

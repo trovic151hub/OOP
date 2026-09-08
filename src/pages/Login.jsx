@@ -6,6 +6,16 @@ import { useToast } from '../context/ToastContext'
 
 const urlResetToken = new URLSearchParams(window.location.search).get('resetToken')
 
+const DEMO_ACCOUNTS = [
+  { role: 'Admin', email: 'admin@medcore.ng' },
+  { role: 'Doctor', email: 'sarah.chen@medcore.ng' },
+  { role: 'Nurse', email: 'n.adeyemi@medcore.ng' },
+  { role: 'Reception', email: 'reception@medcore.ng' },
+  { role: 'Patient', email: 'marcus.j@email.com' },
+  { role: 'Patient', email: 'olivia.p@email.com' },
+  { role: 'Patient', email: 'ben.carter@email.com' },
+]
+
 export default function Login({ onSwitch }) {
   const [mode, setMode]           = useState(urlResetToken ? 'reset' : 'login') // 'login' | 'forgot' | 'reset'
   const [email, setEmail]         = useState('')
@@ -65,6 +75,12 @@ export default function Login({ onSwitch }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  function fillDemoAccount(account) {
+    setEmail(account.email)
+    setPassword('demo1234')
+    setRemember(true)
   }
 
   const LeftPanel = (
@@ -229,6 +245,28 @@ export default function Login({ onSwitch }) {
               <button type="button" onClick={onSwitch} className="text-teal-600 font-semibold hover:underline">Create an account</button>
             </p>
           </form>
+          <div className="mt-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Demo accounts</p>
+                <p className="text-xs text-slate-400 dark:text-slate-600">Password: demo1234</p>
+              </div>
+              <KeyRound size={16} className="text-teal-600" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {DEMO_ACCOUNTS.map(account => (
+                <button
+                  key={`${account.role}-${account.email}`}
+                  type="button"
+                  onClick={() => fillDemoAccount(account)}
+                  className="rounded-xl border border-white dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-left hover:border-teal-200 dark:hover:border-teal-500/40 transition-colors"
+                >
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{account.role}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-600 truncate">{account.email}</p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

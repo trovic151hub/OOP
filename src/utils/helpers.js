@@ -38,10 +38,10 @@ export function formatDateTime(dateStr, timeZone) {
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone })
 }
 
-export const APPOINTMENT_STATUSES = ['Scheduled', 'Checked In', 'In Progress', 'Completed', 'Cancelled']
+export const APPOINTMENT_STATUSES = ['Requested', 'Reschedule Requested', 'Cancel Requested', 'Scheduled', 'Checked In', 'In Progress', 'Completed', 'Cancelled']
 
 export function cycleStatus(current, list = APPOINTMENT_STATUSES) {
-  const forwardList = list.filter(s => s !== 'Cancelled')
+  const forwardList = list.filter(s => !['Cancelled', 'Reschedule Requested', 'Cancel Requested'].includes(s))
   const idx = forwardList.indexOf(current)
   if (idx === -1 || idx === forwardList.length - 1) return current
   return forwardList[idx + 1]
@@ -59,12 +59,18 @@ export function getBadgeStyle(status) {
     Busy:          'bg-amber-50 text-amber-700 dark:bg-amber-500/12 dark:text-amber-400 dark:border dark:border-amber-500/30',
     'On Leave':    'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:border dark:border-slate-700',
     Scheduled:     'bg-teal-50 text-teal-700 dark:bg-teal-500/12 dark:text-teal-400 dark:border dark:border-teal-500/30',
+    Requested:     'bg-amber-50 text-amber-700 dark:bg-amber-500/12 dark:text-amber-400 dark:border dark:border-amber-500/30',
+    'Reschedule Requested': 'bg-amber-50 text-amber-700 dark:bg-amber-500/12 dark:text-amber-400 dark:border dark:border-amber-500/30',
+    'Cancel Requested': 'bg-red-50 text-red-700 dark:bg-red-500/12 dark:text-red-400 dark:border dark:border-red-500/30',
     'Checked In':  'bg-violet-50 text-violet-700 dark:bg-violet-500/12 dark:text-violet-400 dark:border dark:border-violet-500/30',
     'In Progress': 'bg-blue-50 text-blue-700 dark:bg-blue-500/12 dark:text-blue-400 dark:border dark:border-blue-500/30',
     Ongoing:       'bg-blue-50 text-blue-700 dark:bg-blue-500/12 dark:text-blue-400 dark:border dark:border-blue-500/30',
     Completed:     'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/12 dark:text-emerald-400 dark:border dark:border-emerald-500/30',
     Cancelled:     'bg-red-50 text-red-700 dark:bg-red-500/12 dark:text-red-400 dark:border dark:border-red-500/30',
     Pending:       'bg-amber-50 text-amber-700 dark:bg-amber-500/12 dark:text-amber-400 dark:border dark:border-amber-500/30',
+    'Pending Review': 'bg-amber-50 text-amber-700 dark:bg-amber-500/12 dark:text-amber-400 dark:border dark:border-amber-500/30',
+    Reviewed:      'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/12 dark:text-emerald-400 dark:border dark:border-emerald-500/30',
+    Rejected:      'bg-red-50 text-red-700 dark:bg-red-500/12 dark:text-red-400 dark:border dark:border-red-500/30',
     Confirmed:     'bg-teal-50 text-teal-700 dark:bg-teal-500/12 dark:text-teal-400 dark:border dark:border-teal-500/30',
     Normal:        'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/12 dark:text-emerald-400 dark:border dark:border-emerald-500/30',
     Abnormal:      'bg-red-50 text-red-700 dark:bg-red-500/12 dark:text-red-400 dark:border dark:border-red-500/30',

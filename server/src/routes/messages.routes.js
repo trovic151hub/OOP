@@ -1,11 +1,14 @@
 import { Router } from 'express'
 import Message from '../models/Message.js'
+import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 import { emitChanged } from '../utils/realtime.js'
 
 const router = Router()
 
 // Broadcast messages (no recipientId) are visible to everyone; a private DM is
 // only visible to its sender and its recipient.
+router.use(requireRole(...STAFF_ROLES))
+
 router.get('/', async (req, res, next) => {
   try {
     const docs = await Message.find({

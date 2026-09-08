@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { TrendingUp, Star, Users, Calendar, CheckCircle, Award, BarChart2 } from 'lucide-react'
-import NairaIcon from '../components/ui/NairaIcon'
+import { TrendingUp, Star, Users, Calendar, CheckCircle, Award, BarChart2, BadgeDollarSign } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { formatCurrency, formatCompactCurrency } from '../utils/helpers'
@@ -85,7 +84,7 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank, currency 
 
         {revenue > 0 && (
           <div className="mt-3 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/12 border border-emerald-100 dark:border-emerald-500/20 rounded-xl px-3 py-2">
-            <NairaIcon size={13} className="text-emerald-600" />
+            <BadgeDollarSign size={13} className="text-emerald-600" />
             <p className="text-xs font-bold text-emerald-700">Revenue generated: {formatCurrency(revenue, currency)}</p>
           </div>
         )}
@@ -243,3 +242,4 @@ export default function StaffPerformance() {
     </div>
   )
 }
+

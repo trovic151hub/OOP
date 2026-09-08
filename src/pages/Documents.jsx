@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, FileText, Search, Filter, ExternalLink, Download, FolderOpen, X as XIcon, User } from 'lucide-react'
+import { Plus, Pencil, Trash2, FileText, Search, Filter, ExternalLink, Download, FolderOpen, X as XIcon, User, CheckCircle, XCircle } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
@@ -10,6 +10,7 @@ import Combobox from '../components/ui/Combobox'
 import DatePicker from '../components/ui/DatePicker'
 import { useToast } from '../context/ToastContext'
 import { formatDate } from '../utils/helpers'
+import Badge from '../components/ui/Badge'
 
 const DOC_TYPES = ['Lab Report', 'Scan / Imaging', 'Consent Form', 'Discharge Summary', 'Prescription', 'Insurance Card', 'Referral Letter', 'Medical History', 'X-Ray', 'Other']
 
@@ -26,7 +27,7 @@ const TYPE_COLORS = {
   'Other':            'bg-slate-50 dark:bg-slate-800  text-slate-600 dark:text-slate-400  border-slate-200 dark:border-slate-700',
 }
 
-const EMPTY_FORM = { patientName: '', title: '', type: 'Lab Report', date: '', description: '', url: '', uploadedBy: '' }
+const EMPTY_FORM = { patientName: '', patientId: '', patientEmail: '', title: '', type: 'Lab Report', date: '', description: '', url: '', uploadedBy: '' }
 
 function DocumentForm({ form, setForm, patients }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -34,7 +35,10 @@ function DocumentForm({ form, setForm, patients }) {
     <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-1">
       <div>
         <label className="label">Patient <span className="text-red-400">*</span></label>
-        <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
+        <Combobox value={form.patientName} onChange={v => {
+          const pat = patients.find(p => p.name === v)
+          setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '', patientEmail: pat?.email || '' }))
+        }} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
       </div>
       <div>
         <label className="label">Document Title <span className="text-red-400">*</span></label>
@@ -96,9 +100,27 @@ export default function Documents({ currentUser }) {
     if (!form.patientName.trim()) { showToast('Patient name is required.', 'error'); return }
     if (!form.title.trim())       { showToast('Title is required.', 'error'); return }
     if (!form.date)               { showToast('Date is required.', 'error'); return }
-    if (editId) { store.updateDocument(editId, form); showToast('Document updated.') }
-    else        { store.addDocument(form); showToast('Document added.') }
+    const pat = patients.find(p => p.id === form.patientId || p.name === form.patientName)
+    const payload = { ...form, patientId: pat?.id || form.patientId || '', patientEmail: pat?.email || form.patientEmail || '' }
+    if (editId) { store.updateDocument(editId, payload); showToast('Document updated.') }
+    else        { store.addDocument(payload); showToast('Document added.') }
     setModal(false)
+  }
+
+  async function reviewDocument(doc, reviewStatus) {
+    const reviewNote = reviewStatus === 'Rejected'
+      ? window.prompt('Reason for rejecting this document?') || ''
+      : ''
+    if (reviewStatus === 'Rejected' && !reviewNote.trim()) {
+      showToast('Rejection reason is required.', 'error')
+      return
+    }
+    try {
+      await store.reviewDocument(doc.id, { reviewStatus, reviewNote })
+      showToast(`Document marked ${reviewStatus.toLowerCase()}.`, 'success')
+    } catch (err) {
+      showToast(err.message || 'Failed to review document.', 'error')
+    }
   }
 
   function exportCSV() {
@@ -183,7 +205,14 @@ export default function Documents({ currentUser }) {
             return (
               <div key={d.id} className="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-2">
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${typeStyle}`}>{d.type}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${typeStyle}`}>{d.type}</span>
+                    {d.patientUploaded && (
+                      <span className="text-[10px] font-bold px-2 py-1 rounded-full border bg-teal-50 dark:bg-teal-500/12 text-teal-700 border-teal-200 dark:border-teal-500/30">
+                        Patient Upload
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {d.url && (
                       <a href={d.url} target="_blank" rel="noopener noreferrer"
@@ -203,6 +232,12 @@ export default function Documents({ currentUser }) {
                 <div>
                   <p className="font-bold text-slate-800 dark:text-slate-200 text-sm leading-snug">{d.title}</p>
                   {d.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{d.description}</p>}
+                  {d.reviewStatus && (
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      <Badge status={d.reviewStatus} />
+                      {d.reviewNote && <span className="text-[11px] text-slate-500">{d.reviewNote}</span>}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
@@ -215,6 +250,16 @@ export default function Documents({ currentUser }) {
                     <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" title="Has link" />
                   )}
                 </div>
+                {d.patientUploaded && d.reviewStatus === 'Pending Review' && (
+                  <div className="flex gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
+                    <button onClick={() => reviewDocument(d, 'Reviewed')} className="flex-1 text-xs font-semibold px-3 py-2 rounded-lg border bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 hover:bg-emerald-100 border-emerald-200 dark:border-emerald-500/30 transition-colors flex items-center justify-center gap-1.5">
+                      <CheckCircle size={12} /> Reviewed
+                    </button>
+                    <button onClick={() => reviewDocument(d, 'Rejected')} className="flex-1 text-xs font-semibold px-3 py-2 rounded-lg border bg-red-50 dark:bg-red-500/12 text-red-500 hover:bg-red-100 border-red-200 dark:border-red-500/30 transition-colors flex items-center justify-center gap-1.5">
+                      <XCircle size={12} /> Reject
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}

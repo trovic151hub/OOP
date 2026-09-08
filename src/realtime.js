@@ -7,7 +7,8 @@ import { refetchCollection, refetchSettings } from './store/useStore'
 // conveniently sidesteps Safari's cross-site cookie blocking entirely for
 // this feature. VITE_API_URL already points at the Render backend; strip
 // the trailing /api since Socket.IO connects to the origin, not a REST path.
-const SOCKET_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/api\/?$/, '')
+const DEV_API_ORIGIN = `${window.location.protocol}//${window.location.hostname}:5001/api`
+const SOCKET_ORIGIN = (import.meta.env.VITE_API_URL || DEV_API_ORIGIN).replace(/\/api\/?$/, '')
 
 let socket = null
 

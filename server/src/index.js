@@ -17,7 +17,7 @@ async function main() {
   // X changed" signals (see utils/realtime.js), so the socket needs no auth
   // and can safely accept connections from the configured client origin(s).
   const io = new Server(httpServer, {
-    cors: { origin: env.clientOrigin, credentials: true },
+    cors: { origin: env.corsOrigin, credentials: true },
   })
   app.set('io', io)
 

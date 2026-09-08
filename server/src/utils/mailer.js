@@ -33,3 +33,18 @@ export async function sendPasswordResetEmail(toEmail, resetUrl) {
     `,
   })
 }
+
+export async function sendTestEmail(toEmail) {
+  const t = getTransporter()
+  if (!t) {
+    const err = new Error('SMTP is not configured.')
+    err.code = 'SMTP_NOT_CONFIGURED'
+    throw err
+  }
+  await t.sendMail({
+    from: env.smtp.from,
+    to: toEmail,
+    subject: 'MedCore SMTP test',
+    text: 'Your MedCore SMTP settings are working.',
+  })
+}

@@ -15,10 +15,13 @@ import { useToast } from '../context/ToastContext'
 import { formatDate, APPOINTMENT_STATUSES, cycleStatus } from '../utils/helpers'
 import { exportAppointments } from '../utils/exportCSV'
 
-const EMPTY_FORM = { patientName: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled', requiresFollowUp: false, followUpDate: '', followUpNotes: '' }
+const EMPTY_FORM = { patientName: '', patientId: '', patientEmail: '', doctorName: '', date: '', timeStart: '', timeEnd: '', type: 'Consultation', notes: '', status: 'Scheduled', requiresFollowUp: false, followUpDate: '', followUpNotes: '' }
 const APPT_TYPES = ['Consultation','Follow-up','Surgery','Telemedicine','Check-up']
 
 const STATUS_ACTIONS = {
+  'Requested':   { label: 'Confirm',    icon: CheckCheck,  next: 'Scheduled',   color: 'bg-amber-50 dark:bg-amber-500/12 text-amber-600 hover:bg-amber-100 border-amber-200 dark:border-amber-500/30' },
+  'Reschedule Requested': { label: 'Review', icon: CheckCheck, next: 'Scheduled', color: 'bg-amber-50 dark:bg-amber-500/12 text-amber-600 hover:bg-amber-100 border-amber-200 dark:border-amber-500/30' },
+  'Cancel Requested': { label: 'Review', icon: CheckCheck, next: 'Cancelled', color: 'bg-red-50 dark:bg-red-500/12 text-red-500 hover:bg-red-100 border-red-200 dark:border-red-500/30' },
   'Scheduled':   { label: 'Check In',    icon: UserCheck,  next: 'Checked In',  color: 'bg-violet-50 dark:bg-violet-500/12 text-violet-600 hover:bg-violet-100 border-violet-200 dark:border-violet-500/30' },
   'Checked In':  { label: 'Start',       icon: PlayCircle, next: 'In Progress',  color: 'bg-blue-50 dark:bg-blue-500/12 text-blue-600 hover:bg-blue-100 border-blue-200 dark:border-blue-500/30' },
   'In Progress': { label: 'Complete',    icon: CheckCheck, next: 'Completed',    color: 'bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 hover:bg-emerald-100 border-emerald-200 dark:border-emerald-500/30' },
@@ -55,7 +58,10 @@ function AppointmentForm({ form, setForm, patients, doctors, settings }) {
         <label className="label">Patient Name <span className="text-red-400">*</span></label>
         <Combobox
           value={form.patientName}
-          onChange={setDirect('patientName')}
+          onChange={v => {
+            const pat = patients.find(p => p.name === v)
+            setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '', patientEmail: pat?.email || '' }))
+          }}
           options={patients}
           getLabel={p => p.name}
           getSub={p => p.phone}
@@ -151,13 +157,20 @@ export default function Appointments({ currentUser }) {
   const [modal, setModal]               = useState(false)
   const [editId, setEditId]             = useState(null)
   const [form, setForm]                 = useState(EMPTY_FORM)
+  const [decisionAppointment, setDecisionAppointment] = useState(null)
+  const [decisionStatus, setDecisionStatus] = useState('')
+  const [decisionKind, setDecisionKind] = useState('approve')
+  const [decisionNote, setDecisionNote] = useState('')
+  const [decisionSaving, setDecisionSaving] = useState(false)
   const [confirmId, setConfirmId]       = useState(null)
   const [confirmLabel, setConfirmLabel] = useState('')
 
   const today = new Date().toISOString().slice(0, 10)
   const isDoctor = currentUser?.role === 'Doctor'
+  const canReviewRequests = ['Admin', 'Receptionist'].includes(currentUser?.role)
   const linkedDoctor = isDoctor ? doctors.find(d => d.uid === currentUser?.uid) : null
   const myDoctorName = linkedDoctor?.name || ''
+  const appointmentRequests = appointments.filter(a => ['Requested', 'Reschedule Requested', 'Cancel Requested'].includes(a.status))
 
   const visibleAppts = myOnly && myDoctorName
     ? appointments.filter(a => a.doctorName === myDoctorName)
@@ -181,12 +194,18 @@ export default function Appointments({ currentUser }) {
   function handleSubmit() {
     if (!form.patientName.trim() || !form.doctorName.trim()) { showToast('Patient and doctor names are required.', 'error'); return }
     if (!form.date) { showToast('Please select a date.', 'error'); return }
-    if (editId) { store.updateAppointment(editId, form); showToast('Appointment updated.') }
-    else { store.addAppointment(form); showToast('Appointment scheduled.') }
+    const pat = patients.find(p => p.id === form.patientId || p.name === form.patientName)
+    const payload = { ...form, patientId: pat?.id || form.patientId || '', patientEmail: pat?.email || form.patientEmail || '' }
+    if (editId) { store.updateAppointment(editId, payload); showToast('Appointment updated.') }
+    else { store.addAppointment(payload); showToast('Appointment scheduled.') }
     setModal(false)
   }
 
   function advanceStatus(a) {
+    if (['Requested', 'Reschedule Requested', 'Cancel Requested'].includes(a.status)) {
+      openDecision(a, getApprovalStatus(a), 'approve')
+      return
+    }
     const next = cycleStatus(a.status)
     if (next === a.status) return
     const extra = next === 'Checked In'  ? { checkedInAt: new Date().toISOString() }
@@ -201,6 +220,64 @@ export default function Appointments({ currentUser }) {
     showToast(`Appointment cancelled.`, 'info')
   }
 
+  function getApprovalStatus(a) {
+    if (a.status === 'Cancel Requested') return 'Cancelled'
+    return 'Scheduled'
+  }
+
+  function getDeclineStatus(a) {
+    if (['Reschedule Requested', 'Cancel Requested'].includes(a.status)) return a.previousStatus || 'Scheduled'
+    return 'Cancelled'
+  }
+
+  function openDecision(a, status, kind = 'approve') {
+    setDecisionAppointment(a)
+    setDecisionStatus(status)
+    setDecisionKind(kind)
+    setDecisionNote(a.staffNote || '')
+  }
+
+  function closeDecision() {
+    if (decisionSaving) return
+    setDecisionAppointment(null)
+    setDecisionStatus('')
+    setDecisionKind('approve')
+    setDecisionNote('')
+  }
+
+  async function submitDecision() {
+    if (!decisionAppointment) return
+    const note = decisionNote.trim()
+    if (decisionKind === 'decline' && !note) {
+      showToast('Please add a reason before declining.', 'error')
+      return
+    }
+    setDecisionSaving(true)
+    try {
+      await store.updateAppointment(decisionAppointment.id, {
+        status: decisionStatus,
+        date: decisionStatus === 'Scheduled' && decisionAppointment.requestedDate ? decisionAppointment.requestedDate : decisionAppointment.date,
+        timeStart: decisionStatus === 'Scheduled' && decisionAppointment.requestedTimeStart ? decisionAppointment.requestedTimeStart : decisionAppointment.timeStart,
+        timeEnd: decisionStatus === 'Scheduled' && decisionAppointment.requestedTimeEnd ? decisionAppointment.requestedTimeEnd : decisionAppointment.timeEnd,
+        staffNote: note,
+        decisionKind,
+        previousStatus: '',
+        requestedDate: '',
+        requestedTimeStart: '',
+        requestedTimeEnd: '',
+        patientRequestNote: '',
+        reviewedBy: currentUser?.name || currentUser?.email || currentUser?.role,
+        reviewedAt: new Date().toISOString(),
+      })
+      showToast(`${decisionAppointment.patientName} request ${decisionKind === 'approve' ? 'approved' : 'declined'}.`, decisionKind === 'approve' ? 'success' : 'info')
+      closeDecision()
+    } catch (err) {
+      showToast(err.message || 'Failed to update request.', 'error')
+    } finally {
+      setDecisionSaving(false)
+    }
+  }
+
   if (loading) return <SkeletonTable rows={6} cols={7} />
 
   const statusCounts = APPOINTMENT_STATUSES.reduce((acc, s) => {
@@ -209,6 +286,9 @@ export default function Appointments({ currentUser }) {
   }, {})
 
   const STATUS_COLORS = {
+    'Requested':   'text-amber-600 bg-amber-50 dark:bg-amber-500/12',
+    'Reschedule Requested': 'text-amber-600 bg-amber-50 dark:bg-amber-500/12',
+    'Cancel Requested': 'text-red-500 bg-red-50 dark:bg-red-500/12',
     'Scheduled':   'text-teal-600 bg-teal-50 dark:bg-teal-500/12',
     'Checked In':  'text-violet-600 bg-violet-50 dark:bg-violet-500/12',
     'In Progress': 'text-blue-600 bg-blue-50 dark:bg-blue-500/12',
@@ -244,6 +324,79 @@ export default function Appointments({ currentUser }) {
           )
         })}
       </div>
+
+      {canReviewRequests && appointmentRequests.length > 0 && (
+        <div className="card overflow-hidden mb-5">
+          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Appointment Requests</h3>
+              <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{appointmentRequests.length} waiting for review</p>
+            </div>
+            <button
+              onClick={() => setFilterStatus('Requested')}
+              className="btn-ghost text-xs"
+            >
+              <Filter size={13} /> View All
+            </button>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {appointmentRequests.slice(0, 5).map(a => {
+              const doc = doctors.find(d => d.name === a.doctorName)
+              const requestedAt = a.requestedAt ? formatDate(a.requestedAt) : null
+              return (
+                <div key={a.id} className="p-4 flex flex-col xl:flex-row xl:items-center gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Avatar name={a.patientName} size="sm" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{a.patientName || 'Unnamed Patient'}</p>
+                        <Badge status={a.status} />
+                      </div>
+                      <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">
+                        {a.type || 'Consultation'} with {a.doctorName || 'Any Available Doctor'}{doc?.specialty ? ` · ${doc.specialty}` : ''}
+                      </p>
+                      {a.status === 'Reschedule Requested' && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                          Requested: {a.requestedDate ? formatDate(a.requestedDate) : 'date pending'}{a.requestedTimeStart ? ` at ${a.requestedTimeStart}` : ''}
+                        </p>
+                      )}
+                      {a.notes && (
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-2 max-w-3xl line-clamp-2">{a.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 xl:justify-end">
+                    <div className="text-xs text-slate-500 dark:text-slate-500 min-w-36">
+                      <p className="font-semibold text-slate-700 dark:text-slate-300">{a.date ? formatDate(a.date) : 'Date not selected'}</p>
+                      <p>{a.timeStart || 'Time pending'}{a.timeEnd ? ` - ${a.timeEnd}` : ''}{requestedAt ? ` · Requested ${requestedAt}` : ''}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => openDecision(a, getApprovalStatus(a), 'approve')}
+                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border bg-emerald-50 dark:bg-emerald-500/12 text-emerald-600 hover:bg-emerald-100 border-emerald-200 dark:border-emerald-500/30 transition-colors"
+                      >
+                        <CheckCheck size={12} /> Approve
+                      </button>
+                      <button
+                        onClick={() => openEdit(a)}
+                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-700 transition-colors"
+                      >
+                        <Pencil size={12} /> Edit
+                      </button>
+                      <button
+                        onClick={() => openDecision(a, getDeclineStatus(a), 'decline')}
+                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border bg-red-50 dark:bg-red-500/12 text-red-500 hover:bg-red-100 border-red-200 dark:border-red-500/30 transition-colors"
+                      >
+                        <XIcon size={12} /> Decline
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="card p-4 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48">
@@ -408,6 +561,52 @@ export default function Appointments({ currentUser }) {
             {editId ? 'Save Changes' : 'Schedule'}
           </button>
         </div>
+      </Modal>
+
+      <Modal
+        open={!!decisionAppointment}
+        onClose={closeDecision}
+        title={decisionKind === 'approve' ? 'Approve Request' : 'Decline Request'}
+        icon={decisionKind === 'approve' ? CheckCheck : XIcon}
+        accentColor={decisionKind === 'approve' ? 'teal' : 'red'}
+      >
+        {decisionAppointment && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+              <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{decisionAppointment.patientName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                {decisionAppointment.type || 'Appointment'} with {decisionAppointment.doctorName || 'Any Available Doctor'}
+                {decisionAppointment.date ? ` on ${formatDate(decisionAppointment.date)}` : ''}
+                {decisionAppointment.timeStart ? ` at ${decisionAppointment.timeStart}` : ''}
+              </p>
+              {decisionAppointment.notes && (
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-3 italic">{decisionAppointment.notes}</p>
+              )}
+            </div>
+            <div>
+              <label className="label">
+                Staff Note {decisionKind === 'decline' && <span className="text-red-400">*</span>}
+              </label>
+              <textarea
+                className="input-field resize-none"
+                rows={3}
+                value={decisionNote}
+                onChange={e => setDecisionNote(e.target.value)}
+                placeholder={decisionKind === 'approve' ? 'Optional instructions for the patient' : 'Reason for declining this request'}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button disabled={decisionSaving} onClick={closeDecision} className="btn-ghost flex-1 justify-center">Cancel</button>
+              <button
+                disabled={decisionSaving}
+                onClick={submitDecision}
+                className={`flex-1 justify-center ${decisionKind === 'approve' ? 'btn-primary' : 'bg-red-500 hover:bg-red-600 text-white rounded-lg px-4 py-2.5 font-semibold text-sm transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed'}`}
+              >
+                {decisionSaving ? 'Saving...' : decisionKind === 'approve' ? 'Approve Request' : 'Decline Request'}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       <ConfirmModal

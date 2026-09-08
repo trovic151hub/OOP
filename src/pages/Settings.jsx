@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Settings as SettingsIcon, Building2, Clock, Save, Globe, Phone, Mail, CheckCircle } from 'lucide-react'
-import NairaIcon from '../components/ui/NairaIcon'
+import { Settings as SettingsIcon, Building2, Clock, Save, Globe, Phone, Mail, CheckCircle, BadgeDollarSign } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
 import FormDropdown from '../components/ui/FormDropdown'
@@ -39,6 +38,7 @@ export default function Settings() {
   const showToast = useToast()
   const [form, setForm]       = useState({ ...settings })
   const [saved, setSaved]     = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
 
   useEffect(() => { setForm({ ...settings }) }, [settings])
 
@@ -53,6 +53,19 @@ export default function Settings() {
       setTimeout(() => setSaved(false), 3000)
     } catch (e) {
       showToast('Failed to save settings.', 'error')
+    }
+  }
+
+  async function handleTestEmail() {
+    if (!form.email?.trim()) { showToast('Enter an email address first.', 'error'); return }
+    setTestingEmail(true)
+    try {
+      await store.testEmailSettings(form.email)
+      showToast('Test email sent.', 'success')
+    } catch (e) {
+      showToast(e.message || 'Failed to send test email.', 'error')
+    } finally {
+      setTestingEmail(false)
     }
   }
 
@@ -102,9 +115,14 @@ export default function Settings() {
             </div>
           </Field>
           <Field label="Email Address">
-            <div className="relative">
-              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
-              <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="info@hospital.com" type="email" value={form.email || ''} onChange={set('email')} />
+            <div className="flex gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none" />
+                <input style={{ paddingLeft: '2.25rem' }} className="input-field" placeholder="info@hospital.com" type="email" value={form.email || ''} onChange={set('email')} />
+              </div>
+              <button onClick={handleTestEmail} disabled={testingEmail} className="btn-ghost text-xs px-3 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+                <Mail size={13} /> {testingEmail ? 'Testing' : 'Test'}
+              </button>
             </div>
           </Field>
           <Field label="Website">
@@ -150,7 +168,7 @@ export default function Settings() {
           </Field>
         </Section>
 
-        <Section title="Financial Settings" icon={NairaIcon}>
+        <Section title="Financial Settings" icon={BadgeDollarSign}>
           <Field label="Currency">
             <FormDropdown
               value={form.currency || 'USD'}
@@ -186,3 +204,4 @@ export default function Settings() {
     </div>
   )
 }
+

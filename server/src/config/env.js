@@ -8,6 +8,42 @@ function required(name, fallback) {
   return value
 }
 
+function splitOrigins(value) {
+  return String(value || '')
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+}
+
+function isDevClientOrigin(origin) {
+  if (!origin) return true
+  if (process.env.NODE_ENV === 'production') return false
+  try {
+    const url = new URL(origin)
+    const host = url.hostname
+    return url.protocol === 'http:' &&
+      url.port === '5000' &&
+      (host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host.startsWith('192.168.') ||
+        host.startsWith('10.') ||
+        /^172\.(1[6-9]|2\d|3[0-1])\./.test(host))
+  } catch {
+    return false
+  }
+}
+
+function makeCorsOrigin(allowedOrigins) {
+  return (origin, callback) => {
+    if (allowedOrigins.includes(origin) || isDevClientOrigin(origin)) {
+      return callback(null, true)
+    }
+    callback(new Error('Not allowed by CORS'))
+  }
+}
+
+const clientOrigins = splitOrigins(process.env.CLIENT_ORIGIN || 'http://localhost:5000')
+
 export const env = {
   nodeEnv:      process.env.NODE_ENV || 'development',
   port:         Number(process.env.PORT || 5001),
@@ -15,7 +51,8 @@ export const env = {
   jwtSecret:    required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   csrfSecret:   required('CSRF_SECRET'),
-  clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5000',
+  clientOrigin: clientOrigins,
+  corsOrigin:   makeCorsOrigin(clientOrigins),
   appUrl:       process.env.APP_URL || 'http://localhost:5000',
   smtp: {
     host:   process.env.SMTP_HOST,

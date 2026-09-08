@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Pill, Search, Filter, Download, Printer, X as XIcon } from 'lucide-react'
+import { Plus, Pencil, Trash2, Pill, Search, Filter, Download, Printer, X as XIcon, NotebookPen } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
@@ -16,7 +16,7 @@ const FREQUENCIES  = ['Once daily', 'Twice daily', '3x daily', '4x daily', 'Ever
 const DURATIONS    = ['3 days', '5 days', '7 days', '10 days', '14 days', '21 days', '1 month', '3 months', 'Ongoing']
 
 const EMPTY_FORM = {
-  patientName: '', doctorName: '', date: '', status: 'Active', notes: '',
+  patientName: '', patientId: '', patientEmail: '', doctorName: '', date: '', status: 'Active', notes: '',
   medications: [{ name: '', dosage: '', frequency: 'Once daily', duration: '7 days' }],
 }
 
@@ -57,7 +57,10 @@ function PrescriptionForm({ form, setForm, patients, doctors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
+          <Combobox value={form.patientName} onChange={v => {
+            const pat = patients.find(p => p.name === v)
+            setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '', patientEmail: pat?.email || '' }))
+          }} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Patient name…" />
         </div>
         <div>
           <label className="label">Doctor <span className="text-red-400">*</span></label>
@@ -178,11 +181,13 @@ export default function Prescriptions({ currentUser }) {
     if (!form.patientName.trim() || !form.doctorName.trim()) { showToast('Patient and doctor are required.', 'error'); return }
     if (!form.date) { showToast('Date is required.', 'error'); return }
     if (form.medications.some(m => !m.name.trim())) { showToast('All medication names are required.', 'error'); return }
+    const pat = patients.find(p => p.id === form.patientId || p.name === form.patientName)
+    const payload = { ...form, patientId: pat?.id || form.patientId || '', patientEmail: pat?.email || form.patientEmail || '' }
     if (editId) {
-      await store.updatePrescription(editId, form)
+      await store.updatePrescription(editId, payload)
       showToast('Prescription updated.')
     } else {
-      await store.addPrescription(form)
+      await store.addPrescription(payload)
       const medNames = form.medications.map(m => m.name.trim()).filter(Boolean).join(', ')
       const deducted = await store.deductInventoryForPrescription(medNames)
       showToast(deducted.length > 0 ? `Prescription saved. Inventory updated: ${deducted.join(', ')}.` : 'Prescription saved.')
@@ -310,7 +315,7 @@ export default function Prescriptions({ currentUser }) {
               ))}
             </div>
 
-            {r.notes && <p className="mt-3 text-xs text-slate-500 italic border-t border-slate-50 dark:border-slate-800 pt-2">📝 {r.notes}</p>}
+            {r.notes && <p className="mt-3 text-xs text-slate-500 italic border-t border-slate-50 dark:border-slate-800 pt-2 flex items-start gap-1.5"><NotebookPen size={13} className="mt-0.5 flex-shrink-0" /> <span>{r.notes}</span></p>}
           </div>
         ))}
       </div>

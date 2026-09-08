@@ -4,8 +4,7 @@ import {
   AreaChart, Area, PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts'
 import { useStore } from '../store/useStore'
-import { TrendingUp, Users, Calendar, Package, Download, BarChart2 } from 'lucide-react'
-import NairaIcon from '../components/ui/NairaIcon'
+import { TrendingUp, Users, Calendar, Package, Download, BarChart2, BadgeDollarSign } from 'lucide-react'
 import { formatCurrency, formatCompactCurrency, getCurrencySymbol } from '../utils/helpers'
 
 const COLORS = ['#0d9488', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
@@ -132,7 +131,7 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Total Revenue" value={formatCurrency(totalRevenue, settings?.currency)} sub={`${collectionRate}% collected`} icon={NairaIcon} color="emerald" />
+        <SummaryCard label="Total Revenue" value={formatCurrency(totalRevenue, settings?.currency)} sub={`${collectionRate}% collected`} icon={BadgeDollarSign} color="emerald" />
         <SummaryCard label="Outstanding" value={formatCurrency(totalPending, settings?.currency)} sub="Pending invoices" icon={TrendingUp} color="amber" />
         <SummaryCard label="Total Patients" value={patients.length} sub={`${patients.filter(p => p.status === 'Active').length} active`} icon={Users} color="teal" />
         <SummaryCard label="Total Appointments" value={appointments.length} sub={`${appointments.filter(a => a.status === 'Completed').length} completed`} icon={Calendar} color="blue" />
@@ -295,3 +294,5 @@ export default function Reports() {
     </div>
   )
 }
+
+

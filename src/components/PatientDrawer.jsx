@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { Phone, Mail, MapPin, Droplets, User, Pencil, Plus, Trash2, FileText, Calendar } from 'lucide-react'
-import NairaIcon from './ui/NairaIcon'
+import { Phone, Mail, MapPin, Droplets, User, Pencil, Plus, Trash2, FileText, Calendar, BadgeDollarSign } from 'lucide-react'
 import Drawer, { DrawerTabs } from './ui/Drawer'
 import Badge from './ui/Badge'
 import Avatar from './ui/Avatar'
@@ -295,7 +294,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
 
               {patBilling.length === 0 ? (
                 <div className="text-center py-12 text-slate-400 dark:text-slate-600">
-                  <NairaIcon size={32} className="text-slate-200 mx-auto mb-2" />
+                  <BadgeDollarSign size={32} className="text-slate-200 mx-auto mb-2" />
                   <p className="text-sm">No billing records yet</p>
                 </div>
               ) : patBilling.map(b => (
@@ -321,3 +320,4 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
     </Drawer>
   )
 }
+

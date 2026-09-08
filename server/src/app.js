@@ -27,13 +27,14 @@ import claimsRoutes from './routes/claims.routes.js'
 import pharmacyOrdersRoutes from './routes/pharmacyOrders.routes.js'
 import settingsRoutes from './routes/settings.routes.js'
 import auditLogRoutes from './routes/auditlog.routes.js'
+import notificationsRoutes from './routes/notifications.routes.js'
 
 export function createApp() {
   const app = express()
 
-  app.use(cors({ origin: env.clientOrigin, credentials: true }))
+  app.use(cors({ origin: env.corsOrigin, credentials: true }))
   // Default 100kb is too small for a base64-encoded profile photo upload.
-  app.use(express.json({ limit: '3mb' }))
+  app.use(express.json({ limit: '8mb' }))
   app.use(cookieParser())
 
   app.get('/api/health', (req, res) => res.json({ ok: true }))
@@ -65,6 +66,7 @@ export function createApp() {
   app.use('/api/pharmacy-orders', pharmacyOrdersRoutes)
   app.use('/api/settings', settingsRoutes)
   app.use('/api/audit-log', auditLogRoutes)
+  app.use('/api/notifications', notificationsRoutes)
 
   app.use(notFound)
   app.use(errorHandler)

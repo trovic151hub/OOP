@@ -10,6 +10,7 @@ import { withDrPrefix } from '../../utils/helpers'
 const PAGE_LABELS = {
   dashboard:          'Dashboard',
   appointments:       'Appointments',
+  reviews:            'Pending Reviews',
   patients:           'Patients',
   doctors:            'Doctors',
   departments:        'Departments',

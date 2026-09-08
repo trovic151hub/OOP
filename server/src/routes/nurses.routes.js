@@ -6,7 +6,7 @@ import Shift from '../models/Shift.js'
 import { makeCrudController } from '../utils/crudFactory.js'
 import { Router } from 'express'
 import { logAudit } from '../utils/audit.js'
-import { requireRole } from '../middleware/role.middleware.js'
+import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 import { emitChanged } from '../utils/realtime.js'
 
 const controller = makeCrudController(Nurse, {
@@ -24,10 +24,19 @@ const controller = makeCrudController(Nurse, {
 })
 
 const router = Router()
-router.get('/', controller.list)
-router.post('/', controller.create)
-router.put('/:id', controller.update)
-router.delete('/:id', controller.remove)
+router.get('/', requireRole(...STAFF_ROLES), controller.list)
+router.post('/', requireRole('Admin'), controller.create)
+router.put('/:id', async (req, res, next) => {
+  try {
+    if (req.user.role === 'Admin') return next()
+    if (req.user.role !== 'Nurse') return res.status(403).json({ message: 'Forbidden' })
+    const nurse = await Nurse.findById(req.params.id)
+    if (!nurse) return res.status(404).json({ message: 'Nurse not found' })
+    if (String(nurse.uid || '') !== req.user.id) return res.status(403).json({ message: 'Forbidden' })
+    next()
+  } catch (err) { next(err) }
+}, controller.update)
+router.delete('/:id', requireRole('Admin'), controller.remove)
 
 // Onboards a new nurse "hospital-standard": one Admin action creates both the
 // login account and the professional profile together, already linked — never
@@ -67,7 +76,7 @@ router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-router.put('/:id/link-user', async (req, res, next) => {
+router.put('/:id/link-user', requireRole('Admin'), async (req, res, next) => {
   try {
     const { userId } = req.body
     const nurse = await Nurse.findByIdAndUpdate(req.params.id, { uid: userId }, { new: true })

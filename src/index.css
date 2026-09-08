@@ -199,6 +199,17 @@ body {
   }
 
   .table-row:hover { background: #f8fafc; }
+
+  .responsive-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .responsive-table > table {
+    min-width: 720px;
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -308,6 +319,19 @@ body {
 
 /* ───────────── MOBILE RESPONSIVE ───────────── */
 @media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
 
   /* ── Inputs: prevent iOS zoom + proper touch targets ── */
   .input-field,
@@ -343,9 +367,24 @@ body {
     font-size: 0.8rem;
   }
 
+  .overflow-x-auto {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .overflow-x-auto > table,
+  .responsive-table > table {
+    min-width: 680px;
+  }
+
+  .badge {
+    white-space: nowrap;
+  }
+
   /* ── Card: keep border-radius clean ── */
   .card {
     border-radius: 12px;
+    max-width: 100%;
   }
 
   /* ── Page titles: slightly smaller ── */

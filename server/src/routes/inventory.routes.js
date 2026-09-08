@@ -3,6 +3,7 @@ import Inventory from '../models/Inventory.js'
 import { makeCrudController } from '../utils/crudFactory.js'
 import { logAudit } from '../utils/audit.js'
 import { emitChanged } from '../utils/realtime.js'
+import { requireRole, FRONT_DESK_ROLES, STAFF_ROLES } from '../middleware/role.middleware.js'
 
 const controller = makeCrudController(Inventory, {
   entity: 'Inventory',
@@ -13,12 +14,12 @@ const controller = makeCrudController(Inventory, {
 })
 
 const router = Router()
-router.get('/', controller.list)
-router.post('/', controller.create)
-router.put('/:id', controller.update)
-router.delete('/:id', controller.remove)
+router.get('/', requireRole(...FRONT_DESK_ROLES), controller.list)
+router.post('/', requireRole('Admin'), controller.create)
+router.put('/:id', requireRole('Admin'), controller.update)
+router.delete('/:id', requireRole('Admin'), controller.remove)
 
-router.post('/deduct-for-prescription', async (req, res, next) => {
+router.post('/deduct-for-prescription', requireRole(...STAFF_ROLES), async (req, res, next) => {
   try {
     const { prescriptionText } = req.body
     if (!prescriptionText || !prescriptionText.trim()) return res.json({ deducted: [] })

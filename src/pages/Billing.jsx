@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Pencil, Trash2, Printer, Download, Filter, Search, X as XIcon } from 'lucide-react'
-import NairaIcon from '../components/ui/NairaIcon'
+import { Plus, Pencil, Trash2, Printer, Download, Filter, Search, X as XIcon, BadgeDollarSign } from 'lucide-react'
 import { useStore, store } from '../store/useStore'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
@@ -13,7 +12,7 @@ import { useToast } from '../context/ToastContext'
 import { formatDate, formatCurrency, getCurrencySymbol } from '../utils/helpers'
 import { exportCSV } from '../utils/exportCSV'
 
-const EMPTY_FORM = { patientName: '', patientId: '', description: '', date: '', services: '', subtotal: '', discount: '0', total: '', status: 'Pending', notes: '' }
+const EMPTY_FORM = { patientName: '', patientId: '', patientEmail: '', description: '', date: '', services: '', subtotal: '', discount: '0', total: '', status: 'Pending', notes: '' }
 const STATUSES = ['Pending', 'Paid', 'Overdue', 'Waived']
 
 const STATUS_STYLE = {
@@ -45,7 +44,7 @@ function InvoiceForm({ form, setForm, patients, settings }) {
             value={form.patientName}
             onChange={v => {
               const pat = patients.find(p => p.name === v)
-              setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '' }))
+              setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '', patientEmail: pat?.email || '' }))
             }}
             options={patients}
             getLabel={p => p.name}
@@ -188,8 +187,10 @@ export default function Billing({ currentUser }) {
   function handleSubmit() {
     if (!form.patientName.trim()) { showToast('Patient name is required.', 'error'); return }
     if (!form.date) { showToast('Date is required.', 'error'); return }
-    if (editId) { store.updateInvoice(editId, form); showToast('Invoice updated.') }
-    else { store.addInvoice(form); showToast('Invoice created.') }
+    const pat = patients.find(p => p.id === form.patientId || p.name === form.patientName)
+    const payload = { ...form, patientId: pat?.id || form.patientId || '', patientEmail: pat?.email || form.patientEmail || '' }
+    if (editId) { store.updateInvoice(editId, payload); showToast('Invoice updated.') }
+    else { store.addInvoice(payload); showToast('Invoice created.') }
     setModal(false)
   }
 
@@ -289,7 +290,7 @@ export default function Billing({ currentUser }) {
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-600">
-                      <NairaIcon size={32} className="text-slate-200" />
+                      <BadgeDollarSign size={32} className="text-slate-200" />
                       <p className="text-sm font-medium">{search ? 'No results found' : 'No invoices yet'}</p>
                       {!search && isAdmin && <button onClick={openAdd} className="btn-primary text-xs mt-2"><Plus size={13} /> Create First Invoice</button>}
                     </div>
@@ -336,7 +337,7 @@ export default function Billing({ currentUser }) {
         )}
       </div>
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Invoice' : 'New Invoice'} icon={NairaIcon} maxWidth="max-w-xl">
+      <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Invoice' : 'New Invoice'} icon={BadgeDollarSign} maxWidth="max-w-xl">
         <InvoiceForm form={form} setForm={setForm} patients={patients} settings={settings} />
         <div className="flex gap-3 mt-5">
           <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center">Cancel</button>
@@ -354,3 +355,4 @@ export default function Billing({ currentUser }) {
     </div>
   )
 }
+

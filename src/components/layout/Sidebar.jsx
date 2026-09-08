@@ -4,9 +4,9 @@ import {
   CalendarDays, Package, MessageSquare, LogOut, Activity,
   UserCog, ClipboardList, Clock, X, BarChart2, ChevronLeft,
   UserCircle, BedDouble, FlaskConical, UserCheck, Pill, TrendingDown,
-  FileText, Shield, BarChart, FlaskRound, Settings, HeartPulse
+  FileText, Shield, BarChart, FlaskRound, Settings, HeartPulse,
+  BadgeDollarSign
 } from 'lucide-react'
-import NairaIcon from '../ui/NairaIcon'
 import Avatar from '../ui/Avatar'
 import { store, useStore } from '../../store/useStore'
 
@@ -15,6 +15,7 @@ const ALL_NAV = [
   { id: 'my-profile',       label: 'My Profile',        icon: UserCircle,      roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'queue',            label: 'Waiting Room',      icon: UserCheck,       roles: ['Admin','Receptionist'] },
   { id: 'appointments',     label: 'Appointments',      icon: Calendar,        roles: ['Admin','Doctor','Nurse','Receptionist'] },
+  { id: 'reviews',          label: 'Pending Reviews',   icon: ClipboardList,   roles: ['Admin','Receptionist'] },
   { id: 'patients',         label: 'Patients',          icon: Users,           roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'prescriptions',    label: 'Prescriptions',     icon: Pill,            roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'pharmacy',         label: 'Pharmacy',          icon: FlaskRound,      roles: ['Admin','Receptionist'] },
@@ -27,7 +28,7 @@ const ALL_NAV = [
   { id: 'calendar',         label: 'Calendar',          icon: CalendarDays,    roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'shifts',           label: 'Shifts',            icon: Clock,           roles: ['Admin','Doctor','Nurse','Receptionist'] },
   { id: 'inventory',        label: 'Inventory',         icon: Package,         roles: ['Admin'] },
-  { id: 'billing',          label: 'Billing',           icon: NairaIcon,       roles: ['Admin','Receptionist'] },
+  { id: 'billing',          label: 'Billing',           icon: BadgeDollarSign,       roles: ['Admin','Receptionist'] },
   { id: 'insurance',        label: 'Insurance & Claims',icon: Shield,          roles: ['Admin','Receptionist'] },
   { id: 'expenses',         label: 'Expenses',          icon: TrendingDown,    roles: ['Admin'] },
   { id: 'messages',         label: 'Messages',          icon: MessageSquare,   roles: ['Admin','Doctor','Nurse','Receptionist'] },
@@ -145,3 +146,5 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
     </>
   )
 }
+
+

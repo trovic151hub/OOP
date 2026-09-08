@@ -25,7 +25,7 @@ const COMMON_TESTS = [
 ]
 
 const EMPTY_FORM = {
-  patientName: '', testName: '', category: 'Blood Work', result: '', unit: '',
+  patientName: '', patientId: '', patientEmail: '', testName: '', category: 'Blood Work', result: '', unit: '',
   normalRange: '', status: 'Pending', date: '', orderedBy: '', notes: '',
 }
 
@@ -36,7 +36,10 @@ function LabForm({ form, setForm, patients, doctors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Patient <span className="text-red-400">*</span></label>
-          <Combobox value={form.patientName} onChange={v => setForm(f => ({ ...f, patientName: v }))} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Search patient…" />
+          <Combobox value={form.patientName} onChange={v => {
+            const pat = patients.find(p => p.name === v)
+            setForm(f => ({ ...f, patientName: v, patientId: pat?.id || '', patientEmail: pat?.email || '' }))
+          }} options={patients} getLabel={p => p.name} getSub={p => p.phone} placeholder="Search patient…" />
         </div>
         <div>
           <label className="label">Date <span className="text-red-400">*</span></label>
@@ -123,8 +126,10 @@ export default function LabResults({ currentUser }) {
   function handleSubmit() {
     if (!form.patientName.trim() || !form.testName.trim()) { showToast('Patient and test name are required.', 'error'); return }
     if (!form.date) { showToast('Please select a date.', 'error'); return }
-    if (editId) { store.updateLabResult(editId, form); showToast('Lab result updated.') }
-    else { store.addLabResult(form); showToast('Lab result added.') }
+    const pat = patients.find(p => p.id === form.patientId || p.name === form.patientName)
+    const payload = { ...form, patientId: pat?.id || form.patientId || '', patientEmail: pat?.email || form.patientEmail || '' }
+    if (editId) { store.updateLabResult(editId, payload); showToast('Lab result updated.') }
+    else { store.addLabResult(payload); showToast('Lab result added.') }
     setModal(false)
   }
 

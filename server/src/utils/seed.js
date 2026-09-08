@@ -1,9 +1,11 @@
 import { connectDB } from '../config/db.js'
 import mongoose from 'mongoose'
+import bcrypt from 'bcrypt'
 import Department from '../models/Department.js'
 import Doctor from '../models/Doctor.js'
 import Nurse from '../models/Nurse.js'
 import Patient from '../models/Patient.js'
+import User from '../models/User.js'
 import Appointment from '../models/Appointment.js'
 import Room from '../models/Room.js'
 import LabResult from '../models/LabResult.js'
@@ -16,6 +18,7 @@ import PharmacyOrder from '../models/PharmacyOrder.js'
 import Shift from '../models/Shift.js'
 import MedicalRecord from '../models/MedicalRecord.js'
 import Document from '../models/Document.js'
+import Notification from '../models/Notification.js'
 import Settings from '../models/Settings.js'
 
 function daysAgo(n) {
@@ -39,6 +42,24 @@ function getWeekStart() {
 async function replaceAll(Model, items) {
   await Model.deleteMany({})
   if (items.length) await Model.insertMany(items)
+}
+
+async function upsertDemoUsers(users) {
+  const password = await bcrypt.hash('demo1234', 10)
+  for (const user of users) {
+    await User.findOneAndUpdate(
+      { email: user.email.toLowerCase() },
+      {
+        $set: {
+          ...user,
+          email: user.email.toLowerCase(),
+          password,
+          mustChangePassword: false,
+        },
+      },
+      { upsert: true, new: true }
+    )
+  }
 }
 
 async function seed() {
@@ -142,6 +163,19 @@ async function seed() {
     { name: 'Olumide Bakare',       age: 62, gender: 'Male',   blood: 'B+',  condition: 'Benign Prostatic Hyperplasia', status: 'Active',      patientType: 'Outpatient', location: 'Ibadan',       phone: '+234 805 111 0043', email: 'o.bakare@email.com',    emergencyContact: 'Funke Bakare +234 805 111 0044',   allergies: 'None',         insurance: 'Reliance HMO',    notes: 'PSA 4.8 ng/mL. On tamsulosin. Urology referral made.', createdAt: ts(12) },
     { name: 'Precious Anozie',      age: 23, gender: 'Female', blood: 'A+',  condition: 'Peptic Ulcer Disease',        status: 'Active',       patientType: 'Outpatient', location: 'Lagos',        phone: '+234 806 111 0045', email: 'p.anozie@email.com',    emergencyContact: 'Emeka Anozie +234 806 111 0046',   allergies: 'Ibuprofen',    insurance: 'AIICO',           notes: 'H. pylori positive. Triple therapy initiated.', createdAt: ts(9) },
     { name: 'Damilola Ogunleye',    age: 55, gender: 'Male',   blood: 'O+',  condition: 'Ischaemic Heart Disease',     status: 'In Treatment', patientType: 'Inpatient',  location: 'Room 211',     phone: '+234 808 111 0047', email: 'd.ogunleye@email.com',  emergencyContact: 'Sola Ogunleye +234 808 111 0048',  allergies: 'Clopidogrel',  insurance: 'Axamansard',      notes: 'Post-PCI day 2. Dual antiplatelet therapy. Cardiac rehab planned.', createdAt: ts(2) },
+  ])
+
+  // Demo logins. All use password: demo1234
+  await upsertDemoUsers([
+    { name: 'Amina Bello',       email: 'admin@medcore.ng',        role: 'Admin',        phone: '+234 800 555 0100', bio: 'Demo hospital administrator.' },
+    { name: 'Dr. Sarah Chen',    email: 'sarah.chen@medcore.ng',   role: 'Doctor',       phone: '+234 803 555 0201', bio: 'Demo cardiologist account.' },
+    { name: 'Ngozi Adeyemi',     email: 'n.adeyemi@medcore.ng',    role: 'Nurse',        phone: '+234 803 555 0301', bio: 'Demo ICU nurse account.' },
+    { name: 'Rita Okoro',        email: 'reception@medcore.ng',    role: 'Receptionist', phone: '+234 800 555 0101', bio: 'Demo front-desk account.' },
+    { name: 'Marcus Johnson',    email: 'marcus.j@email.com',      role: 'Patient',      phone: '+234 813 111 0021', bio: 'Demo patient with active prescription, abnormal lab, paid bill, and upcoming follow-up.' },
+    { name: 'Olivia Park',       email: 'olivia.p@email.com',      role: 'Patient',      phone: '+234 808 111 0027', bio: 'Demo patient with scheduled visit, active prescription, and overdue invoice.' },
+    { name: 'Benjamin Carter',   email: 'ben.carter@email.com',    role: 'Patient',      phone: '+234 802 111 0025', bio: 'Demo inpatient with diabetes care, pending bill, and lab results.' },
+    { name: 'Grace Oduya',       email: 'grace.o@email.com',       role: 'Patient',      phone: '+234 804 111 0031', bio: 'Demo patient with surgical history, documents, and completed prescription.' },
+    { name: 'Ngozi Eze',         email: 'n.eze@email.com',         role: 'Patient',      phone: '+234 808 111 0007', bio: 'Demo antenatal patient with upcoming care and GDM monitoring.' },
   ])
 
   // ── APPOINTMENTS ──────────────────────────────────────────────
@@ -385,7 +419,25 @@ async function seed() {
     { patientName: 'Fatima Al-Hassan',   title: 'Hypertension Discharge Summary',     type: 'Medical History', date: daysAgo(2),  size: '175 KB', uploadedBy: 'Dr. Adaeze Nwosu',  notes: 'Hypertensive crisis admission — treatment and discharge plan.',      createdAt: ts(3) },
   ])
 
-  console.log('Seed complete.')
+  await Document.insertMany([
+    { patientName: 'Marcus Johnson',  patientEmail: 'marcus.j@email.com',  title: 'Patient Uploaded BP Log',       type: 'Medical History', date: daysAgo(1), size: '88 KB',  uploadedBy: 'Marcus Johnson',  patientUploaded: true, reviewStatus: 'Pending Review', description: 'Home blood pressure readings for the last seven days.', createdAt: ts(1) },
+    { patientName: 'Olivia Park',     patientEmail: 'olivia.p@email.com',  title: 'Updated Insurance Card',        type: 'Insurance Card',  date: daysAgo(2), size: '142 KB', uploadedBy: 'Olivia Park',     patientUploaded: true, reviewStatus: 'Rejected', reviewNote: 'The image is too blurry. Please upload a clearer photo of the front and back.', description: 'Insurance card photo uploaded from patient portal.', reviewedAt: ts(1), createdAt: ts(2) },
+    { patientName: 'Benjamin Carter', patientEmail: 'ben.carter@email.com',title: 'Signed Diabetes Care Consent',  type: 'Consent Form',    date: daysAgo(4), size: '231 KB', uploadedBy: 'Benjamin Carter', patientUploaded: true, reviewStatus: 'Reviewed', reviewNote: 'Accepted and added to the patient record.', description: 'Signed consent for inpatient diabetes management.', reviewedAt: ts(3), createdAt: ts(4) },
+    { patientName: 'Grace Oduya',     patientEmail: 'grace.o@email.com',   title: 'Physiotherapy Referral Upload', type: 'Referral Letter', date: daysAgo(3), size: '118 KB', uploadedBy: 'Grace Oduya',     patientUploaded: true, reviewStatus: 'Pending Review', description: 'External physiotherapy referral for post-operative rehab.', createdAt: ts(3) },
+  ])
+
+  await replaceAll(Notification, [
+    { patientName: 'Marcus Johnson',  patientEmail: 'marcus.j@email.com',   title: 'Lab result needs review',     message: 'Your lipid panel is marked abnormal. Please review the result and follow up with Dr. Sarah Chen.', type: 'lab',           target: 'lab',           read: false, createdAt: ts(1) },
+    { patientName: 'Marcus Johnson',  patientEmail: 'marcus.j@email.com',   title: 'Document received',           message: 'Your home blood pressure log was received and is waiting for staff review.',                      type: 'documents',     target: 'documents',     read: false, createdAt: ts(1) },
+    { patientName: 'Olivia Park',     patientEmail: 'olivia.p@email.com',   title: 'Invoice overdue',             message: 'Your neurology consultation invoice is overdue. Please complete payment or contact billing.',       type: 'billing',       target: 'billing',       read: false, createdAt: ts(2) },
+    { patientName: 'Olivia Park',     patientEmail: 'olivia.p@email.com',   title: 'Document needs correction',    message: 'Your insurance card upload was rejected because the image is blurry.',                             type: 'documents',     target: 'documents',     read: false, createdAt: ts(1) },
+    { patientName: 'Benjamin Carter', patientEmail: 'ben.carter@email.com', title: 'Medication ready',            message: 'Your insulin and metformin order is ready for collection by the ward team.',                        type: 'prescriptions', target: 'prescriptions', read: true,  readAt: ts(1), createdAt: ts(2) },
+    { patientName: 'Benjamin Carter', patientEmail: 'ben.carter@email.com', title: 'Care consent accepted',       message: 'Your signed diabetes care consent has been reviewed and accepted.',                                 type: 'documents',     target: 'documents',     read: false, createdAt: ts(3) },
+    { patientName: 'Grace Oduya',     patientEmail: 'grace.o@email.com',    title: 'Follow-up appointment today', message: 'Your tibia X-ray review is scheduled today with Dr. David Kim.',                                    type: 'appointments',  target: 'appointments',  read: false, createdAt: ts(0) },
+    { patientName: 'Ngozi Eze',       patientEmail: 'n.eze@email.com',      title: 'Antenatal visit confirmed',   message: 'Your antenatal GDM review is confirmed. Please bring your glucose monitoring record.',              type: 'appointments',  target: 'appointments',  read: false, createdAt: ts(1) },
+  ])
+
+  console.log('Seed complete. Demo password for seeded accounts: demo1234')
   await mongoose.disconnect()
 }
 

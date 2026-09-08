@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import { initSubscriptions, ensureUserProfile, setCurrentUser, store, useStore, refetchCollection } from './store/useStore'
 import { connectRealtime, disconnectRealtime } from './realtime'
 import { api } from './api/client'
@@ -9,82 +9,57 @@ import Topbar from './components/layout/Topbar'
 import BottomNav from './components/layout/BottomNav'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import Patients from './pages/Patients'
-import Doctors from './pages/Doctors'
-import Nurses from './pages/Nurses'
-import Appointments from './pages/Appointments'
-import Departments from './pages/Departments'
-import CalendarPage from './pages/CalendarPage'
-import Inventory from './pages/Inventory'
-import Messages from './pages/Messages'
-import UsersPage from './pages/UsersPage'
-import Billing from './pages/Billing'
-import AuditLog from './pages/AuditLog'
-import Shifts from './pages/Shifts'
-import Reports from './pages/Reports'
-import MyProfile from './pages/MyProfile'
-import Rooms from './pages/Rooms'
-import LabResults from './pages/LabResults'
-import Queue from './pages/Queue'
-import Prescriptions from './pages/Prescriptions'
-import Expenses from './pages/Expenses'
-import PatientPortal from './pages/PatientPortal'
-import Documents from './pages/Documents'
-import Insurance from './pages/Insurance'
-import StaffPerformance from './pages/StaffPerformance'
-import Pharmacy from './pages/Pharmacy'
-import Settings from './pages/Settings'
+import { HeartPulse } from 'lucide-react'
+
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Patients = lazy(() => import('./pages/Patients'))
+const Doctors = lazy(() => import('./pages/Doctors'))
+const Nurses = lazy(() => import('./pages/Nurses'))
+const Appointments = lazy(() => import('./pages/Appointments'))
+const Departments = lazy(() => import('./pages/Departments'))
+const CalendarPage = lazy(() => import('./pages/CalendarPage'))
+const Inventory = lazy(() => import('./pages/Inventory'))
+const Messages = lazy(() => import('./pages/Messages'))
+const UsersPage = lazy(() => import('./pages/UsersPage'))
+const Billing = lazy(() => import('./pages/Billing'))
+const AuditLog = lazy(() => import('./pages/AuditLog'))
+const Shifts = lazy(() => import('./pages/Shifts'))
+const Reports = lazy(() => import('./pages/Reports'))
+const MyProfile = lazy(() => import('./pages/MyProfile'))
+const Rooms = lazy(() => import('./pages/Rooms'))
+const LabResults = lazy(() => import('./pages/LabResults'))
+const Queue = lazy(() => import('./pages/Queue'))
+const Prescriptions = lazy(() => import('./pages/Prescriptions'))
+const Expenses = lazy(() => import('./pages/Expenses'))
+const PatientPortal = lazy(() => import('./pages/PatientPortal'))
+const Documents = lazy(() => import('./pages/Documents'))
+const PendingReviews = lazy(() => import('./pages/PendingReviews'))
+const Insurance = lazy(() => import('./pages/Insurance'))
+const StaffPerformance = lazy(() => import('./pages/StaffPerformance'))
+const Pharmacy = lazy(() => import('./pages/Pharmacy'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 const ACTIVE_PAGE_KEY = 'mc_active_page'
 const SIDEBAR_COLLAPSED_KEY = 'mc_sidebar_collapsed'
 
-// Same pulse shape as the brand mark (favicon/sidebar), tiled edge-to-edge —
-// the path's start and end points both sit on the vertical midline, so
-// repeated copies connect into one continuous strip with no visible seam.
-const HEARTBEAT_PATH = 'M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2'
-
-function HeartbeatStrip() {
-  return (
-    <svg width="288" height="48" viewBox="0 0 144 24" fill="none">
-      {[0, 1, 2, 3, 4, 5].map(i => (
-        <path
-          key={i}
-          d={HEARTBEAT_PATH}
-          transform={`translate(${i * 24}, 0)`}
-          stroke="#0d9488"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      ))}
-    </svg>
-  )
-}
-
-// Fades the trace to transparent at the left/right edges of the visible
-// window (rather than each tile fading independently), so it reads as a
-// smooth continuous sweep regardless of how many pulses are tiled.
-const EDGE_FADE_MASK = 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)'
-
 function HeartbeatLoader({ label = 'Loading' }) {
   return (
     <div role="status" aria-live="polite" aria-label={label} className="flex flex-col items-center gap-3">
-      <div
-        className="w-72 h-12 overflow-hidden"
-        style={{ WebkitMaskImage: EDGE_FADE_MASK, maskImage: EDGE_FADE_MASK }}
-      >
-        <div className="flex w-[576px] animate-heartbeat-scroll drop-shadow-[0_0_5px_rgba(13,148,136,0.45)]">
-          <HeartbeatStrip />
-          <HeartbeatStrip />
-        </div>
+      <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-500/12 border border-teal-100 dark:border-teal-500/30 flex items-center justify-center">
+        <HeartPulse size={28} className="animate-heart-pulse text-teal-600" />
       </div>
       <div className="flex items-center gap-2" aria-hidden="true">
-        <svg width="12" height="12" viewBox="-18 -8 36 40" className="animate-heart-pulse text-teal-500" fill="currentColor">
-          <path d="M0,4 C-6,-6 -18,-2 -18,8 C-18,18 -4,26 0,30 C4,26 18,18 18,8 C18,-2 6,-6 0,4 Z" />
-        </svg>
+        <HeartPulse size={13} className="animate-heart-pulse text-teal-500" />
         <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-400 dark:text-slate-600">{label}</p>
       </div>
+    </div>
+  )
+}
+
+function PageLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <HeartbeatLoader label="Loading page" />
     </div>
   )
 }
@@ -164,6 +139,7 @@ function AppContent() {
   const [mobileOpen, setMobileOpen]   = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true')
   const { users, currentUser: authUser, settings } = useStore()
+  const authCheckStartedRef = useRef(false)
 
   // Lock background scroll while the mobile sidebar drawer is open, so
   // content behind it can't be scrolled (matches the notification panel's
@@ -180,6 +156,8 @@ function AppContent() {
   }, [settings?.hospitalName])
 
   useEffect(() => {
+    if (authCheckStartedRef.current) return
+    authCheckStartedRef.current = true
     const startedAt = Date.now()
     // The auth check usually resolves in well under 100ms, which makes the
     // heartbeat loader flash by too fast to register as an animation at all —
@@ -249,7 +227,11 @@ function AppContent() {
   }
 
   if (currentUser.role === 'Patient') {
-    return <PatientPortal currentUser={currentUser} />
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <PatientPortal currentUser={currentUser} />
+      </Suspense>
+    )
   }
 
   function navigate(page) {
@@ -268,6 +250,11 @@ function AppContent() {
 
   const adminOnly = (Component, props = {}) =>
     currentUser.role === 'Admin'
+      ? <Component {...props} currentUser={currentUser} />
+      : <Dashboard onNavigate={navigate} currentUser={currentUser} />
+
+  const reviewStaffOnly = (Component, props = {}) =>
+    ['Admin', 'Receptionist'].includes(currentUser.role)
       ? <Component {...props} currentUser={currentUser} />
       : <Dashboard onNavigate={navigate} currentUser={currentUser} />
 
@@ -294,6 +281,7 @@ function AppContent() {
       case 'auditlog':          return adminOnly(AuditLog, {})
       case 'users':             return adminOnly(UsersPage)
       case 'documents':         return <Documents currentUser={currentUser} />
+      case 'reviews':           return reviewStaffOnly(PendingReviews)
       case 'insurance':         return <Insurance currentUser={currentUser} />
       case 'staff-performance': return adminOnly(StaffPerformance, {})
       case 'pharmacy':          return <Pharmacy currentUser={currentUser} />
@@ -325,7 +313,9 @@ function AppContent() {
           sidebarCollapsed={sidebarCollapsed}
         />
         <main className="flex-1 pt-16 pb-16 md:pb-0 px-4 md:px-6 py-6 overflow-y-auto">
-          {renderPage()}
+          <Suspense fallback={<PageLoader />}>
+            {renderPage()}
+          </Suspense>
         </main>
         <footer className="px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center text-xs text-slate-400 dark:text-slate-600 no-print hidden md:block">
           Copyright © 2025 MedCore. All rights reserved. ·{' '}

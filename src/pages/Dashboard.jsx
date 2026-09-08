@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react'
 import {
   Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock,
   CheckCircle, Building2, Package, AlertTriangle,
-  BedDouble, FlaskConical, UserCheck, Bell
+  BedDouble, FlaskConical, UserCheck, Bell, FileText,
+  BadgeDollarSign
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -11,7 +12,6 @@ import {
 import { useStore } from '../store/useStore'
 import Badge from '../components/ui/Badge'
 import Avatar from '../components/ui/Avatar'
-import NairaIcon from '../components/ui/NairaIcon'
 import { formatDate, formatCompactCurrency, getCurrencySymbol } from '../utils/helpers'
 
 function StatCard({ label, value, sub, icon: Icon, color, trend }) {
@@ -91,7 +91,7 @@ function trendFor(items, days = 30) {
 }
 
 export default function Dashboard({ onNavigate, currentUser }) {
-  const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults, settings } = useStore()
+  const { patients, doctors, appointments, departments, inventory, billing, rooms, labResults, documents = [], settings } = useStore()
   const fmt = (n) => formatCompactCurrency(n, settings?.currency)
 
   const today     = new Date().toISOString().slice(0, 10)
@@ -134,6 +134,10 @@ export default function Dashboard({ onNavigate, currentUser }) {
   const occupiedRooms= rooms.filter(r => r.status === 'Occupied').length
   const pendingLabs  = labResults.filter(l => l.status === 'Pending').length
   const abnormalLabs = labResults.filter(l => l.status === 'Abnormal').length
+  const requestStatuses = ['Requested', 'Reschedule Requested', 'Cancel Requested']
+  const pendingAppointmentRequests = appointments.filter(a => requestStatuses.includes(a.status))
+  const pendingPatientUploads = documents.filter(d => d.patientUploaded && (d.reviewStatus || 'Pending Review') === 'Pending Review')
+  const hasReviewWork = !isDoctor && (pendingAppointmentRequests.length > 0 || pendingPatientUploads.length > 0)
 
   const apptStatusData = [
     { name: 'Scheduled',   value: appointments.filter(a => a.status === 'Scheduled').length,    fill: '#0d9488' },
@@ -192,17 +196,83 @@ export default function Dashboard({ onNavigate, currentUser }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <StatCard label="Patients"          value={patients.length}   sub="Registered"    icon={Users}     color="blue"   trend={trendFor(patients)} />
           <StatCard label="Today's Appts"     value={todayAppts.length} sub={`${todayAppts.filter(a => a.status === 'Scheduled').length} awaiting check-in`} icon={Calendar} color="teal" />
-          <StatCard label="Waiting Now"       value={checkedIn}         sub="In queue"       icon={UserCheck} color="purple" />
-          <StatCard label="Rooms"             value={rooms.length}      sub={`${vacantRooms} vacant · ${occupiedRooms} occupied`} icon={BedDouble} color="amber" />
+          <StatCard label="Appt Requests"     value={pendingAppointmentRequests.length} sub="Need review" icon={Bell} color={pendingAppointmentRequests.length ? 'amber' : 'emerald'} />
+          <StatCard label="Patient Uploads"   value={pendingPatientUploads.length} sub="Need review" icon={FileText} color={pendingPatientUploads.length ? 'amber' : 'emerald'} />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={trendFor(patients)} />
           <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={trendFor(doctors)} />
           <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={trendFor(appointments)} />
-          <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={NairaIcon} color="emerald" />
-          <StatCard label="Rooms"       value={rooms.length}        sub={`${vacantRooms} vacant · ${occupiedRooms} occupied · ${settings?.bedCapacity || rooms.length} beds cap.`} icon={BedDouble}  color="amber" />
-          <StatCard label="Lab Results" value={labResults.length}   sub={`${pendingLabs} pending · ${abnormalLabs} abnormal`} icon={FlaskConical} color="red" />
+          <StatCard label="Appt Requests" value={pendingAppointmentRequests.length} sub="Need review" icon={Bell} color={pendingAppointmentRequests.length ? 'amber' : 'emerald'} />
+          <StatCard label="Patient Uploads" value={pendingPatientUploads.length} sub="Need review" icon={FileText} color={pendingPatientUploads.length ? 'amber' : 'emerald'} />
+          <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={BadgeDollarSign} color="emerald" />
+        </div>
+      )}
+
+      {hasReviewWork && (
+        <div className="card overflow-hidden mb-6">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Needs Review</p>
+              <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">
+                {pendingAppointmentRequests.length} appointment request{pendingAppointmentRequests.length === 1 ? '' : 's'} · {pendingPatientUploads.length} patient upload{pendingPatientUploads.length === 1 ? '' : 's'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => onNavigate('reviews')} className="btn-primary text-xs">
+                <FileText size={13} /> Review Center
+              </button>
+              <button onClick={() => onNavigate('appointments')} className="btn-ghost text-xs">
+                <Calendar size={13} /> Appointments
+              </button>
+              <button onClick={() => onNavigate('documents')} className="btn-ghost text-xs">
+                <FileText size={13} /> Documents
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 dark:divide-slate-800">
+            <div>
+              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
+                Appointment Requests
+              </div>
+              {pendingAppointmentRequests.length === 0 ? (
+                <div className="px-5 py-6 text-sm text-slate-400 dark:text-slate-600">No appointment requests waiting.</div>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {pendingAppointmentRequests.slice(0, 4).map(a => (
+                    <button key={a.id} onClick={() => onNavigate('reviews')} className="w-full px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{a.patientName}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{a.status} · {a.date ? formatDate(a.date) : 'No date'}{a.requestedDate ? ` -> ${formatDate(a.requestedDate)}` : ''}</p>
+                      </div>
+                      <Badge status={a.status} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
+                Patient Uploads
+              </div>
+              {pendingPatientUploads.length === 0 ? (
+                <div className="px-5 py-6 text-sm text-slate-400 dark:text-slate-600">No patient uploads waiting.</div>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {pendingPatientUploads.slice(0, 4).map(d => (
+                    <button key={d.id} onClick={() => onNavigate('reviews')} className="w-full px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{d.title}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{d.patientName} · {d.type || 'Document'} · {d.date ? formatDate(d.date) : 'No date'}</p>
+                      </div>
+                      <Badge status={d.reviewStatus || 'Pending Review'} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -420,3 +490,5 @@ export default function Dashboard({ onNavigate, currentUser }) {
     </div>
   )
 }
+
+

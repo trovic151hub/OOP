@@ -16,6 +16,8 @@ export function makeCrudController(Model, opts = {}) {
     label = (doc) => doc.name || doc.title || String(doc._id),
     audit = { add: true, update: false, delete: true },
     cascadeOnDelete,
+    listQuery = () => ({}),
+    afterUpdate,
   } = opts
 
   function auditLabelFn(op) {
@@ -27,7 +29,7 @@ export function makeCrudController(Model, opts = {}) {
   return {
     async list(req, res, next) {
       try {
-        const docs = await Model.find({}).sort(sort)
+        const docs = await Model.find(await listQuery(req)).sort(sort)
         res.json(docs)
       } catch (err) { next(err) }
     },
@@ -48,8 +50,11 @@ export function makeCrudController(Model, opts = {}) {
         delete body.id
         delete body._id
         delete body.createdAt
+        delete body.decisionKind
+        const previous = afterUpdate ? await Model.findById(req.params.id) : null
         const doc = await Model.findByIdAndUpdate(req.params.id, body, { new: true })
         if (!doc) return res.status(404).json({ message: 'Not found' })
+        if (afterUpdate) await afterUpdate(doc, previous, req)
         const labelFn = auditLabelFn('update')
         if (labelFn) await logAudit(req, 'Updated', entity, labelFn(doc))
         if (key) emitChanged(req, key)

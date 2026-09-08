@@ -49,7 +49,10 @@ async function request(path, { method = 'GET', body } = {}) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    const error = new Error(err.message || `Request failed (${res.status})`)
+    const fallbackMessage = res.status === 502
+      ? 'Request failed (502). The API gateway reached the app, but the backend is unavailable or cannot reach its database.'
+      : `Request failed (${res.status})`
+    const error = new Error(err.message || fallbackMessage)
     error.status = res.status
     throw error
   }

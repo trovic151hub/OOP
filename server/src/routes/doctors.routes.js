@@ -5,10 +5,9 @@ import User from '../models/User.js'
 import Appointment from '../models/Appointment.js'
 import Shift from '../models/Shift.js'
 import { makeCrudController } from '../utils/crudFactory.js'
-import { makeCrudRouter } from '../utils/crudRouter.js'
 import { Router } from 'express'
 import { logAudit } from '../utils/audit.js'
-import { requireRole } from '../middleware/role.middleware.js'
+import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 import { emitChanged } from '../utils/realtime.js'
 
 const controller = makeCrudController(Doctor, {
@@ -27,10 +26,19 @@ const controller = makeCrudController(Doctor, {
 })
 
 const router = Router()
-router.get('/', controller.list)
-router.post('/', controller.create)
-router.put('/:id', controller.update)
-router.delete('/:id', controller.remove)
+router.get('/', requireRole(...STAFF_ROLES), controller.list)
+router.post('/', requireRole('Admin'), controller.create)
+router.put('/:id', async (req, res, next) => {
+  try {
+    if (req.user.role === 'Admin') return next()
+    if (req.user.role !== 'Doctor') return res.status(403).json({ message: 'Forbidden' })
+    const doctor = await Doctor.findById(req.params.id)
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' })
+    if (String(doctor.uid || '') !== req.user.id) return res.status(403).json({ message: 'Forbidden' })
+    next()
+  } catch (err) { next(err) }
+}, controller.update)
+router.delete('/:id', requireRole('Admin'), controller.remove)
 
 // Onboards a new doctor "hospital-standard": one Admin action creates both the
 // login account and the professional profile together, already linked — never
@@ -70,7 +78,7 @@ router.post('/onboard', requireRole('Admin'), async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-router.put('/:id/link-user', async (req, res, next) => {
+router.put('/:id/link-user', requireRole('Admin'), async (req, res, next) => {
   try {
     const { userId } = req.body
     const doctor = await Doctor.findByIdAndUpdate(req.params.id, { uid: userId }, { new: true })

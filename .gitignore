@@ -3,5 +3,6 @@ dist
 .DS_Store
 .vercel
 server/.env
+server/uploads
 .env
 .env*.local

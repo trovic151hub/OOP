@@ -43,7 +43,7 @@ export default function Register({ onSwitch }) {
       const { user } = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password })
       setCurrentUser(user)
       initSubscriptions()
-      showToast(user.role === 'Admin' ? 'Admin account created!' : 'Account created! Your admin will assign your role.', 'success')
+      showToast(user.role === 'Admin' ? 'Admin account created!' : 'Patient account created!', 'success')
     } catch (err) {
       showToast(err.message || 'Registration failed. Please try again.', 'error')
     } finally {
@@ -61,8 +61,8 @@ export default function Register({ onSwitch }) {
           <span className="text-lg font-bold text-slate-800 dark:text-slate-200">MedCore</span>
         </div>
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 mb-3">Stay on Top of<br />Every Detail</h2>
-          <p className="text-slate-500 text-sm leading-relaxed">From appointments to inventory, MedCore gives you a clear view of daily hospital operations.</p>
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 mb-3">Your Care,<br />Clearly Organized</h2>
+          <p className="text-slate-500 text-sm leading-relaxed">Create a patient account to view appointments, prescriptions, lab results, documents, and bills securely.</p>
         </div>
         <div className="rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur border border-white dark:border-slate-700 shadow-lg p-4">
           {[1,2,3].map(i => (
@@ -82,8 +82,8 @@ export default function Register({ onSwitch }) {
       <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800 overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Create Your MedCore Account</h1>
-            <p className="text-sm text-slate-500">Register to access hospital dashboards, manage clinical workflows, and collaborate securely.</p>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Create Patient Account</h1>
+            <p className="text-sm text-slate-500">Register for the patient portal. Staff accounts are created or assigned by an Admin.</p>
           </div>
           <form onSubmit={handleRegister} className="flex flex-col gap-4">
             <div>
@@ -134,10 +134,10 @@ export default function Register({ onSwitch }) {
             <div className="flex items-start gap-2.5 bg-blue-50 dark:bg-blue-500/12 border border-blue-100 dark:border-blue-500/20 rounded-xl px-3.5 py-3 text-xs text-blue-700">
               <Info size={14} className="flex-shrink-0 mt-0.5 text-blue-500" />
               <span>
-                <strong>Staff accounts</strong> start as Receptionist by default. The Admin can update your role from the User Management page after you log in.
+                <strong>Patients</strong> can sign up here. Hospital staff should use an Admin-created account or ask an Admin to assign their staff role.
               </span>
             </div>
-            <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
+            <button type="submit" disabled={loading || !agreed} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
                 : <><UserPlus size={16} /> Create Account</>
@@ -163,8 +163,8 @@ export default function Register({ onSwitch }) {
             share, export, or disclose it outside of authorised hospital workflows.
           </p>
           <p>
-            Your account role (Admin, Doctor, Nurse, Receptionist) determines what you can see and do in
-            the system. Roles are assigned and changed only by an Administrator.
+            Patient accounts can access only their own portal records. Staff roles such as Admin,
+            Doctor, Nurse, and Receptionist are assigned only by an Administrator.
           </p>
           <p>
             MedCore logs key actions (record changes, role updates, deletions) for audit purposes. This

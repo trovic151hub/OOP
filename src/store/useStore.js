@@ -19,24 +19,25 @@ const DEFAULT_SETTINGS = {
 // [state key, API path] for the 17 list collections + settings (18 total),
 // mirroring the 18 onSnapshot subscriptions this store used to hold.
 const COLLECTIONS = [
-  ['patients', '/patients'],
-  ['doctors', '/doctors'],
-  ['nurses', '/nurses'],
-  ['appointments', '/appointments'],
-  ['departments', '/departments'],
-  ['inventory', '/inventory'],
-  ['messages', '/messages'],
-  ['users', '/users'],
-  ['medicalRecords', '/medical-records'],
-  ['billing', '/billing'],
-  ['shifts', '/shifts'],
-  ['rooms', '/rooms'],
-  ['labResults', '/lab-results'],
-  ['prescriptions', '/prescriptions'],
-  ['expenses', '/expenses'],
-  ['documents', '/documents'],
-  ['claims', '/claims'],
-  ['pharmacyOrders', '/pharmacy-orders'],
+  ['patients', '/patients', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
+  ['doctors', '/doctors', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['nurses', '/nurses', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['appointments', '/appointments', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
+  ['departments', '/departments', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['inventory', '/inventory', ['Admin', 'Receptionist']],
+  ['messages', '/messages', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['users', '/users', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['medicalRecords', '/medical-records', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['billing', '/billing', ['Admin', 'Receptionist', 'Patient']],
+  ['shifts', '/shifts', ['Admin', 'Doctor', 'Nurse', 'Receptionist']],
+  ['rooms', '/rooms', ['Admin', 'Receptionist']],
+  ['labResults', '/lab-results', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
+  ['prescriptions', '/prescriptions', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
+  ['expenses', '/expenses', ['Admin']],
+  ['documents', '/documents', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
+  ['notifications', '/notifications', ['Patient']],
+  ['claims', '/claims', ['Admin', 'Receptionist']],
+  ['pharmacyOrders', '/pharmacy-orders', ['Admin', 'Receptionist']],
 ]
 
 const state = {
@@ -56,6 +57,7 @@ const state = {
   prescriptions:  [],
   expenses:       [],
   documents:      [],
+  notifications:  [],
   claims:         [],
   pharmacyOrders: [],
   settings:       { ...DEFAULT_SETTINGS },
@@ -68,25 +70,26 @@ function notify() { _listeners.forEach(fn => fn()) }
 
 let _initialized = false
 
-async function refetch(key, path) {
+async function refetch(key, path, { silent = false } = {}) {
   try {
     state[key] = await api.get(path)
   } catch (err) {
     console.error(err)
   }
-  notify()
+  if (!silent) notify()
 }
 
-export async function refetchSettings() {
+export async function refetchSettings({ silent = false } = {}) {
   try {
     state.settings = { ...DEFAULT_SETTINGS, ...(await api.get('/settings')) }
   } catch (err) {
     console.error(err)
   }
-  notify()
+  if (!silent) notify()
 }
 
-const COLLECTION_PATHS = Object.fromEntries(COLLECTIONS)
+const COLLECTION_PATHS = Object.fromEntries(COLLECTIONS.map(([key, path]) => [key, path]))
+const COLLECTION_ROLES = Object.fromEntries(COLLECTIONS.map(([key, , roles]) => [key, roles]))
 
 // Lets a page poll one collection for near-live updates (e.g. the Waiting
 // Room queue picking up another receptionist's check-ins) without a full
@@ -94,15 +97,18 @@ const COLLECTION_PATHS = Object.fromEntries(COLLECTIONS)
 export function refetchCollection(key) {
   const path = COLLECTION_PATHS[key]
   if (!path) return Promise.resolve()
+  if (!COLLECTION_ROLES[key]?.includes(state.currentUser?.role)) return Promise.resolve()
   return refetch(key, path)
 }
 
 export async function initSubscriptions() {
   if (_initialized) return
   _initialized = true
+  const role = state.currentUser?.role
+  const allowedCollections = COLLECTIONS.filter(([, , roles]) => roles.includes(role))
   await Promise.all([
-    ...COLLECTIONS.map(([key, path]) => refetch(key, path)),
-    refetchSettings(),
+    ...allowedCollections.map(([key, path]) => refetch(key, path, { silent: true })),
+    refetchSettings({ silent: true }),
   ])
   state.loading = false
   notify()
@@ -115,7 +121,7 @@ export function clearSubscriptions() {
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
     prescriptions: [], expenses: [], documents: [], claims: [],
-    pharmacyOrders: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
+    pharmacyOrders: [], notifications: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
     currentUser: null,
   })
   notify()
@@ -144,6 +150,7 @@ export function consumePendingChatTarget() {
 
 export async function ensureUserProfile() {
   const { user } = await api.get('/auth/me')
+  if (!user) throw new Error('Not authenticated')
   return user
 }
 
@@ -177,6 +184,10 @@ export const store = {
     await refetchSettings()
   },
 
+  async testEmailSettings(email) {
+    return api.post('/settings/test-email', { email })
+  },
+
   async addPatient(data)          { return addItem('patients', '/patients', data) },
   async updatePatient(id, data)   { return updateItem('patients', '/patients', id, data) },
   async deletePatient(id) {
@@ -197,6 +208,14 @@ export const store = {
 
   async addAppointment(data)        { return addItem('appointments', '/appointments', data) },
   async updateAppointment(id, data) { return updateItem('appointments', '/appointments', id, data) },
+  async requestAppointmentReschedule(id, data) {
+    await api.post(`/appointments/${id}/reschedule-request`, data)
+    await refetch('appointments', '/appointments')
+  },
+  async requestAppointmentCancel(id, data) {
+    await api.post(`/appointments/${id}/cancel-request`, data)
+    await refetch('appointments', '/appointments')
+  },
   async deleteAppointment(id)       { return deleteItem('appointments', '/appointments', id) },
 
   async addDepartment(data)        { return addItem('departments', '/departments', data) },
@@ -278,6 +297,11 @@ export const store = {
 
   async addInvoice(data)        { return addItem('billing', '/billing', data) },
   async updateInvoice(id, data) { return updateItem('billing', '/billing', id, data) },
+  async payInvoice(id, data) {
+    const paid = await api.post(`/billing/${id}/pay`, data)
+    await refetch('billing', '/billing')
+    return paid
+  },
   async deleteInvoice(id)       { return deleteItem('billing', '/billing', id) },
 
   async addShift(data)        { return addItem('shifts', '/shifts', data) },
@@ -293,8 +317,27 @@ export const store = {
   async deleteExpense(id)       { return deleteItem('expenses', '/expenses', id) },
 
   async addDocument(data)        { return addItem('documents', '/documents', data) },
+  async uploadDocument(data) {
+    const created = await api.post('/documents/upload', data)
+    await refetch('documents', '/documents')
+    return created
+  },
   async updateDocument(id, data) { return updateItem('documents', '/documents', id, data) },
+  async reviewDocument(id, data) {
+    await api.put(`/documents/${id}/review`, data)
+    await refetch('documents', '/documents')
+  },
   async deleteDocument(id)       { return deleteItem('documents', '/documents', id) },
+
+  async markNotificationRead(id) {
+    await api.put(`/notifications/${id}/read`, {})
+    await refetch('notifications', '/notifications')
+  },
+
+  async markAllNotificationsRead() {
+    await api.put('/notifications/read-all', {})
+    await refetch('notifications', '/notifications')
+  },
 
   async addClaim(data)        { return addItem('claims', '/claims', data) },
   async updateClaim(id, data) { return updateItem('claims', '/claims', id, data) },
