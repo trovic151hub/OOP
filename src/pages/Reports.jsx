@@ -31,14 +31,14 @@ function SummaryCard({ label, value, sub, icon: Icon, color }) {
   }
   const c = colors[color] || colors.teal
   return (
-    <div className="card p-5 flex items-start justify-between">
-      <div>
-        <p className="text-xs font-semibold text-slate-400 dark:text-slate-600 uppercase tracking-wide mb-2">{label}</p>
-        <p className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-1">{value}</p>
-        {sub && <p className="text-xs text-slate-400 dark:text-slate-600">{sub}</p>}
+    <div className="card p-4 sm:p-5 flex items-start justify-between gap-3 min-w-0 overflow-hidden">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-600 uppercase tracking-wide mb-2 leading-tight">{label}</p>
+        <p className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-1 leading-tight break-words">{value}</p>
+        {sub && <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-600 leading-tight">{sub}</p>}
       </div>
-      <div className={`w-11 h-11 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center flex-shrink-0`}>
-        <Icon size={20} className={c.icon} />
+      <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center flex-shrink-0`}>
+        <Icon size={18} className={c.icon} />
       </div>
     </div>
   )
@@ -109,28 +109,28 @@ export default function Reports() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex items-start justify-between flex-col sm:flex-row gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-extrabold text-slate-800 dark:text-slate-200">Reports & Analytics</h1>
           <p className="text-sm text-slate-400 dark:text-slate-600">Overview of hospital performance and financial data</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 flex-1 sm:flex-none">
             {[3, 6, 12].map(m => (
               <button key={m} onClick={() => setRange(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${range === m ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${range === m ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                 {m}M
               </button>
             ))}
           </div>
-          <button onClick={exportCSV} className="btn-primary text-sm py-2 px-4">
+          <button onClick={exportCSV} className="btn-primary text-xs sm:text-sm py-2 px-3 sm:px-4 flex-shrink-0">
             <Download size={15} /> Export CSV
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <SummaryCard label="Total Revenue" value={formatCurrency(totalRevenue, settings?.currency)} sub={`${collectionRate}% collected`} icon={BadgeDollarSign} color="emerald" />
         <SummaryCard label="Outstanding" value={formatCurrency(totalPending, settings?.currency)} sub="Pending invoices" icon={TrendingUp} color="amber" />
         <SummaryCard label="Total Patients" value={patients.length} sub={`${patients.filter(p => p.status === 'Active').length} active`} icon={Users} color="teal" />
@@ -138,12 +138,12 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Monthly Revenue</p>
             <BarChart2 size={16} className="text-slate-300 dark:text-slate-700" />
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={210}>
             <AreaChart data={last}>
               <defs>
                 <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
@@ -161,12 +161,12 @@ export default function Reports() {
           </ResponsiveContainer>
         </div>
 
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Patient & Appointment Activity</p>
             <BarChart2 size={16} className="text-slate-300 dark:text-slate-700" />
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={210}>
             <BarChart data={last} barSize={10}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -181,7 +181,7 @@ export default function Reports() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5 overflow-hidden">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Appointment Status</p>
           {apptStatusData.length === 0 ? (
             <div className="text-center py-10 text-slate-300 dark:text-slate-700 text-sm">No data</div>
@@ -198,7 +198,7 @@ export default function Reports() {
           )}
         </div>
 
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5 overflow-hidden">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Billing Status</p>
           {billingStatusData.length === 0 ? (
             <div className="text-center py-10 text-slate-300 dark:text-slate-700 text-sm">No data</div>
@@ -215,7 +215,7 @@ export default function Reports() {
           )}
         </div>
 
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5 overflow-hidden">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Patient Types</p>
           {patientTypeData.length === 0 ? (
             <div className="text-center py-10 text-slate-300 dark:text-slate-700 text-sm">No data</div>
@@ -243,13 +243,13 @@ export default function Reports() {
           ) : (
             <div className="divide-y divide-slate-50">
               {topDoctors.map((d, i) => (
-                <div key={d.name} className="flex items-center justify-between px-5 py-3">
-                  <div className="flex items-center gap-3">
+                <div key={d.name} className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className="w-6 h-6 rounded-full bg-teal-50 dark:bg-teal-500/12 text-teal-600 text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{d.name}</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{d.name}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 bg-slate-100 dark:bg-slate-900 rounded-full w-24 overflow-hidden">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <div className="h-2 bg-slate-100 dark:bg-slate-900 rounded-full w-16 sm:w-24 overflow-hidden">
                       <div className="h-2 bg-teal-500 rounded-full" style={{ width: `${topDoctors[0].appointments > 0 ? (d.appointments / topDoctors[0].appointments) * 100 : 0}%` }} />
                     </div>
                     <span className="text-xs font-bold text-slate-500 w-6 text-right">{d.appointments}</span>
@@ -273,12 +273,12 @@ export default function Reports() {
                 const stock = parseInt(item.stock) || parseInt(item.quantity) || 0
                 const reorder = parseInt(item.reorderLevel) || 0
                 return (
-                  <div key={item.id} className="flex items-center justify-between px-5 py-3">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{item.name}</p>
+                  <div key={item.id} className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{item.name}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-600">{item.category || 'Uncategorized'}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${stock === 0 ? 'bg-red-100 dark:bg-red-500/18 text-red-600' : 'bg-amber-100 dark:bg-amber-500/18 text-amber-600'}`}>
                         {stock === 0 ? 'Out of Stock' : `${stock} left`}
                       </span>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, UserPlus, Info, FileText } from 'lucide-react'
+import { Eye, EyeOff, Activity, UserPlus, Info, FileText, ArrowLeft } from 'lucide-react'
 import { api } from '../api/client'
 import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
@@ -20,7 +20,7 @@ function getPasswordStrength(password) {
   return              { level: 4, label: 'Strong', bar: 'bg-emerald-500', text: 'text-emerald-600' }
 }
 
-export default function Register({ onSwitch }) {
+export default function Register({ onSwitch, onHome }) {
   const [form, setForm]             = useState({ name: '', email: '', password: '', confirm: '' })
   const [showPass, setShowPass]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -81,6 +81,11 @@ export default function Register({ onSwitch }) {
 
       <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800 overflow-y-auto">
         <div className="w-full max-w-md">
+          {onHome && (
+            <button type="button" onClick={onHome} className="btn-ghost mb-6">
+              <ArrowLeft size={15} /> Back to Home
+            </button>
+          )}
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Create Patient Account</h1>
             <p className="text-sm text-slate-500">Register for the patient portal. Staff accounts are created or assigned by an Admin.</p>

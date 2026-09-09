@@ -43,13 +43,80 @@
   transform-origin: center;
 }
 
+@keyframes landing-mega-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-landing-mega-in {
+  animation: landing-mega-in 160ms ease-out both;
+}
+
+@keyframes landing-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-landing-fade-in {
+  animation: landing-fade-in 140ms ease-out both;
+}
+
+@keyframes landing-drawer-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-landing-drawer-in {
+  animation: landing-drawer-in 180ms ease-out both;
+}
+
 body {
   background-color: #f1f5f9;
   color: #0f172a;
 }
 
-* { scrollbar-width: none; -ms-overflow-style: none; }
-::-webkit-scrollbar { display: none; }
+html,
+body,
+#root,
+main,
+aside,
+nav,
+section,
+div,
+ul,
+ol,
+textarea,
+.overflow-x-auto,
+.overflow-y-auto,
+.responsive-table,
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+main::-webkit-scrollbar,
+aside::-webkit-scrollbar,
+nav::-webkit-scrollbar,
+section::-webkit-scrollbar,
+div::-webkit-scrollbar,
+ul::-webkit-scrollbar,
+ol::-webkit-scrollbar,
+textarea::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.responsive-table::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.overflow-x-auto,
+.overflow-y-auto,
+.responsive-table,
+.hide-scrollbar {
+  -webkit-overflow-scrolling: touch;
+}
 
 /* Our own semantic component classes live in Tailwind's `components` layer
    (not left unlayered) specifically so that an element-level `dark:border-*`

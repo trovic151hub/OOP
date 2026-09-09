@@ -63,17 +63,17 @@ export default function CalendarPage({ onNavigate }) {
     : null
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div>
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex items-start justify-between flex-col sm:flex-row gap-3">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Calendar</h2>
           <p className="text-sm text-slate-400 dark:text-slate-600">Visual overview of appointment schedule</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
           <button onClick={() => setCurrent(new Date(year, month - 1, 1))} className="btn-ghost p-2">
             <ChevronLeft size={16} />
           </button>
-          <span className="text-sm font-bold text-slate-700 dark:text-slate-300 w-36 text-center">{MONTHS[month]} {year}</span>
+          <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex-1 sm:w-36 text-center whitespace-nowrap">{MONTHS[month]} {year}</span>
           <button onClick={() => setCurrent(new Date(year, month + 1, 1))} className="btn-ghost p-2">
             <ChevronRight size={16} />
           </button>
@@ -81,11 +81,11 @@ export default function CalendarPage({ onNavigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        <div className="lg:col-span-2 card p-4">
-          <div className="grid grid-cols-7 mb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
+        <div className="lg:col-span-2 card p-2.5 sm:p-4 overflow-hidden">
+          <div className="grid grid-cols-7 mb-1 sm:mb-2">
             {DAYS.map(d => (
-              <div key={d} className="text-center text-xs font-bold text-slate-400 dark:text-slate-600 py-2">{d}</div>
+              <div key={d} className="text-center text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-600 py-1.5 sm:py-2">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -98,12 +98,12 @@ export default function CalendarPage({ onNavigate }) {
                 <button
                   key={i}
                   onClick={() => setSelected(cell)}
-                  className={`min-h-16 p-1.5 rounded-xl flex flex-col gap-1 text-left transition-all
+                  className={`min-h-12 sm:min-h-16 p-1 sm:p-1.5 rounded-lg sm:rounded-xl flex flex-col gap-0.5 sm:gap-1 text-left transition-all overflow-hidden
                     ${!cell.current ? 'opacity-30' : ''}
                     ${isToday ? 'bg-teal-600 text-white' : isSel ? 'bg-teal-50 dark:bg-teal-500/12 border-2 border-teal-400' : 'hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'}
                   `}
                 >
-                  <span className={`text-xs font-bold ${isToday ? 'text-white' : isSel ? 'text-teal-700' : 'text-slate-600 dark:text-slate-400'}`}>
+                  <span className={`text-[11px] sm:text-xs font-bold ${isToday ? 'text-white' : isSel ? 'text-teal-700' : 'text-slate-600 dark:text-slate-400'}`}>
                     {cell.day}
                   </span>
                   {dayAppts.length > 0 && (
@@ -117,7 +117,7 @@ export default function CalendarPage({ onNavigate }) {
                     </div>
                   )}
                   {dayAppts.length > 0 && (
-                    <span className={`text-[9px] font-semibold leading-tight ${isToday ? 'text-white/80' : 'text-teal-600'}`}>
+                    <span className={`hidden sm:inline text-[9px] font-semibold leading-tight ${isToday ? 'text-white/80' : 'text-teal-600'}`}>
                       {dayAppts.length} appt{dayAppts.length > 1 ? 's' : ''}
                     </span>
                   )}
@@ -126,9 +126,9 @@ export default function CalendarPage({ onNavigate }) {
             })}
           </div>
 
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 sm:mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
             {Object.entries(STATUS_DOT).map(([status, cls]) => (
-              <div key={status} className="flex items-center gap-1.5 text-xs text-slate-500">
+              <div key={status} className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500">
                 <span className={`w-2 h-2 rounded-full ${cls}`} />
                 {status}
               </div>
@@ -136,7 +136,7 @@ export default function CalendarPage({ onNavigate }) {
           </div>
         </div>
 
-        <div className="card p-5 lg:max-h-[560px] flex flex-col">
+        <div className="card p-4 sm:p-5 lg:max-h-[560px] flex flex-col">
           {!selected ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 dark:text-slate-600 py-12">
               <CalendarDays size={36} className="text-slate-200 mb-3" />
@@ -145,12 +145,12 @@ export default function CalendarPage({ onNavigate }) {
             </div>
           ) : (
             <div className="flex flex-col min-h-0">
-              <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                <div>
+              <div className="flex items-start justify-between gap-3 mb-4 flex-shrink-0">
+                <div className="min-w-0">
                   <h3 className="font-bold text-slate-800 dark:text-slate-200">{selLabel}</h3>
                   <p className="text-xs text-slate-400 dark:text-slate-600">{selectedAppts.length} appointment{selectedAppts.length !== 1 ? 's' : ''}</p>
                 </div>
-                <button onClick={() => onNavigate('appointments')} className="btn-primary text-xs py-1.5 px-3">
+                <button onClick={() => onNavigate('appointments')} className="btn-primary text-xs py-1.5 px-3 flex-shrink-0">
                   <Plus size={13} /> Schedule
                 </button>
               </div>
@@ -182,16 +182,16 @@ export default function CalendarPage({ onNavigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           { label: 'This Month', value: appointments.filter(a => a.date?.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).length, color: 'text-teal-600' },
           { label: 'Scheduled',  value: appointments.filter(a => a.status === 'Scheduled').length,  color: 'text-teal-600'   },
           { label: 'Completed',  value: appointments.filter(a => a.status === 'Completed').length,  color: 'text-emerald-600'},
           { label: 'Cancelled',  value: appointments.filter(a => a.status === 'Cancelled').length,  color: 'text-red-500'    },
         ].map(({ label, value, color }) => (
-          <div key={label} className="card p-4 text-center">
+          <div key={label} className="card p-3 sm:p-4 text-center">
             <p className="text-xs text-slate-400 dark:text-slate-600 font-medium mb-1">{label}</p>
-            <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
+            <p className={`text-xl sm:text-2xl font-extrabold ${color}`}>{value}</p>
           </div>
         ))}
       </div>

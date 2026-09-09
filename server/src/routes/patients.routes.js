@@ -5,7 +5,7 @@ import { makeCrudController } from '../utils/crudFactory.js'
 import { makeCrudRouter } from '../utils/crudRouter.js'
 import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 
-const PATIENT_EDIT_FIELDS = ['phone', 'address', 'emergencyContact', 'allergies', 'insurance', 'notes']
+const PATIENT_EDIT_FIELDS = ['phone', 'address', 'emergencyContact', 'allergies', 'insurance', 'notes', 'avatar']
 
 async function guardPatientSelfUpdate(req, res, next) {
   try {

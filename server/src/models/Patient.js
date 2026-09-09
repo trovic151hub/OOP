@@ -13,6 +13,7 @@ const patientSchema = new mongoose.Schema({
   location:         String,
   phone:            String,
   email:            String,
+  avatar:           { type: String, default: '' },
   emergencyContact: String,
   allergies:        String,
   insurance:        String,

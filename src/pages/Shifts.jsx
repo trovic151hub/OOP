@@ -114,47 +114,49 @@ export default function Shifts({ currentUser }) {
   if (loading) return <SkeletonTable rows={4} cols={5} />
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div>
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex items-start justify-between flex-col sm:flex-row gap-3">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Shift Schedule</h2>
           <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">{totalShifts} shifts · {shiftedStaff} staff scheduled this week</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
           <button onClick={() => setWeekOffset(v => v - 1)} className="btn-ghost p-2"><ChevronLeft size={16} /></button>
-          <span className="text-sm font-bold text-slate-700 dark:text-slate-300 min-w-44 text-center">{weekLabel}</span>
+          <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 flex-1 sm:min-w-44 text-center">{weekLabel}</span>
           <button onClick={() => setWeekOffset(v => v + 1)} className="btn-ghost p-2"><ChevronRight size={16} /></button>
           <button onClick={() => setWeekOffset(0)} className="btn-ghost text-xs px-3 py-1.5">This Week</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           { label: 'Morning Shifts',   value: weekShifts.filter(s => s.shiftType === 'Morning').length,   color: 'text-amber-600' },
           { label: 'Afternoon Shifts', value: weekShifts.filter(s => s.shiftType === 'Afternoon').length, color: 'text-blue-600'  },
           { label: 'Night Shifts',     value: weekShifts.filter(s => s.shiftType === 'Night').length,     color: 'text-purple-600'},
           { label: 'Staff Assigned', value: shiftedStaff, color: 'text-teal-600' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="card p-4">
-            <p className="text-xs text-slate-400 dark:text-slate-600 font-medium">{label}</p>
-            <p className={`text-2xl font-extrabold mt-1 ${color}`}>{value}</p>
+          <div key={label} className="card p-3 sm:p-4 min-w-0">
+            <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-600 font-medium truncate">{label}</p>
+            <p className={`text-xl sm:text-2xl font-extrabold mt-1 ${color}`}>{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {SHIFT_TYPES.map(type => (
-          <div key={type} className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span className={`w-2 h-2 rounded-full ${SHIFT_COLORS[type].dot}`} />
-            <span className="font-semibold">{type}</span>
-            <span className="text-slate-400 dark:text-slate-600">{SHIFT_COLORS[type].label}</span>
+          <div key={type} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`w-2.5 h-2.5 rounded-full ${SHIFT_COLORS[type].dot}`} />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{type}</span>
+            </div>
+            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 whitespace-nowrap">{SHIFT_COLORS[type].label}</span>
           </div>
         ))}
       </div>
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-[760px]">
             <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="table-th w-28">Shift</th>
@@ -180,7 +182,7 @@ export default function Shifts({ currentUser }) {
                         <span className={`w-2 h-2 rounded-full ${c.dot}`} />
                         <div>
                           <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{shiftType}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-600">{c.label}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-600 whitespace-nowrap">{c.label}</p>
                         </div>
                       </div>
                     </td>

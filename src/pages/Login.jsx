@@ -16,7 +16,7 @@ const DEMO_ACCOUNTS = [
   { role: 'Patient', email: 'ben.carter@email.com' },
 ]
 
-export default function Login({ onSwitch }) {
+export default function Login({ onSwitch, onHome }) {
   const [mode, setMode]           = useState(urlResetToken ? 'reset' : 'login') // 'login' | 'forgot' | 'reset'
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
@@ -201,6 +201,11 @@ export default function Login({ onSwitch }) {
       {LeftPanel}
       <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
         <div className="w-full max-w-md">
+          {onHome && (
+            <button type="button" onClick={onHome} className="btn-ghost mb-6">
+              <ArrowLeft size={15} /> Back to Home
+            </button>
+          )}
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Welcome Back to MedCore</h1>
             <p className="text-sm text-slate-500">Sign in to continue managing patients, appointments, and hospital operations.</p>

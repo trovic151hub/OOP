@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import BottomNav from './components/layout/BottomNav'
+import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import { HeartPulse } from 'lucide-react'
@@ -41,6 +42,7 @@ const Settings = lazy(() => import('./pages/Settings'))
 
 const ACTIVE_PAGE_KEY = 'mc_active_page'
 const SIDEBAR_COLLAPSED_KEY = 'mc_sidebar_collapsed'
+const HAS_RESET_TOKEN = new URLSearchParams(window.location.search).has('resetToken')
 
 function HeartbeatLoader({ label = 'Loading' }) {
   return (
@@ -126,7 +128,7 @@ function ForcePasswordChange() {
 
 function AppContent() {
   const [authChecked, setAuthChecked] = useState(false)
-  const [authPage, setAuthPage]       = useState('login')
+  const [authPage, setAuthPage]       = useState(HAS_RESET_TOKEN ? 'login' : 'landing')
   const [activePage, setActivePage]   = useState(() => localStorage.getItem(ACTIVE_PAGE_KEY) || 'dashboard')
 
   // <main> has no fixed height (its ancestor only sets min-h-screen), so it
@@ -204,9 +206,13 @@ function AppContent() {
   }
 
   if (!authUser) {
-    return authPage === 'login'
-      ? <Login onSwitch={() => setAuthPage('register')} />
-      : <Register onSwitch={() => setAuthPage('login')} />
+    if (authPage === 'login') {
+      return <Login onSwitch={() => setAuthPage('register')} onHome={() => setAuthPage('landing')} />
+    }
+    if (authPage === 'register') {
+      return <Register onSwitch={() => setAuthPage('login')} onHome={() => setAuthPage('landing')} />
+    }
+    return <LandingPage onLogin={() => setAuthPage('login')} onRegister={() => setAuthPage('register')} />
   }
 
   const userProfile = users.find(u => u.uid === authUser.uid)

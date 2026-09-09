@@ -3,7 +3,7 @@ import {
   Users, Stethoscope, Calendar, TrendingUp, TrendingDown, Clock,
   CheckCircle, Building2, Package, AlertTriangle,
   BedDouble, FlaskConical, UserCheck, Bell, FileText,
-  BadgeDollarSign
+  BadgeDollarSign, ArrowRight
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -42,7 +42,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
   const c = colors[color] || colors.teal
 
   return (
-    <div className="card p-3 sm:p-5 flex items-start justify-between min-w-0">
+    <div className="card p-3 sm:p-5 flex items-start justify-between min-w-0 rounded-xl sm:rounded-2xl">
       <div className="min-w-0 flex-1 pr-2">
         <p className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-600 uppercase tracking-wide mb-1 sm:mb-2 truncate">{label}</p>
         {isNumber
@@ -57,7 +57,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
           </div>
         )}
       </div>
-      <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex-shrink-0 ${c.bg} border ${c.border} flex items-center justify-center`}>
+      <div className={`w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex-shrink-0 ${c.bg} border ${c.border} flex items-center justify-center`}>
         <Icon size={17} className={c.icon} />
       </div>
     </div>
@@ -177,8 +177,8 @@ export default function Dashboard({ onNavigate, currentUser }) {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Dashboard</h2>
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200">Dashboard</h2>
         <p className="text-sm text-slate-400 dark:text-slate-600 mt-0.5">
           {greeting()}, {currentUser?.name?.split(' ')[0] || 'there'}!{' '}
           {isDoctor ? `Here's your schedule for today.` : isReceptionist ? `Here's the front desk overview for today.` : `Here's what's happening today.`}
@@ -186,40 +186,40 @@ export default function Dashboard({ onNavigate, currentUser }) {
       </div>
 
       {isDoctor ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
           <StatCard label="My Patients"      value={myPatients.length}  sub="All time"      icon={Users}     color="blue" />
           <StatCard label="My Appointments"  value={myAppointments.length} sub="All time"   icon={Calendar}  color="teal" />
           <StatCard label="Today's Schedule" value={todayAppts.length}  sub="Today"         icon={Clock}     color="purple" />
           <StatCard label="Lab Results"      value={labResults.filter(l => l.orderedBy === linkedDoc?.name).length} sub={`${labResults.filter(l => l.status === 'Pending' && l.orderedBy === linkedDoc?.name).length} pending`} icon={FlaskConical} color="amber" />
         </div>
       ) : isReceptionist ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
           <StatCard label="Patients"          value={patients.length}   sub="Registered"    icon={Users}     color="blue"   trend={trendFor(patients)} />
           <StatCard label="Today's Appts"     value={todayAppts.length} sub={`${todayAppts.filter(a => a.status === 'Scheduled').length} awaiting check-in`} icon={Calendar} color="teal" />
           <StatCard label="Appt Requests"     value={pendingAppointmentRequests.length} sub="Need review" icon={Bell} color={pendingAppointmentRequests.length ? 'amber' : 'emerald'} />
           <StatCard label="Patient Uploads"   value={pendingPatientUploads.length} sub="Need review" icon={FileText} color={pendingPatientUploads.length ? 'amber' : 'emerald'} />
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
           <StatCard label="Patients"    value={patients.length}     sub="Registered"   icon={Users}       color="blue"    trend={trendFor(patients)} />
           <StatCard label="Doctors"     value={doctors.length}      sub="On staff"     icon={Stethoscope} color="purple"  trend={trendFor(doctors)} />
           <StatCard label="Appointments" value={appointments.length} sub="Total"       icon={Calendar}    color="teal"    trend={trendFor(appointments)} />
           <StatCard label="Appt Requests" value={pendingAppointmentRequests.length} sub="Need review" icon={Bell} color={pendingAppointmentRequests.length ? 'amber' : 'emerald'} />
           <StatCard label="Patient Uploads" value={pendingPatientUploads.length} sub="Need review" icon={FileText} color={pendingPatientUploads.length ? 'amber' : 'emerald'} />
-          <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total · ${unpaid} unpaid`} icon={BadgeDollarSign} color="emerald" />
+          <StatCard label="Revenue"     value={fmt(paidRevenue)} sub={`${fmt(totalRevenue)} total - ${unpaid} unpaid`} icon={BadgeDollarSign} color="emerald" />
         </div>
       )}
 
       {hasReviewWork && (
-        <div className="card overflow-hidden mb-6">
-          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+        <div className="card overflow-hidden mb-4 sm:mb-6">
+          <div className="px-3.5 sm:px-5 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
             <div>
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Needs Review</p>
               <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">
-                {pendingAppointmentRequests.length} appointment request{pendingAppointmentRequests.length === 1 ? '' : 's'} · {pendingPatientUploads.length} patient upload{pendingPatientUploads.length === 1 ? '' : 's'}
+                {pendingAppointmentRequests.length} appointment request{pendingAppointmentRequests.length === 1 ? '' : 's'} - {pendingPatientUploads.length} patient upload{pendingPatientUploads.length === 1 ? '' : 's'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => onNavigate('reviews')} className="btn-primary text-xs">
                 <FileText size={13} /> Review Center
               </button>
@@ -233,18 +233,18 @@ export default function Dashboard({ onNavigate, currentUser }) {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 dark:divide-slate-800">
             <div>
-              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
+              <div className="px-3.5 sm:px-5 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
                 Appointment Requests
               </div>
               {pendingAppointmentRequests.length === 0 ? (
-                <div className="px-5 py-6 text-sm text-slate-400 dark:text-slate-600">No appointment requests waiting.</div>
+                <div className="px-3.5 sm:px-5 py-5 sm:py-6 text-sm text-slate-400 dark:text-slate-600">No appointment requests waiting.</div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {pendingAppointmentRequests.slice(0, 4).map(a => (
-                    <button key={a.id} onClick={() => onNavigate('reviews')} className="w-full px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button key={a.id} onClick={() => onNavigate('reviews')} className="w-full px-3.5 sm:px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{a.patientName}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{a.status} · {a.date ? formatDate(a.date) : 'No date'}{a.requestedDate ? ` -> ${formatDate(a.requestedDate)}` : ''}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{a.status} - {a.date ? formatDate(a.date) : 'No date'}{a.requestedDate ? ` -> ${formatDate(a.requestedDate)}` : ''}</p>
                       </div>
                       <Badge status={a.status} />
                     </button>
@@ -253,18 +253,18 @@ export default function Dashboard({ onNavigate, currentUser }) {
               )}
             </div>
             <div>
-              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
+              <div className="px-3.5 sm:px-5 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide">
                 Patient Uploads
               </div>
               {pendingPatientUploads.length === 0 ? (
-                <div className="px-5 py-6 text-sm text-slate-400 dark:text-slate-600">No patient uploads waiting.</div>
+                <div className="px-3.5 sm:px-5 py-5 sm:py-6 text-sm text-slate-400 dark:text-slate-600">No patient uploads waiting.</div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {pendingPatientUploads.slice(0, 4).map(d => (
-                    <button key={d.id} onClick={() => onNavigate('reviews')} className="w-full px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button key={d.id} onClick={() => onNavigate('reviews')} className="w-full px-3.5 sm:px-5 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{d.title}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{d.patientName} · {d.type || 'Document'} · {d.date ? formatDate(d.date) : 'No date'}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{d.patientName} - {d.type || 'Document'} - {d.date ? formatDate(d.date) : 'No date'}</p>
                       </div>
                       <Badge status={d.reviewStatus || 'Pending Review'} />
                     </button>
@@ -276,7 +276,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
         {[
           { label: "Today's Appts", value: todayAppts.length,                                                color: 'bg-teal-50 dark:bg-teal-500/12 text-teal-600',     icon: Calendar },
           { label: 'Checked In',   value: isDoctor ? todayAppts.filter(a=>a.status==='Checked In').length : checkedIn,   color: 'bg-violet-50 dark:bg-violet-500/12 text-violet-600', icon: UserCheck },
@@ -285,8 +285,8 @@ export default function Dashboard({ onNavigate, currentUser }) {
         ].map(({ label, value, icon: Icon, color }) => {
           const [bgCls, darkBgCls, textCls] = color.split(' ')
           return (
-          <div key={label} className="card p-4 flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-lg ${bgCls} ${darkBgCls} flex items-center justify-center flex-shrink-0`}>
+          <div key={label} className="card p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl">
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${bgCls} ${darkBgCls} flex items-center justify-center flex-shrink-0`}>
               <Icon size={16} className={textCls} />
             </div>
             <div>
@@ -299,7 +299,7 @@ export default function Dashboard({ onNavigate, currentUser }) {
       </div>
 
       {(overdueFollowUps.length > 0 || todayFollowUps.length > 0 || upcomingFollowUps.length > 0) && (
-        <div className="bg-violet-50 dark:bg-violet-500/12 border border-violet-200 dark:border-violet-500/30 rounded-xl px-4 py-3 mb-4 flex items-start gap-3">
+      <div className="bg-violet-50 dark:bg-violet-500/12 border border-violet-200 dark:border-violet-500/30 rounded-xl px-3.5 sm:px-4 py-3 mb-4 flex items-start gap-3">
           <Bell size={16} className="text-violet-500 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -319,26 +319,26 @@ export default function Dashboard({ onNavigate, currentUser }) {
               )}
             </div>
           </div>
-          <button onClick={() => onNavigate('appointments')} className="text-xs text-violet-600 font-bold hover:underline flex-shrink-0">View →</button>
+          <button onClick={() => onNavigate('appointments')} className="inline-flex items-center gap-1 text-xs text-violet-600 font-bold hover:underline flex-shrink-0">View <ArrowRight size={12} /></button>
         </div>
       )}
 
       {!isDoctor && settings?.maxPatientsPerDay > 0 && todayAppts.length >= settings.maxPatientsPerDay * 0.8 && (
-        <div className={`rounded-xl px-4 py-3 mb-6 flex items-start gap-3 ${todayAppts.length >= settings.maxPatientsPerDay ? 'bg-red-50 dark:bg-red-500/12 border border-red-200 dark:border-red-500/30' : 'bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30'}`}>
+        <div className={`rounded-xl px-3.5 sm:px-4 py-3 mb-4 sm:mb-6 flex items-start gap-3 ${todayAppts.length >= settings.maxPatientsPerDay ? 'bg-red-50 dark:bg-red-500/12 border border-red-200 dark:border-red-500/30' : 'bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30'}`}>
           <AlertTriangle size={16} className={`flex-shrink-0 mt-0.5 ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-500' : 'text-amber-500'}`} />
           <div className="flex-1">
             <p className={`text-xs font-bold ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-700' : 'text-amber-700'}`}>
               {todayAppts.length >= settings.maxPatientsPerDay
-                ? `Daily patient capacity reached — ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`
-                : `Approaching daily capacity — ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`}
+                ? `Daily patient capacity reached - ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`
+                : `Approaching daily capacity - ${todayAppts.length} of ${settings.maxPatientsPerDay} appointments booked today.`}
             </p>
           </div>
-          <button onClick={() => onNavigate('appointments')} className={`text-xs font-bold hover:underline flex-shrink-0 ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-600' : 'text-amber-600'}`}>View →</button>
+          <button onClick={() => onNavigate('appointments')} className={`inline-flex items-center gap-1 text-xs font-bold hover:underline flex-shrink-0 ${todayAppts.length >= settings.maxPatientsPerDay ? 'text-red-600' : 'text-amber-600'}`}>View <ArrowRight size={12} /></button>
         </div>
       )}
 
       {lowStock.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+        <div className="bg-amber-50 dark:bg-amber-500/12 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3.5 sm:px-4 py-3 mb-4 sm:mb-6 flex items-start gap-3">
           <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-xs font-bold text-amber-700 mb-1">{lowStock.length} Low Stock Alert{lowStock.length !== 1 ? 's' : ''}</p>
@@ -351,14 +351,14 @@ export default function Dashboard({ onNavigate, currentUser }) {
               {lowStock.length > 6 && <span className="text-xs text-amber-500">+{lowStock.length - 6} more</span>}
             </div>
           </div>
-          <button onClick={() => onNavigate('inventory')} className="text-xs text-amber-600 font-bold hover:underline flex-shrink-0">View →</button>
+          <button onClick={() => onNavigate('inventory')} className="inline-flex items-center gap-1 text-xs text-amber-600 font-bold hover:underline flex-shrink-0">View <ArrowRight size={12} /></button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-        <div className="card p-5 lg:col-span-2">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Activity — Last 6 Months</p>
-          <ResponsiveContainer width="100%" height={200}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 mb-4 sm:mb-6">
+        <div className="card p-3.5 sm:p-5 lg:col-span-2 rounded-xl sm:rounded-2xl">
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 sm:mb-4">Activity - Last 6 Months</p>
+          <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={last6Months} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gP" x1="0" y1="0" x2="0" y2="1">
@@ -381,12 +381,12 @@ export default function Dashboard({ onNavigate, currentUser }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="card p-5">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Appointments by Status</p>
+        <div className="card p-3.5 sm:p-5 rounded-xl sm:rounded-2xl">
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 sm:mb-4">Appointments by Status</p>
           {appointments.length === 0 ? (
-            <div className="flex items-center justify-center h-48 text-slate-300 dark:text-slate-700 text-sm">No data yet</div>
+            <div className="flex items-center justify-center h-40 sm:h-48 text-slate-300 dark:text-slate-700 text-sm">No data yet</div>
           ) : (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie data={apptStatusData.filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
                   {apptStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
@@ -400,10 +400,10 @@ export default function Dashboard({ onNavigate, currentUser }) {
       </div>
 
       {isAdmin && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-          <div className="card p-5 lg:col-span-2">
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Revenue — Last 6 Months</p>
-            <ResponsiveContainer width="100%" height={160}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 mb-4 sm:mb-6">
+          <div className="card p-3.5 sm:p-5 lg:col-span-2 rounded-xl sm:rounded-2xl">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 sm:mb-4">Revenue - Last 6 Months</p>
+            <ResponsiveContainer width="100%" height={150}>
               <BarChart data={last6Months} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
@@ -415,9 +415,9 @@ export default function Dashboard({ onNavigate, currentUser }) {
           </div>
 
           {patientStatusData.length > 0 ? (
-            <div className="card p-5">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Patient Status</p>
-              <ResponsiveContainer width="100%" height={160}>
+            <div className="card p-3.5 sm:p-5 rounded-xl sm:rounded-2xl">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 sm:mb-4">Patient Status</p>
+              <ResponsiveContainer width="100%" height={150}>
                 <PieChart>
                   <Pie data={patientStatusData} cx="50%" cy="50%" outerRadius={65} paddingAngle={2} dataKey="value">
                     {patientStatusData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
@@ -428,28 +428,28 @@ export default function Dashboard({ onNavigate, currentUser }) {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="card p-5 flex items-center justify-center text-slate-300 dark:text-slate-700 text-sm">No patient data</div>
+            <div className="card p-5 flex items-center justify-center text-slate-300 dark:text-slate-700 text-sm rounded-xl sm:rounded-2xl">No patient data</div>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
         <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between px-3.5 sm:px-5 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{isDoctor ? 'My Patients' : 'Recent Patients'}</p>
-            <button onClick={() => onNavigate('patients')} className="text-xs text-teal-600 font-semibold hover:underline">View all</button>
+            <button onClick={() => onNavigate('patients')} className="inline-flex items-center gap-1 text-xs text-teal-600 font-semibold hover:underline">View all <ArrowRight size={12} /></button>
           </div>
           {recentPatients.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 dark:text-slate-600 text-sm">No patients yet.</div>
+            <div className="text-center py-8 sm:py-10 text-slate-400 dark:text-slate-600 text-sm">No patients yet.</div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {recentPatients.map(p => (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800">
-                  <div className="flex items-center gap-3">
+                <div key={p.id} className="flex items-center justify-between px-3.5 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={p.name} size="sm" />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{p.name}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-600">{p.gender} · {p.age} yrs · {p.blood || '—'}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{p.name}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-600 truncate">{p.gender} - {p.age} yrs - {p.blood || '-'}</p>
                     </div>
                   </div>
                   <Badge status={p.status || 'Active'} />
@@ -460,23 +460,23 @@ export default function Dashboard({ onNavigate, currentUser }) {
         </div>
 
         <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between px-3.5 sm:px-5 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-800">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{isDoctor ? 'My Schedule' : 'Upcoming Appointments'}</p>
-            <button onClick={() => onNavigate('appointments')} className="text-xs text-teal-600 font-semibold hover:underline">View all</button>
+            <button onClick={() => onNavigate('appointments')} className="inline-flex items-center gap-1 text-xs text-teal-600 font-semibold hover:underline">View all <ArrowRight size={12} /></button>
           </div>
           {upcomingAppts.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 dark:text-slate-600 text-sm">No upcoming appointments.</div>
+            <div className="text-center py-8 sm:py-10 text-slate-400 dark:text-slate-600 text-sm">No upcoming appointments.</div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {upcomingAppts.map(a => (
-                <div key={a.id} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800">
-                  <div className="flex items-center gap-3">
+                <div key={a.id} className="flex items-center justify-between px-3.5 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <div className="flex items-center gap-3 min-w-0">
                     <Avatar name={a.patientName} size="sm" />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{a.patientName}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-600">
-                        {isDoctor ? '' : `${a.doctorName} · `}{a.date ? formatDate(a.date) : 'No date'}
-                        {a.timeStart ? ` · ${a.timeStart}` : ''}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{a.patientName}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-600 truncate">
+                        {isDoctor ? '' : `${a.doctorName} - `}{a.date ? formatDate(a.date) : 'No date'}
+                        {a.timeStart ? ` - ${a.timeStart}` : ''}
                       </p>
                     </div>
                   </div>

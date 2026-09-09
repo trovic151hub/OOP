@@ -164,8 +164,9 @@ async function addItem(key, path, data) {
   return created
 }
 async function updateItem(key, path, id, data) {
-  await api.put(`${path}/${id}`, data)
+  const updated = await api.put(`${path}/${id}`, data)
   await refetch(key, path)
+  return updated
 }
 async function deleteItem(key, path, id) {
   await api.del(`${path}/${id}`)
@@ -240,7 +241,17 @@ export const store = {
     return created
   },
 
-  async updateUserProfile(uid, data) { return updateItem('users', '/users', uid, data) },
+  async updateUserProfile(uid, data) {
+    const updated = await api.put(`/users/${uid}`, data)
+    if (state.currentUser?.uid === uid || state.currentUser?.id === uid || state.currentUser?._id === uid) {
+      state.currentUser = { ...state.currentUser, ...updated, uid: updated.uid || updated.id || updated._id || uid }
+      notify()
+    }
+    if (COLLECTION_ROLES.users?.includes(state.currentUser?.role)) {
+      await refetch('users', '/users')
+    }
+    return updated
+  },
   async deleteUser(uid) {
     await deleteItem('users', '/users', uid)
     await Promise.all([refetch('doctors', '/doctors'), refetch('nurses', '/nurses')])
