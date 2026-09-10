@@ -197,6 +197,10 @@ function AppContent() {
     return () => disconnectRealtime()
   }, [authUser])
 
+  if (!authChecked && authPage === 'landing' && !HAS_RESET_TOKEN) {
+    return <LandingPage onLogin={() => setAuthPage('login')} onRegister={() => setAuthPage('register')} />
+  }
+
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-800">

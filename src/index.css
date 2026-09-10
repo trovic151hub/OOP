@@ -294,6 +294,14 @@ textarea::-webkit-scrollbar,
 /* ── Structural HTML elements ── */
 [data-theme="dark"] aside                    { background: #0f172a !important; border-color: #1e293b !important; }
 [data-theme="dark"] header                   { background: #0f172a !important; border-color: #1e293b !important; }
+[data-theme="dark"] header[data-landing-header="true"][data-scrolled="false"] {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+[data-theme="dark"] header[data-landing-header="true"][data-scrolled="true"] {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-color: #1e293b !important;
+}
 [data-theme="dark"] footer                   { background: #0f172a !important; border-color: #1e293b !important; color: #475569 !important; }
 [data-theme="dark"] main                     { background: #0f172a; }
 [data-theme="dark"] select option            { background: #1e293b; color: #e2e8f0; }

@@ -267,8 +267,10 @@ export default function LandingPage({ onLogin, onRegister }) {
   const [activeSection, setActiveSection] = useState('access')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [infoPanel, setInfoPanel] = useState(null)
+  const [navScrolled, setNavScrolled] = useState(false)
   const megaMenu = activeMega ? MEGA_MENUS[activeMega] : null
   const panel = infoPanel ? INFO_PANELS[infoPanel] : null
+  const navIsSolid = navScrolled || !!activeMega
 
   useEffect(() => {
     if (!mobileMenuOpen) return
@@ -286,6 +288,13 @@ export default function LandingPage({ onLogin, onRegister }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => setNavScrolled(window.scrollY > 18)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
@@ -326,7 +335,13 @@ export default function LandingPage({ onLogin, onRegister }) {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <header
-        className="h-16 sticky top-0 z-30 bg-white/92 dark:bg-slate-950/92 backdrop-blur border-b border-slate-200 dark:border-slate-800"
+        data-landing-header="true"
+        data-scrolled={navIsSolid ? 'true' : 'false'}
+        className={`h-16 fixed top-0 left-0 right-0 z-30 border-b transition-colors duration-200 ${
+          navIsSolid
+            ? 'bg-white/92 dark:bg-slate-950/92 backdrop-blur border-slate-200 dark:border-slate-800 shadow-sm'
+            : 'bg-transparent border-transparent'
+        }`}
         onMouseLeave={() => setActiveMega(null)}
       >
         <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
@@ -334,16 +349,19 @@ export default function LandingPage({ onLogin, onRegister }) {
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
               <Activity size={17} className="text-white" />
             </div>
-            <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 truncate">MedCore</span>
+            <span className={`text-base sm:text-lg font-extrabold truncate transition-colors ${navIsSolid ? 'text-slate-900 dark:text-slate-100' : 'text-white'}`}>MedCore</span>
           </div>
-          <nav className="hidden lg:flex items-center gap-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          <nav className={`hidden lg:flex items-center gap-1 text-sm font-semibold transition-colors ${navIsSolid ? 'text-slate-500 dark:text-slate-400' : 'text-white/80'}`}>
             {Object.entries(MEGA_MENUS).map(([key, item]) => (
               <a
                 key={key}
                 href={item.href}
                 onMouseEnter={() => setActiveMega(key)}
                 onFocus={() => setActiveMega(key)}
-                className={`px-3 py-2 rounded-lg transition-colors ${(activeMega === key || (!activeMega && activeSection === key)) ? 'bg-teal-50 dark:bg-teal-500/12 text-teal-700 dark:text-teal-400' : 'hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-900'}`}
+                className={`px-3 py-2 rounded-lg transition-colors ${(activeMega === key || (!activeMega && activeSection === key))
+                  ? navIsSolid ? 'bg-teal-50 dark:bg-teal-500/12 text-teal-700 dark:text-teal-400' : 'bg-white/15 text-white'
+                  : navIsSolid ? 'hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-900' : 'hover:bg-white/10 hover:text-white'
+                }`}
               >
                 {item.label}
               </a>
@@ -352,17 +370,29 @@ export default function LandingPage({ onLogin, onRegister }) {
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <button
               onClick={toggleDark}
-              className="hidden sm:flex w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900"
+              className={`hidden sm:flex w-9 h-9 rounded-lg border items-center justify-center transition-colors ${
+                navIsSolid
+                  ? 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                  : 'border-white/20 text-white hover:bg-white/10'
+              }`}
               aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
               title={dark ? 'Light mode' : 'Dark mode'}
             >
               {dark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            <button onClick={onLogin} className="btn-ghost hidden sm:inline-flex">Sign In</button>
+            <button onClick={onLogin} className={`hidden sm:inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
+              navIsSolid
+                ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900'
+                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+            }`}>Sign In</button>
             <button onClick={onRegister} className="btn-primary hidden sm:inline-flex">Patient Sign Up</button>
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900"
+              className={`lg:hidden w-9 h-9 rounded-lg border flex items-center justify-center transition-colors ${
+                navIsSolid
+                  ? 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                  : 'border-white/20 text-white hover:bg-white/10'
+              }`}
               aria-label="Open navigation"
             >
               <Menu size={16} />
