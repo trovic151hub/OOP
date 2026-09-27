@@ -148,6 +148,12 @@ export default function Messages({ currentUser }) {
     markConversationReadEverywhere(readKey)
   }, [activeChat, visibleMessages.length])
 
+  useEffect(() => {
+    if (activeChat === undefined) return
+    const readKey = activeChat === null ? 'general' : activeChat
+    markMatchingMessageNotificationsRead(readKey)
+  }, [activeChat, notifications])
+
   function hasUnread(key) {
     return messages.some(m => conversationKey(m, currentUser?.uid) === key && isMessageUnread(m, currentUser?.uid, readMap))
   }
@@ -224,7 +230,10 @@ export default function Messages({ currentUser }) {
       if (fetching) return
       fetching = true
       try {
-        await refetchCollection('messages')
+        await Promise.all([
+          refetchCollection('messages'),
+          refetchCollection('notifications'),
+        ])
       } finally {
         fetching = false
       }
