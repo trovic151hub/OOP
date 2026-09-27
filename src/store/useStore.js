@@ -252,6 +252,15 @@ export const store = {
     await refetch('messages', '/messages')
   },
 
+  async sendTypingStatus(data) {
+    if (!data?.conversationKey) return
+    await api.post('/messages/typing', data)
+  },
+
+  async fetchTypingStatus() {
+    return api.get('/messages/typing')
+  },
+
   async updateUserProfile(uid, data) {
     const updated = await api.put(`/users/${uid}`, data)
     if (state.currentUser?.uid === uid || state.currentUser?.id === uid || state.currentUser?._id === uid) {

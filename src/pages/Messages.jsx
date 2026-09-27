@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCheck, ChevronLeft, Circle, Hash, MessageSquare, Search, Send, UsersRound } from 'lucide-react'
-import { useStore, store, consumePendingChatTarget } from '../store/useStore'
+import { useStore, store, consumePendingChatTarget, refetchCollection } from '../store/useStore'
 import Avatar from '../components/ui/Avatar'
 import { getLastSeen } from '../utils/helpers'
 import { getReadMap, markConversationRead, isMessageUnread, conversationKey } from '../utils/messageReadState'
@@ -175,16 +175,18 @@ export default function Messages({ currentUser }) {
     const nextText = e.target.value
     setText(nextText)
     if (activeChat === undefined) return
-    emitTyping({
+    const payload = {
       conversationKey: currentConversationKey(),
       userId: currentUser?.uid,
       userName: currentUser?.name,
       recipientId: activeChat,
       isTyping: !!nextText.trim(),
-    })
+    }
+    emitTyping(payload)
+    store.sendTypingStatus(payload).catch(() => {})
   }
 
-  useEffect(() => onTyping(payload => {
+  function applyTypingPayload(payload) {
     if (!payload?.conversationKey || payload.userId === currentUser?.uid) return
     if (payload.recipientId && payload.recipientId !== currentUser?.uid) return
     const key = payload.recipientId ? payload.userId : 'general'
@@ -201,7 +203,9 @@ export default function Messages({ currentUser }) {
       }
       return next
     })
-  }), [currentUser?.uid])
+  }
+
+  useEffect(() => onTyping(applyTypingPayload), [currentUser?.uid])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -214,19 +218,53 @@ export default function Messages({ currentUser }) {
     return () => window.clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    let fetching = false
+    const interval = window.setInterval(async () => {
+      if (fetching) return
+      fetching = true
+      try {
+        await refetchCollection('messages')
+      } finally {
+        fetching = false
+      }
+    }, 2500)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (activeChat === undefined) return
+    let fetching = false
+    const interval = window.setInterval(async () => {
+      if (fetching) return
+      fetching = true
+      try {
+        const active = await store.fetchTypingStatus()
+        active.forEach(applyTypingPayload)
+      } catch (_) {
+        // Socket.IO is the primary path; REST typing polling is best-effort.
+      } finally {
+        fetching = false
+      }
+    }, 1200)
+    return () => window.clearInterval(interval)
+  }, [activeChat, currentUser?.uid])
+
   async function handleSend(e) {
     e.preventDefault()
     if (!text.trim() || sending) return
     if (activeChat === undefined) return
     setSending(true)
     try {
-      emitTyping({
+      const stoppedTypingPayload = {
         conversationKey: currentConversationKey(),
         userId: currentUser?.uid,
         userName: currentUser?.name,
         recipientId: activeChat,
         isTyping: false,
-      })
+      }
+      emitTyping(stoppedTypingPayload)
+      store.sendTypingStatus(stoppedTypingPayload).catch(() => {})
       await store.sendMessage(text, currentUser.name, currentUser.role, activeChat)
       setText('')
     } finally {

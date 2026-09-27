@@ -5,10 +5,47 @@ import { emitChanged } from '../utils/realtime.js'
 import { deliverStaffNotification } from '../utils/notificationDelivery.js'
 
 const router = Router()
+const typingPresence = new Map()
+
+function pruneTypingPresence() {
+  const now = Date.now()
+  for (const [key, value] of typingPresence.entries()) {
+    if (value.expiresAt <= now) typingPresence.delete(key)
+  }
+}
 
 // Broadcast messages (no recipientId) are visible to everyone; a private DM is
 // only visible to its sender and its recipient.
 router.use(requireRole(...STAFF_ROLES))
+
+router.get('/typing', async (req, res) => {
+  pruneTypingPresence()
+  const active = [...typingPresence.values()]
+    .filter(item => item.userId !== req.user.id)
+    .filter(item => !item.recipientId || item.recipientId === req.user.id)
+  res.json(active)
+})
+
+router.post('/typing', async (req, res) => {
+  const { conversationKey, recipientId = null, isTyping } = req.body
+  if (!conversationKey) return res.status(400).json({ message: 'Conversation key is required.' })
+
+  const key = `${req.user.id}:${recipientId || 'general'}`
+  if (!isTyping) {
+    typingPresence.delete(key)
+    return res.status(204).end()
+  }
+
+  typingPresence.set(key, {
+    conversationKey,
+    userId: req.user.id,
+    userName: req.user.name || req.user.email || 'Someone',
+    recipientId,
+    isTyping: true,
+    expiresAt: Date.now() + 3500,
+  })
+  res.status(204).end()
+})
 
 router.get('/', async (req, res, next) => {
   try {
