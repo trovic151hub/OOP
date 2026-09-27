@@ -5,6 +5,7 @@ const notificationSchema = new mongoose.Schema({
   userId: String,
   recipientUserId: String,
   recipientRoles: { type: [String], default: undefined },
+  excludedUserIds: { type: [String], default: undefined },
   audience: { type: String, enum: ['patient', 'staff'], default: 'patient' },
   patientId: String,
   patientEmail: String,

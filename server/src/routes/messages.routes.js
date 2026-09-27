@@ -99,6 +99,7 @@ router.post('/', async (req, res, next) => {
     await deliverStaffNotification({
       recipientUserId: recipientId || '',
       recipientRoles: recipientId ? [] : ['Staff'],
+      excludedUserIds: [req.user.id],
       title: recipientId ? 'New private message' : 'New staff message',
       message: `${doc.senderName || 'A staff member'}: ${doc.text}`,
       type: 'messages',

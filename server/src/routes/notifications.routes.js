@@ -10,12 +10,12 @@ async function notificationScope(user) {
   if (user.role !== 'Patient') {
     return {
       audience: 'staff',
+      excludedUserIds: { $ne: user.id },
       $or: [
         { recipientUserId: user.id },
         { recipientRoles: user.role },
         { recipientRoles: 'Staff' },
         { recipientRoles: { $exists: false } },
-        { recipientRoles: { $size: 0 } },
       ],
     }
   }
