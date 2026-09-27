@@ -16,7 +16,7 @@ async function main() {
   // Realtime signals only: collection refresh nudges plus ephemeral typing
   // presence. Message/document contents still move through authenticated REST.
   const io = new Server(httpServer, {
-    cors: { origin: env.corsOrigin, credentials: true },
+    cors: { origin: true, credentials: false },
   })
   io.on('connection', socket => {
     socket.on('typing', payload => {
