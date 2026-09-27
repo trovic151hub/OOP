@@ -90,7 +90,7 @@ export default function AuditLog() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         {[
           { label: 'Records Added',   value: actionCount.Added,   color: 'text-emerald-600' },
           { label: 'Records Updated', value: actionCount.Updated, color: 'text-blue-600' },

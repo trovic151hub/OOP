@@ -43,5 +43,7 @@ export function isMessageUnread(message, currentUserUid, readMap) {
   if (message.senderId === currentUserUid) return false
   const key = conversationKey(message, currentUserUid)
   const readAt = readMap[key]
+  const readByCurrentUser = Array.isArray(message.readBy) && message.readBy.some(receipt => receipt.userId === currentUserUid)
+  if (readByCurrentUser) return false
   return !readAt || message.createdAt > readAt
 }

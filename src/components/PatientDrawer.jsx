@@ -166,7 +166,7 @@ export default function PatientDrawer({ patient, onClose, currentUser, onEdit })
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { label: 'Appointments', value: patAppts.length, color: 'text-teal-600' },
                   { label: 'Medical Records', value: patRecords.length, color: 'text-blue-600' },

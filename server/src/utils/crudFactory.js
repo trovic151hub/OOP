@@ -17,6 +17,7 @@ export function makeCrudController(Model, opts = {}) {
     audit = { add: true, update: false, delete: true },
     cascadeOnDelete,
     listQuery = () => ({}),
+    afterCreate,
     afterUpdate,
   } = opts
 
@@ -37,6 +38,7 @@ export function makeCrudController(Model, opts = {}) {
     async create(req, res, next) {
       try {
         const doc = await Model.create({ ...req.body, createdAt: new Date().toISOString() })
+        if (afterCreate) await afterCreate(doc, req)
         const labelFn = auditLabelFn('add')
         if (labelFn) await logAudit(req, 'Added', entity, labelFn(doc))
         if (key) emitChanged(req, key)

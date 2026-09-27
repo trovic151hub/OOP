@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   logo: '',
 }
 
+const SESSION_HINT_KEY = 'mc_has_session'
+
 // [state key, API path] for the 17 list collections + settings (18 total),
 // mirroring the 18 onSnapshot subscriptions this store used to hold.
 const COLLECTIONS = [
@@ -35,7 +37,7 @@ const COLLECTIONS = [
   ['prescriptions', '/prescriptions', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
   ['expenses', '/expenses', ['Admin']],
   ['documents', '/documents', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
-  ['notifications', '/notifications', ['Patient']],
+  ['notifications', '/notifications', ['Admin', 'Doctor', 'Nurse', 'Receptionist', 'Patient']],
   ['claims', '/claims', ['Admin', 'Receptionist']],
   ['pharmacyOrders', '/pharmacy-orders', ['Admin', 'Receptionist']],
 ]
@@ -115,12 +117,13 @@ export async function initSubscriptions() {
 }
 
 export function clearSubscriptions() {
+  localStorage.removeItem(SESSION_HINT_KEY)
   _initialized = false
   Object.assign(state, {
     patients: [], doctors: [], nurses: [], appointments: [], departments: [],
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
-    prescriptions: [], expenses: [], documents: [], claims: [],
+    prescriptions: [], expenses: [], documents: [], notifications: [], claims: [],
     pharmacyOrders: [], notifications: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
     currentUser: null,
   })
@@ -128,6 +131,8 @@ export function clearSubscriptions() {
 }
 
 export function setCurrentUser(user) {
+  if (user) localStorage.setItem(SESSION_HINT_KEY, 'true')
+  else localStorage.removeItem(SESSION_HINT_KEY)
   state.currentUser = user
   notify()
 }
@@ -239,6 +244,12 @@ export const store = {
     const created = await api.post('/messages', { text: text.trim(), senderName, senderRole, recipientId })
     await refetch('messages', '/messages')
     return created
+  },
+
+  async markMessageConversationRead(conversationKey) {
+    if (!conversationKey) return
+    await api.put('/messages/read-conversation', { conversationKey })
+    await refetch('messages', '/messages')
   },
 
   async updateUserProfile(uid, data) {
@@ -384,6 +395,7 @@ export function useStore() {
     prescriptions:  state.prescriptions,
     expenses:       state.expenses,
     documents:      state.documents,
+    notifications:  state.notifications,
     claims:         state.claims,
     pharmacyOrders: state.pharmacyOrders,
     settings:       state.settings,

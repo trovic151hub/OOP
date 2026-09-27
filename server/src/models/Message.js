@@ -8,6 +8,7 @@ const messageSchema = new mongoose.Schema({
   senderRole:  String,
   // null/absent = broadcast to the shared staff channel; a user id = private 1:1 DM
   recipientId: { type: String, default: null },
+  readBy: [{ userId: String, readAt: String }],
 }, docSchemaOpts)
 
 export default mongoose.model('Message', messageSchema)

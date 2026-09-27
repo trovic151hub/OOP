@@ -21,6 +21,7 @@ const Departments = lazy(() => import('./pages/Departments'))
 const CalendarPage = lazy(() => import('./pages/CalendarPage'))
 const Inventory = lazy(() => import('./pages/Inventory'))
 const Messages = lazy(() => import('./pages/Messages'))
+const Notifications = lazy(() => import('./pages/Notifications'))
 const UsersPage = lazy(() => import('./pages/UsersPage'))
 const Billing = lazy(() => import('./pages/Billing'))
 const AuditLog = lazy(() => import('./pages/AuditLog'))
@@ -42,6 +43,7 @@ const Settings = lazy(() => import('./pages/Settings'))
 
 const ACTIVE_PAGE_KEY = 'mc_active_page'
 const SIDEBAR_COLLAPSED_KEY = 'mc_sidebar_collapsed'
+const SESSION_HINT_KEY = 'mc_has_session'
 const HAS_RESET_TOKEN = new URLSearchParams(window.location.search).has('resetToken')
 
 function HeartbeatLoader({ label = 'Loading' }) {
@@ -130,6 +132,7 @@ function AppContent() {
   const [authChecked, setAuthChecked] = useState(false)
   const [authPage, setAuthPage]       = useState(HAS_RESET_TOKEN ? 'login' : 'landing')
   const [activePage, setActivePage]   = useState(() => localStorage.getItem(ACTIVE_PAGE_KEY) || 'dashboard')
+  const hasSessionHint = localStorage.getItem(SESSION_HINT_KEY) === 'true'
 
   // <main> has no fixed height (its ancestor only sets min-h-screen), so it
   // grows with its content and the actual scrolling happens on the window —
@@ -172,6 +175,7 @@ function AppContent() {
         initSubscriptions()
       } catch (_) {
         // not logged in
+        localStorage.removeItem(SESSION_HINT_KEY)
       } finally {
         const remaining = MIN_SPLASH_MS - (Date.now() - startedAt)
         if (remaining > 0) await new Promise(r => setTimeout(r, remaining))
@@ -197,7 +201,7 @@ function AppContent() {
     return () => disconnectRealtime()
   }, [authUser])
 
-  if (!authChecked && authPage === 'landing' && !HAS_RESET_TOKEN) {
+  if (!authChecked && authPage === 'landing' && !HAS_RESET_TOKEN && !hasSessionHint) {
     return <LandingPage onLogin={() => setAuthPage('login')} onRegister={() => setAuthPage('register')} />
   }
 
@@ -279,6 +283,7 @@ function AppContent() {
       case 'calendar':          return <CalendarPage onNavigate={navigate} />
       case 'inventory':         return adminOnly(Inventory)
       case 'messages':          return <Messages currentUser={currentUser} />
+      case 'notifications':     return <Notifications currentUser={currentUser} onNavigate={navigate} />
       case 'billing':           return <Billing currentUser={currentUser} />
       case 'shifts':            return <Shifts currentUser={currentUser} />
       case 'my-profile':        return <MyProfile currentUser={currentUser} />
@@ -322,7 +327,7 @@ function AppContent() {
           onMobileMenuToggle={() => setMobileOpen(v => !v)}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 pt-16 pb-16 md:pb-0 px-4 md:px-6 py-6 overflow-y-auto">
+        <main className="flex-1 pt-20 pb-20 md:pb-6 px-3 sm:px-4 md:px-6 overflow-y-auto">
           <Suspense fallback={<PageLoader />}>
             {renderPage()}
           </Suspense>

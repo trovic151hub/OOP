@@ -22,12 +22,12 @@ export default function Drawer({ open, onClose, title, subtitle, children, width
           ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="h-1 bg-gradient-to-r from-teal-500 to-teal-600 flex-shrink-0" />
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-          <div>
-            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base">{title}</h3>
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+          <div className="min-w-0">
+            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-base truncate">{title}</h3>
             {subtitle && <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-600 dark:hover:text-slate-400 transition-colors flex-shrink-0">
             <X size={18} />
           </button>
         </div>
@@ -35,7 +35,7 @@ export default function Drawer({ open, onClose, title, subtitle, children, width
           {children}
         </div>
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex-shrink-0">
+          <div className="px-4 sm:px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex-shrink-0">
             {footer}
           </div>
         )}
@@ -46,7 +46,7 @@ export default function Drawer({ open, onClose, title, subtitle, children, width
 
 export function DrawerTabs({ tabs, active, onChange }) {
   return (
-    <div className="flex gap-0 border-b border-slate-200 dark:border-slate-700 px-6 bg-white dark:bg-slate-800 flex-shrink-0">
+    <div className="flex gap-0 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 bg-white dark:bg-slate-800 flex-shrink-0 overflow-x-auto hide-scrollbar">
       {tabs.map(tab => (
         <button
           key={tab.id}

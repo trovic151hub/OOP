@@ -13,11 +13,15 @@ async function main() {
   // attach the socket server to the same port).
   const httpServer = createServer(app)
 
-  // Broadcast-only: these events never carry document data, just "collection
-  // X changed" signals (see utils/realtime.js), so the socket needs no auth
-  // and can safely accept connections from the configured client origin(s).
+  // Realtime signals only: collection refresh nudges plus ephemeral typing
+  // presence. Message/document contents still move through authenticated REST.
   const io = new Server(httpServer, {
     cors: { origin: env.corsOrigin, credentials: true },
+  })
+  io.on('connection', socket => {
+    socket.on('typing', payload => {
+      socket.broadcast.emit('typing', payload)
+    })
   })
   app.set('io', io)
 

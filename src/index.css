@@ -118,6 +118,19 @@ textarea::-webkit-scrollbar,
   -webkit-overflow-scrolling: touch;
 }
 
+html,
+body,
+#root {
+  min-width: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
 /* Our own semantic component classes live in Tailwind's `components` layer
    (not left unlayered) specifically so that an element-level `dark:border-*`
    (or similar) utility — which lives in the `utilities` layer — correctly
@@ -165,6 +178,7 @@ textarea::-webkit-scrollbar,
     cursor: pointer;
     transition: background 0.15s;
     white-space: nowrap;
+    max-width: 100%;
   }
   .btn-primary:hover { background: #0f766e; }
 
@@ -182,6 +196,7 @@ textarea::-webkit-scrollbar,
     cursor: pointer;
     transition: background 0.15s;
     white-space: nowrap;
+    max-width: 100%;
   }
   .btn-ghost:hover { background: #f8fafc; }
 
@@ -199,6 +214,7 @@ textarea::-webkit-scrollbar,
     cursor: pointer;
     transition: background 0.15s;
     white-space: nowrap;
+    max-width: 100%;
   }
   .btn-danger:hover { background: #b91c1c; }
 
@@ -207,6 +223,7 @@ textarea::-webkit-scrollbar,
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    max-width: 100%;
   }
 
   .input-field {
@@ -408,6 +425,21 @@ textarea::-webkit-scrollbar,
     max-width: 100%;
   }
 
+  [class*="grid-cols-2"],
+  [class*="grid-cols-3"],
+  [class*="grid-cols-4"],
+  [class*="grid-cols-5"],
+  [class*="grid-cols-6"] {
+    min-width: 0;
+  }
+
+  [class*="min-w-36"],
+  [class*="min-w-40"],
+  [class*="min-w-44"],
+  [class*="min-w-48"] {
+    min-width: min(100%, 12rem);
+  }
+
   /* ── Inputs: prevent iOS zoom + proper touch targets ── */
   .input-field,
   select.input-field,
@@ -423,6 +455,7 @@ textarea::-webkit-scrollbar,
     min-height: 44px;
     padding-left: 1rem;
     padding-right: 1rem;
+    justify-content: center;
   }
 
   /* ── Main content: leave room for bottom nav ── */
@@ -445,11 +478,21 @@ textarea::-webkit-scrollbar,
   .overflow-x-auto {
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
 
   .overflow-x-auto > table,
   .responsive-table > table {
     min-width: 680px;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  th,
+  td {
+    vertical-align: middle;
   }
 
   .badge {
@@ -460,6 +503,10 @@ textarea::-webkit-scrollbar,
   .card {
     border-radius: 12px;
     max-width: 100%;
+  }
+
+  .card > .overflow-x-auto {
+    border-radius: inherit;
   }
 
   /* ── Page titles: slightly smaller ── */

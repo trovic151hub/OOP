@@ -122,19 +122,21 @@ function PrintPreview({ rx, settings }) {
         </div>
       </div>
       <p className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wide mb-2">Medications</p>
-      <table className="w-full text-sm mb-4">
-        <thead><tr className="border-b border-slate-200 dark:border-slate-700">
-          {['Medication','Dosage','Frequency','Duration'].map(h => <th key={h} className="text-left py-1 text-xs font-bold text-slate-500">{h}</th>)}
-        </tr></thead>
-        <tbody>{(rx.medications || []).map((m, i) => (
-          <tr key={i} className="border-b border-slate-50 dark:border-slate-800">
-            <td className="py-2 font-semibold">{m.name}</td>
-            <td className="py-2">{m.dosage}</td>
-            <td className="py-2">{m.frequency}</td>
-            <td className="py-2">{m.duration}</td>
-          </tr>
-        ))}</tbody>
-      </table>
+      <div className="overflow-x-auto mb-4">
+        <table className="w-full min-w-[520px] text-sm">
+          <thead><tr className="border-b border-slate-200 dark:border-slate-700">
+            {['Medication','Dosage','Frequency','Duration'].map(h => <th key={h} className="text-left py-1 text-xs font-bold text-slate-500">{h}</th>)}
+          </tr></thead>
+          <tbody>{(rx.medications || []).map((m, i) => (
+            <tr key={i} className="border-b border-slate-50 dark:border-slate-800">
+              <td className="py-2 font-semibold">{m.name}</td>
+              <td className="py-2">{m.dosage}</td>
+              <td className="py-2">{m.frequency}</td>
+              <td className="py-2">{m.duration}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
       {rx.notes && <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-sm"><span className="font-bold">Notes: </span>{rx.notes}</div>}
       <div className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-400 dark:text-slate-600 flex justify-between">
         <span>Rx ID: {rx.id}</span>

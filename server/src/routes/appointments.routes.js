@@ -4,7 +4,7 @@ import { makeCrudController } from '../utils/crudFactory.js'
 import { makeCrudRouter } from '../utils/crudRouter.js'
 import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 import { patientOwnedRecordQuery } from '../utils/patientScope.js'
-import { deliverNotification } from '../utils/notificationDelivery.js'
+import { deliverNotification, deliverStaffNotification } from '../utils/notificationDelivery.js'
 import { logAudit } from '../utils/audit.js'
 
 async function preparePatientAppointmentRequest(req, res, next) {
@@ -58,6 +58,18 @@ const controller = makeCrudController(Appointment, {
   label: (d) => `${d.patientName} w/ ${d.doctorName}`,
   audit: { add: true, update: false, delete: true },
   listQuery: (req) => patientOwnedRecordQuery(req.user),
+  afterCreate: async (doc, req) => {
+    if (doc.status !== 'Requested') return
+    await deliverStaffNotification({
+      recipientRoles: ['Admin', 'Receptionist'],
+      title: 'New appointment request',
+      message: `${doc.patientName || 'A patient'} requested ${doc.type || 'an appointment'}${doc.date ? ` on ${doc.date}` : ''}.`,
+      type: 'appointments',
+      target: 'reviews',
+      targetEntityId: doc._id.toString(),
+      priority: 'High',
+    }, req)
+  },
   afterUpdate: async (doc, previous, req) => {
     if (!previous || !['Requested', 'Reschedule Requested', 'Cancel Requested'].includes(previous.status) || previous.status === doc.status || !['Scheduled', 'Cancelled'].includes(doc.status)) return
     const note = doc.staffNote ? ` Note: ${doc.staffNote}` : ''
@@ -75,7 +87,7 @@ const controller = makeCrudController(Appointment, {
       type: 'appointments',
       target: 'appointments',
       createdAt: new Date().toISOString(),
-    })
+    }, { req })
     await logAudit(req, title, 'Appointment', `${doc.patientName} w/ ${doc.doctorName}`)
   },
 })
@@ -105,6 +117,15 @@ router.post('/:id/reschedule-request', requireRole('Patient'), async (req, res, 
     appointment.patientRequestNote = String(req.body.notes || '').trim().slice(0, 500)
     appointment.requestedAt = new Date().toISOString()
     await appointment.save()
+    await deliverStaffNotification({
+      recipientRoles: ['Admin', 'Receptionist'],
+      title: 'Appointment reschedule requested',
+      message: `${appointment.patientName || 'A patient'} requested a new time${appointment.requestedDate ? ` for ${appointment.requestedDate}` : ''}.`,
+      type: 'appointments',
+      target: 'reviews',
+      targetEntityId: appointment._id.toString(),
+      priority: 'High',
+    }, req)
     await logAudit(req, 'Requested Reschedule', 'Appointment', `${appointment.patientName} w/ ${appointment.doctorName}`)
     res.json(appointment)
   } catch (err) {
@@ -128,6 +149,15 @@ router.post('/:id/cancel-request', requireRole('Patient'), async (req, res, next
     appointment.patientRequestNote = reason
     appointment.requestedAt = new Date().toISOString()
     await appointment.save()
+    await deliverStaffNotification({
+      recipientRoles: ['Admin', 'Receptionist'],
+      title: 'Appointment cancellation requested',
+      message: `${appointment.patientName || 'A patient'} requested cancellation. Reason: ${reason}`,
+      type: 'appointments',
+      target: 'reviews',
+      targetEntityId: appointment._id.toString(),
+      priority: 'High',
+    }, req)
     await logAudit(req, 'Requested Cancellation', 'Appointment', `${appointment.patientName} w/ ${appointment.doctorName}`)
     res.json(appointment)
   } catch (err) {

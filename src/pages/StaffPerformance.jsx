@@ -68,7 +68,7 @@ function DoctorCard({ doctor, appointments, billing, labResults, rank, currency 
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
           {[
             { label: 'Patients',   value: patientNames.length, text: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-500/12' },
             { label: 'Appts',      value: myAppts.length,      text: 'text-teal-600',   bg: 'bg-teal-50 dark:bg-teal-500/12' },

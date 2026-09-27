@@ -1,14 +1,27 @@
 import { Router } from 'express'
 import Notification from '../models/Notification.js'
-import { requireRole } from '../middleware/role.middleware.js'
+import { requireRole, STAFF_ROLES } from '../middleware/role.middleware.js'
 import { patientOwnedRecordQuery } from '../utils/patientScope.js'
+import { emitChanged } from '../utils/realtime.js'
 
 const router = Router()
 
 async function notificationScope(user) {
-  if (user.role !== 'Patient') return {}
+  if (user.role !== 'Patient') {
+    return {
+      audience: 'staff',
+      $or: [
+        { recipientUserId: user.id },
+        { recipientRoles: user.role },
+        { recipientRoles: 'Staff' },
+        { recipientRoles: { $exists: false } },
+        { recipientRoles: { $size: 0 } },
+      ],
+    }
+  }
   const patientScope = await patientOwnedRecordQuery(user)
   return {
+    audience: { $ne: 'staff' },
     $or: [
       { userId: user.id },
       { patientEmail: user.email },
@@ -17,34 +30,59 @@ async function notificationScope(user) {
   }
 }
 
-router.get('/', requireRole('Patient'), async (req, res, next) => {
+function serializeNotification(doc, user) {
+  const obj = doc.toJSON()
+  if (user.role !== 'Patient') {
+    const readReceipt = (obj.readBy || []).find(r => r.userId === user.id)
+    obj.read = !!readReceipt
+    obj.readAt = readReceipt?.readAt || ''
+  }
+  return obj
+}
+
+router.get('/', requireRole(...STAFF_ROLES, 'Patient'), async (req, res, next) => {
   try {
     const docs = await Notification.find(await notificationScope(req.user)).sort({ createdAt: -1 }).limit(100)
-    res.json(docs)
+    res.json(docs.map(doc => serializeNotification(doc, req.user)))
   } catch (err) {
     next(err)
   }
 })
 
-router.put('/:id/read', requireRole('Patient'), async (req, res, next) => {
+router.put('/:id/read', requireRole(...STAFF_ROLES, 'Patient'), async (req, res, next) => {
   try {
     const scope = await notificationScope(req.user)
-    const doc = await Notification.findOneAndUpdate(
-      { _id: req.params.id, ...scope },
-      { read: true, readAt: new Date().toISOString() },
-      { new: true }
-    )
+    const readAt = new Date().toISOString()
+    const update = req.user.role === 'Patient'
+      ? { read: true, readAt }
+      : { $pull: { readBy: { userId: req.user.id } } }
+    let doc = await Notification.findOneAndUpdate({ _id: req.params.id, ...scope }, update, { new: true })
+    if (doc && req.user.role !== 'Patient') {
+      doc = await Notification.findOneAndUpdate(
+        { _id: req.params.id, ...scope },
+        { $addToSet: { readBy: { userId: req.user.id, readAt } } },
+        { new: true }
+      )
+    }
     if (!doc) return res.status(404).json({ message: 'Notification not found' })
-    res.json(doc)
+    emitChanged(req, 'notifications')
+    res.json(serializeNotification(doc, req.user))
   } catch (err) {
     next(err)
   }
 })
 
-router.put('/read-all', requireRole('Patient'), async (req, res, next) => {
+router.put('/read-all', requireRole(...STAFF_ROLES, 'Patient'), async (req, res, next) => {
   try {
     const scope = await notificationScope(req.user)
-    await Notification.updateMany(scope, { read: true, readAt: new Date().toISOString() })
+    const readAt = new Date().toISOString()
+    if (req.user.role === 'Patient') {
+      await Notification.updateMany(scope, { read: true, readAt })
+    } else {
+      await Notification.updateMany(scope, { $pull: { readBy: { userId: req.user.id } } })
+      await Notification.updateMany(scope, { $addToSet: { readBy: { userId: req.user.id, readAt } } })
+    }
+    emitChanged(req, 'notifications')
     res.status(204).end()
   } catch (err) {
     next(err)
