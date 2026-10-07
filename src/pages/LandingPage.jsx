@@ -10,6 +10,20 @@ import Modal from '../components/ui/Modal'
 import BrandLogo, { MedCoreMark } from '../components/ui/BrandLogo'
 import heroImage from '../assets/medcore-landing-hero.jpg'
 
+function preloadHeroImage() {
+  if (typeof document === 'undefined') return
+  if (document.querySelector('link[data-medcore-hero-preload="true"]')) return
+  const link = document.createElement('link')
+  link.rel = 'preload'
+  link.as = 'image'
+  link.href = heroImage
+  link.fetchPriority = 'high'
+  link.setAttribute('data-medcore-hero-preload', 'true')
+  document.head.appendChild(link)
+}
+
+preloadHeroImage()
+
 const QUICK_ACCESS = [
   { title: 'Find Care', text: 'Search doctors, departments, locations, and available services.', icon: Search, action: 'Explore modules' },
   { title: 'Book Online', text: 'Request visits, review appointment status, and manage changes.', icon: CalendarCheck, action: 'Request access' },
@@ -495,8 +509,15 @@ export default function LandingPage({ onLogin, onRegister }) {
         </div>
       )}
 
-      <section className="relative min-h-[calc(100svh-9rem)] sm:min-h-[calc(100svh-7rem)] overflow-hidden">
-        <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <section className="relative min-h-[calc(100svh-9rem)] sm:min-h-[calc(100svh-7rem)] overflow-hidden bg-slate-950">
+        <img
+          src={heroImage}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+        />
         <div className="absolute inset-0 bg-slate-950/68 dark:bg-slate-950/78" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100svh-9rem)] sm:min-h-[calc(100svh-7rem)] flex items-center">
           <div className="max-w-3xl py-10 sm:py-20">
