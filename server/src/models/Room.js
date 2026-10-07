@@ -12,4 +12,8 @@ const roomSchema = new mongoose.Schema({
   notes:       String,
 }, docSchemaOpts)
 
+roomSchema.index({ createdAt: -1 })
+roomSchema.index({ status: 1, roomNumber: 1 })
+roomSchema.index({ patientId: 1 })
+
 export default mongoose.model('Room', roomSchema)

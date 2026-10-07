@@ -15,4 +15,9 @@ const documentSchema = new mongoose.Schema({
   notes:       String,
 }, docSchemaOpts)
 
+documentSchema.index({ date: -1 })
+documentSchema.index({ patientId: 1, date: -1 })
+documentSchema.index({ patientEmail: 1, date: -1 })
+documentSchema.index({ reviewStatus: 1, date: -1 })
+
 export default mongoose.model('Document', documentSchema)

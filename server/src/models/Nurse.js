@@ -15,4 +15,9 @@ const nurseSchema = new mongoose.Schema({
   uid:          String, // links to a User's id once promoted to the 'Nurse' role
 }, docSchemaOpts)
 
+nurseSchema.index({ email: 1 })
+nurseSchema.index({ uid: 1 })
+nurseSchema.index({ department: 1, specialty: 1 })
+nurseSchema.index({ createdAt: -1 })
+
 export default mongoose.model('Nurse', nurseSchema)

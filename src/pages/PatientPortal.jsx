@@ -3,7 +3,7 @@ import {
   Calendar, CalendarCheck, FlaskConical, Pill, FileText, User, LogOut,
   CheckCircle, Clock, AlertCircle, Activity, ChevronRight,
   Stethoscope, Home, Menu, X, Pencil, Plus, Send, CreditCard, Bell, Upload, NotebookPen, Printer, Search, Trash2,
-  ChevronLeft, Moon, Sun, RotateCcw, ExternalLink
+  ChevronLeft, Moon, Sun, RotateCcw, ExternalLink, RefreshCw
 } from 'lucide-react'
 import { store, useStore } from '../store/useStore'
 import Badge from '../components/ui/Badge'
@@ -12,6 +12,8 @@ import Modal from '../components/ui/Modal'
 import DatePicker from '../components/ui/DatePicker'
 import TimePicker from '../components/ui/TimePicker'
 import FormDropdown from '../components/ui/FormDropdown'
+import BrandLogo from '../components/ui/BrandLogo'
+import AlertModal from '../components/ui/AlertModal'
 import { useToast } from '../context/ToastContext'
 import { useTheme } from '../context/ThemeContext'
 import { formatDate, formatDateTime, formatCurrency, formatMedications } from '../utils/helpers'
@@ -81,7 +83,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'teal' }) {
 }
 
 export default function PatientPortal({ currentUser }) {
-  const { patients = [], appointments, prescriptions = [], labResults = [], invoices = [], documents = [], notifications = [], settings } = useStore()
+  const { patients = [], appointments, prescriptions = [], labResults = [], invoices = [], documents = [], notifications = [], settings, syncing } = useStore()
   const { dark, toggle: toggleDark } = useTheme()
   const [page, setPage]         = useState('overview')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -106,7 +108,12 @@ export default function PatientPortal({ currentUser }) {
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('Card')
   const [localAvatarOverride, setLocalAvatarOverride] = useState(null)
+  const [alert, setAlert] = useState(null)
   const showToast = useToast()
+
+  function showErrorAlert(title, message) {
+    setAlert({ title, message, variant: 'error' })
+  }
 
   const name = currentUser?.name || currentUser?.email || ''
   const patientProfile = patients.find(p =>
@@ -454,7 +461,7 @@ export default function PatientPortal({ currentUser }) {
       setProfileForm(f => ({ ...f, avatar: dataUrl }))
       showToast('Profile photo updated.', 'success')
     } catch (err) {
-      showToast(err.message || 'Failed to upload photo.', 'error')
+      showErrorAlert('Photo upload failed', err.message || 'Failed to upload photo.')
     } finally {
       setUploadingAvatar(false)
     }
@@ -470,7 +477,7 @@ export default function PatientPortal({ currentUser }) {
       setProfileForm(f => ({ ...f, avatar: '' }))
       showToast('Profile photo removed.', 'success')
     } catch (err) {
-      showToast(err.message || 'Failed to remove photo.', 'error')
+      showErrorAlert('Photo update failed', err.message || 'Failed to remove photo.')
     } finally {
       setUploadingAvatar(false)
     }
@@ -485,7 +492,7 @@ export default function PatientPortal({ currentUser }) {
       showToast('Profile updated.', 'success')
       setProfileModal(false)
     } catch (err) {
-      showToast(err.message || 'Failed to update profile.', 'error')
+      showErrorAlert('Profile update failed', err.message || 'Failed to update profile.')
     } finally {
       setSavingProfile(false)
     }
@@ -502,7 +509,7 @@ export default function PatientPortal({ currentUser }) {
       setRequestModal(false)
       setPage('appointments')
     } catch (err) {
-      showToast(err.message || 'Failed to send appointment request.', 'error')
+      showErrorAlert('Appointment request failed', err.message || 'Failed to send appointment request.')
     } finally {
       setSendingRequest(false)
     }
@@ -517,7 +524,7 @@ export default function PatientPortal({ currentUser }) {
       setPaymentModal(false)
       setSelectedInvoice(null)
     } catch (err) {
-      showToast(err.message || 'Failed to record payment.', 'error')
+      showErrorAlert('Payment failed', err.message || 'Failed to record payment.')
     } finally {
       setPayingInvoice(false)
     }
@@ -536,7 +543,7 @@ export default function PatientPortal({ currentUser }) {
       setDocumentModal(false)
       setPage('documents')
     } catch (err) {
-      showToast(err.message || 'Failed to upload document.', 'error')
+      showErrorAlert('Document upload failed', err.message || 'Failed to upload document.')
     } finally {
       setUploadingDocument(false)
     }
@@ -564,7 +571,7 @@ export default function PatientPortal({ currentUser }) {
       setAppointmentChangeModal(false)
       setSelectedAppointment(null)
     } catch (err) {
-      showToast(err.message || 'Failed to send request.', 'error')
+      showErrorAlert('Request failed', err.message || 'Failed to send request.')
     } finally {
       setSendingAppointmentChange(false)
     }
@@ -598,12 +605,11 @@ export default function PatientPortal({ currentUser }) {
   const Sidebar = (
     <div className="flex flex-col h-full">
       <div className={`${sidebarCollapsed ? 'md:px-3' : 'px-5'} px-5 py-6 border-b border-slate-100 dark:border-slate-700`}>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-            <Activity size={16} className="text-white" />
-          </div>
-          <span className={`font-extrabold text-teal-700 dark:text-teal-400 text-base tracking-tight ${textCls}`}>MedCore</span>
-        </div>
+        <BrandLogo
+          className="mb-4"
+          markClassName="w-8 h-8"
+          textClassName={`text-base text-teal-700 dark:text-teal-400 ${textCls}`}
+        />
         <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'md:justify-center' : ''}`}>
           <Avatar name={patientName} src={patientAvatar} size="md" />
           <div className={`min-w-0 ${textCls}`}>
@@ -738,6 +744,12 @@ export default function PatientPortal({ currentUser }) {
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3">
+            {syncing && (
+              <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-teal-100 dark:border-teal-500/30 bg-teal-50 dark:bg-teal-500/12 px-3 py-1.5 text-[11px] font-bold text-teal-700 dark:text-teal-400">
+                <RefreshCw size={12} className="animate-spin" />
+                Syncing
+              </div>
+            )}
             <button
               onClick={() => { setMobileSearchOpen(true); setSearchOpen(true) }}
               className="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
@@ -1821,6 +1833,7 @@ export default function PatientPortal({ currentUser }) {
           </button>
         </div>
       </Modal>
+      <AlertModal open={!!alert} onClose={() => setAlert(null)} {...(alert || {})} />
     </div>
   )
 }

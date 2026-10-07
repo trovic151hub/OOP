@@ -15,4 +15,9 @@ const doctorSchema = new mongoose.Schema({
   uid:          String, // links to a User's id once promoted to the 'Doctor' role
 }, docSchemaOpts)
 
+doctorSchema.index({ email: 1 })
+doctorSchema.index({ uid: 1 })
+doctorSchema.index({ department: 1, specialty: 1 })
+doctorSchema.index({ createdAt: -1 })
+
 export default mongoose.model('Doctor', doctorSchema)

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Search, Bell, Menu, X, Calendar, ChevronRight, Moon, Sun, Printer } from 'lucide-react'
+import { Search, Bell, Menu, X, Calendar, ChevronRight, Moon, Sun, Printer, RefreshCw } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import { getReadMap, isMessageUnread, onMessageRead } from '../../utils/messageReadState'
 import { useTheme } from '../../context/ThemeContext'
@@ -111,7 +111,7 @@ function SearchDropdown({ results, hasResults, search, onNavigate, setSearch, se
 }
 
 export default function Topbar({ activePage, currentUser, onNavigate, onMobileMenuToggle, sidebarCollapsed }) {
-  const { patients, doctors, appointments, messages, notifications } = useStore()
+  const { patients, doctors, appointments, messages, notifications, syncing } = useStore()
   const { dark, toggle: toggleDark } = useTheme()
   const [search, setSearch]               = useState('')
   const [searchOpen, setSearchOpen]       = useState(false)
@@ -215,6 +215,13 @@ export default function Topbar({ activePage, currentUser, onNavigate, onMobileMe
       )}
 
       <div className={`flex items-center gap-1.5 md:gap-3 ml-auto ${mobileSearch ? 'sm:flex hidden' : ''}`}>
+        {syncing && (
+          <div className="hidden lg:flex items-center gap-1.5 rounded-full border border-teal-100 dark:border-teal-500/30 bg-teal-50 dark:bg-teal-500/12 px-3 py-1.5 text-[11px] font-bold text-teal-700 dark:text-teal-400">
+            <RefreshCw size={12} className="animate-spin" />
+            Syncing
+          </div>
+        )}
+
         <div ref={searchRef} className="relative hidden sm:block">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 pointer-events-none z-10" />
           <input

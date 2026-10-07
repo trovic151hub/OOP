@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import Modal from '../components/ui/Modal'
+import BrandLogo, { MedCoreMark } from '../components/ui/BrandLogo'
 import heroImage from '../assets/medcore-landing-hero.jpg'
 
 const QUICK_ACCESS = [
@@ -345,12 +346,10 @@ export default function LandingPage({ onLogin, onRegister }) {
         onMouseLeave={() => setActiveMega(null)}
       >
         <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
-              <Activity size={17} className="text-white" />
-            </div>
-            <span className={`text-base sm:text-lg font-extrabold truncate transition-colors ${navIsSolid ? 'text-slate-900 dark:text-slate-100' : 'text-white'}`}>MedCore</span>
-          </div>
+          <BrandLogo
+            markClassName="w-8 h-8 sm:w-9 sm:h-9"
+            textClassName={`text-base sm:text-lg transition-colors ${navIsSolid ? 'text-slate-900 dark:text-slate-100' : 'text-white'}`}
+          />
           <nav className={`hidden lg:flex items-center gap-1 text-sm font-semibold transition-colors ${navIsSolid ? 'text-slate-500 dark:text-slate-400' : 'text-white/80'}`}>
             {Object.entries(MEGA_MENUS).map(([key, item]) => (
               <a
@@ -453,12 +452,7 @@ export default function LandingPage({ onLogin, onRegister }) {
           />
           <div className="absolute right-0 top-0 h-full w-[min(340px,100vw)] bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto overscroll-contain touch-pan-y animate-landing-drawer-in">
             <div className="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
-                  <Activity size={16} className="text-white" />
-                </div>
-                <span className="font-extrabold text-slate-900 dark:text-slate-100">MedCore</span>
-              </div>
+              <BrandLogo markClassName="w-8 h-8" textClassName="text-slate-900 dark:text-slate-100" />
               <div className="flex items-center gap-1">
                 <button
                   onClick={toggleDark}
@@ -667,7 +661,7 @@ export default function LandingPage({ onLogin, onRegister }) {
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl overflow-hidden">
               <div className="h-12 border-b border-slate-200 dark:border-slate-800 bg-slate-900 flex items-center justify-between px-4">
                 <div className="flex items-center gap-2">
-                  <Activity size={16} className="text-teal-300" />
+                  <MedCoreMark className="w-5 h-5" />
                   <span className="text-xs font-bold text-white">MedCore Live Operations</span>
                 </div>
                 <span className="rounded-full bg-emerald-400/15 px-2 py-1 text-[10px] font-bold text-emerald-300">Online</span>
@@ -889,12 +883,7 @@ export default function LandingPage({ onLogin, onRegister }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_2fr] gap-8 sm:gap-10">
             <div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center">
-                  <Activity size={18} className="text-white" />
-                </div>
-                <p className="text-lg font-extrabold text-slate-800 dark:text-slate-200">MedCore</p>
-              </div>
+              <BrandLogo markClassName="w-9 h-9" textClassName="text-lg text-slate-800 dark:text-slate-200" />
               <p className="mt-4 max-w-sm text-sm leading-7 text-slate-500 dark:text-slate-400">
                 Hospital management, patient access, and operational reporting in one workspace.
               </p>

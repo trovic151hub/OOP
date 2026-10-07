@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Calendar, Users, Stethoscope, Building2,
-  CalendarDays, Package, MessageSquare, LogOut, Activity,
+  CalendarDays, Package, MessageSquare, LogOut,
   UserCog, ClipboardList, Clock, X, BarChart2, ChevronLeft,
   UserCircle, BedDouble, FlaskConical, UserCheck, Pill, TrendingDown,
   FileText, Shield, BarChart, FlaskRound, Settings, HeartPulse,
   BadgeDollarSign
 } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import { MedCoreMark } from '../ui/BrandLogo'
 import { store, useStore } from '../../store/useStore'
 
 const ALL_NAV = [
@@ -85,9 +86,7 @@ export default function Sidebar({ activePage, onNavigate, currentUser, mobileOpe
             {settings?.logo ? (
               <img src={settings.logo} alt="" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" onError={e => e.target.style.display = 'none'} />
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center flex-shrink-0">
-                <Activity size={16} className="text-white" />
-              </div>
+              <MedCoreMark className="w-8 h-8 flex-shrink-0" />
             )}
             <div className={`min-w-0 ${textCls}`}>
               <p className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight truncate">{hospitalName}</p>

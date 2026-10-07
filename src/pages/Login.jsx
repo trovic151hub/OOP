@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, LogIn, ArrowLeft, Mail, KeyRound } from 'lucide-react'
+import { Eye, EyeOff, LogIn, ArrowLeft, Mail, KeyRound } from 'lucide-react'
 import { api } from '../api/client'
 import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
+import BrandLogo from '../components/ui/BrandLogo'
+import AlertModal from '../components/ui/AlertModal'
 
 const urlResetToken = new URLSearchParams(window.location.search).get('resetToken')
 
@@ -26,7 +28,12 @@ export default function Login({ onSwitch, onHome }) {
   const [showPass, setShowPass]   = useState(false)
   const [remember, setRemember]   = useState(false)
   const [loading, setLoading]     = useState(false)
+  const [alert, setAlert]         = useState(null)
   const showToast = useToast()
+
+  function showErrorAlert(title, message) {
+    setAlert({ title, message, variant: 'error' })
+  }
 
   async function handleResetPassword(e) {
     e.preventDefault()
@@ -39,7 +46,7 @@ export default function Login({ onSwitch, onHome }) {
       window.history.replaceState({}, '', window.location.pathname)
       setMode('login')
     } catch (err) {
-      showToast(err.message || 'This reset link is invalid or has expired.', 'error')
+      showErrorAlert('Password reset failed', err.message || 'This reset link is invalid or has expired.')
     } finally {
       setLoading(false)
     }
@@ -55,7 +62,7 @@ export default function Login({ onSwitch, onHome }) {
       initSubscriptions()
       showToast('Welcome back!', 'success')
     } catch (err) {
-      showToast(err.message || 'Login failed. Please try again.', 'error')
+      showErrorAlert('Unable to sign in', err.message || 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -71,7 +78,7 @@ export default function Login({ onSwitch, onHome }) {
       setMode('login')
       setResetEmail('')
     } catch (err) {
-      showToast(err.message || 'Failed to send reset email. Try again.', 'error')
+      showErrorAlert('Reset email failed', err.message || 'Failed to send reset email. Try again.')
     } finally {
       setLoading(false)
     }
@@ -85,12 +92,7 @@ export default function Login({ onSwitch, onHome }) {
 
   const LeftPanel = (
     <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-slate-800 dark:to-slate-900 p-10">
-      <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
-          <Activity size={18} className="text-teal-600" />
-        </div>
-        <span className="text-lg font-bold text-slate-800 dark:text-slate-200">MedCore</span>
-      </div>
+      <BrandLogo markClassName="w-9 h-9" textClassName="text-lg text-slate-800 dark:text-slate-200" />
       <div>
         <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 mb-3">Stay on Top of<br />Every Detail</h2>
         <p className="text-slate-500 text-sm leading-relaxed">From appointments to inventory, MedCore gives you a clear view of daily hospital operations.</p>
@@ -117,163 +119,172 @@ export default function Login({ onSwitch, onHome }) {
 
   if (mode === 'reset') {
     return (
-      <div className="min-h-screen flex">
-        {LeftPanel}
-        <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
-          <div className="w-full max-w-md">
-            <div className="mb-8 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center mx-auto mb-4">
-                <KeyRound size={26} className="text-teal-600" />
+      <>
+        <div className="min-h-screen flex">
+          {LeftPanel}
+          <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
+            <div className="w-full max-w-md">
+              <div className="mb-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center mx-auto mb-4">
+                  <KeyRound size={26} className="text-teal-600" />
+                </div>
+                <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Choose a New Password</h1>
+                <p className="text-sm text-slate-500">Enter and confirm your new password below.</p>
               </div>
-              <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Choose a New Password</h1>
-              <p className="text-sm text-slate-500">Enter and confirm your new password below.</p>
+              <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+                <div>
+                  <label className="label">New Password</label>
+                  <input
+                    type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                    className="input-field" autoComplete="new-password"
+                  />
+                </div>
+                <div>
+                  <label className="label">Confirm New Password</label>
+                  <input
+                    type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm password"
+                    className="input-field" autoComplete="new-password"
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
+                  {loading
+                    ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
+                    : <><KeyRound size={16} /> Update Password</>
+                  }
+                </button>
+              </form>
             </div>
-            <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
-              <div>
-                <label className="label">New Password</label>
-                <input
-                  type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                  placeholder="Min 6 characters"
-                  className="input-field" autoComplete="new-password"
-                />
-              </div>
-              <div>
-                <label className="label">Confirm New Password</label>
-                <input
-                  type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm password"
-                  className="input-field" autoComplete="new-password"
-                />
-              </div>
-              <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
-                {loading
-                  ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
-                  : <><KeyRound size={16} /> Update Password</>
-                }
-              </button>
-            </form>
           </div>
         </div>
-      </div>
+        <AlertModal open={!!alert} onClose={() => setAlert(null)} {...(alert || {})} />
+      </>
     )
   }
 
   if (mode === 'forgot') {
     return (
-      <div className="min-h-screen flex">
-        {LeftPanel}
-        <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
-          <div className="w-full max-w-md">
-            <div className="mb-8 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center mx-auto mb-4">
-                <Mail size={26} className="text-teal-600" />
+      <>
+        <div className="min-h-screen flex">
+          {LeftPanel}
+          <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
+            <div className="w-full max-w-md">
+              <div className="mb-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-500/12 flex items-center justify-center mx-auto mb-4">
+                  <Mail size={26} className="text-teal-600" />
+                </div>
+                <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Reset Your Password</h1>
+                <p className="text-sm text-slate-500">Enter your email and we'll send you a link to reset your password.</p>
               </div>
-              <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Reset Your Password</h1>
-              <p className="text-sm text-slate-500">Enter your email and we'll send you a link to reset your password.</p>
+              <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+                <div>
+                  <label className="label">Email Address</label>
+                  <input
+                    type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
+                    placeholder="Enter your registered email"
+                    className="input-field" autoComplete="email"
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
+                  {loading
+                    ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
+                    : <><Mail size={16} /> Send Reset Link</>
+                  }
+                </button>
+                <button type="button" onClick={() => setMode('login')} className="btn-ghost justify-center">
+                  <ArrowLeft size={15} /> Back to Login
+                </button>
+              </form>
             </div>
-            <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
-              <div>
-                <label className="label">Email Address</label>
-                <input
-                  type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
-                  placeholder="Enter your registered email"
-                  className="input-field" autoComplete="email"
-                />
-              </div>
-              <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base disabled:opacity-60 disabled:cursor-not-allowed">
-                {loading
-                  ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
-                  : <><Mail size={16} /> Send Reset Link</>
-                }
-              </button>
-              <button type="button" onClick={() => setMode('login')} className="btn-ghost justify-center">
-                <ArrowLeft size={15} /> Back to Login
-              </button>
-            </form>
           </div>
         </div>
-      </div>
+        <AlertModal open={!!alert} onClose={() => setAlert(null)} {...(alert || {})} />
+      </>
     )
   }
 
   return (
-    <div className="min-h-screen flex">
-      {LeftPanel}
-      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
-        <div className="w-full max-w-md">
-          {onHome && (
-            <button type="button" onClick={onHome} className="btn-ghost mb-6">
-              <ArrowLeft size={15} /> Back to Home
-            </button>
-          )}
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Welcome Back to MedCore</h1>
-            <p className="text-sm text-slate-500">Sign in to continue managing patients, appointments, and hospital operations.</p>
-          </div>
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div>
-              <label className="label">Email Address</label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Input your email"
-                className="input-field" autoComplete="email"
-              />
+    <>
+      <div className="min-h-screen flex">
+        {LeftPanel}
+        <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white dark:bg-slate-800">
+          <div className="w-full max-w-md">
+            {onHome && (
+              <button type="button" onClick={onHome} className="btn-ghost mb-6">
+                <ArrowLeft size={15} /> Back to Home
+              </button>
+            )}
+            <div className="mb-8 text-center">
+              <h1 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200 mb-2">Welcome Back to MedCore</h1>
+              <p className="text-sm text-slate-500">Sign in to continue managing patients, appointments, and hospital operations.</p>
             </div>
-            <div>
-              <label className="label">Password</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Input your password"
-                  className="input-field pr-10" autoComplete="current-password"
-                />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-500">
-                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="rounded" />
-                Remember Me
-              </label>
-              <button type="button" onClick={() => setMode('forgot')} className="text-teal-600 font-semibold hover:underline">Forgot Password?</button>
-            </div>
-            <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base mt-1 disabled:opacity-60 disabled:cursor-not-allowed">
-              {loading
-                ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
-                : <><LogIn size={16} /> Login</>
-              }
-            </button>
-            <p className="text-center text-sm text-slate-500">
-              New to MedCore?{' '}
-              <button type="button" onClick={onSwitch} className="text-teal-600 font-semibold hover:underline">Create an account</button>
-            </p>
-          </form>
-          <div className="mt-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4">
-            <div className="flex items-center justify-between gap-3 mb-3">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
               <div>
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Demo accounts</p>
-                <p className="text-xs text-slate-400 dark:text-slate-600">Password: demo1234</p>
+                <label className="label">Email Address</label>
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="Input your email"
+                  className="input-field" autoComplete="email"
+                />
               </div>
-              <KeyRound size={16} className="text-teal-600" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map(account => (
-                <button
-                  key={`${account.role}-${account.email}`}
-                  type="button"
-                  onClick={() => fillDemoAccount(account)}
-                  className="rounded-xl border border-white dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-left hover:border-teal-200 dark:hover:border-teal-500/40 transition-colors"
-                >
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{account.role}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-600 truncate">{account.email}</p>
-                </button>
-              ))}
+              <div>
+                <label className="label">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder="Input your password"
+                    className="input-field pr-10" autoComplete="current-password"
+                  />
+                  <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400">
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-500">
+                  <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="rounded" />
+                  Remember Me
+                </label>
+                <button type="button" onClick={() => setMode('forgot')} className="text-teal-600 font-semibold hover:underline">Forgot Password?</button>
+              </div>
+              <button type="submit" disabled={loading} className="btn-primary justify-center py-2.5 text-base mt-1 disabled:opacity-60 disabled:cursor-not-allowed">
+                {loading
+                  ? <span className="w-4 h-4 border-2 border-white dark:border-slate-700 border-t-transparent rounded-full animate-spin" />
+                  : <><LogIn size={16} /> Login</>
+                }
+              </button>
+              <p className="text-center text-sm text-slate-500">
+                New to MedCore?{' '}
+                <button type="button" onClick={onSwitch} className="text-teal-600 font-semibold hover:underline">Create an account</button>
+              </p>
+            </form>
+            <div className="mt-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Demo accounts</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-600">Password: demo1234</p>
+                </div>
+                <KeyRound size={16} className="text-teal-600" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {DEMO_ACCOUNTS.map(account => (
+                  <button
+                    key={`${account.role}-${account.email}`}
+                    type="button"
+                    onClick={() => fillDemoAccount(account)}
+                    className="rounded-xl border border-white dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-left hover:border-teal-200 dark:hover:border-teal-500/40 transition-colors"
+                  >
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{account.role}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-600 truncate">{account.email}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <AlertModal open={!!alert} onClose={() => setAlert(null)} {...(alert || {})} />
+    </>
   )
 }

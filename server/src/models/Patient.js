@@ -20,4 +20,9 @@ const patientSchema = new mongoose.Schema({
   notes:            String,
 }, docSchemaOpts)
 
+patientSchema.index({ uid: 1 })
+patientSchema.index({ email: 1 })
+patientSchema.index({ name: 1 })
+patientSchema.index({ createdAt: -1 })
+
 export default mongoose.model('Patient', patientSchema)

@@ -17,6 +17,9 @@ const DEFAULT_SETTINGS = {
 }
 
 const SESSION_HINT_KEY = 'mc_has_session'
+const CACHE_VERSION = 1
+const CACHE_PREFIX = `medcore:store-cache:v${CACHE_VERSION}`
+const CACHE_MAX_FIELD_LENGTH = 50000
 
 // [state key, API path] for the 17 list collections + settings (18 total),
 // mirroring the 18 onSnapshot subscriptions this store used to hold.
@@ -64,6 +67,7 @@ const state = {
   pharmacyOrders: [],
   settings:       { ...DEFAULT_SETTINGS },
   loading:        true,
+  syncing:        false,
   currentUser:    null,
 }
 
@@ -72,9 +76,81 @@ function notify() { _listeners.forEach(fn => fn()) }
 
 let _initialized = false
 
+function currentCacheKey() {
+  const user = state.currentUser
+  const id = user?.uid || user?.id || user?._id || user?.email
+  if (!id || !user?.role) return null
+  return `${CACHE_PREFIX}:${user.role}:${id}`
+}
+
+function sanitizeForCache(value) {
+  if (typeof value === 'string') {
+    if (value.length > CACHE_MAX_FIELD_LENGTH && value.startsWith('data:')) return ''
+    return value
+  }
+  if (Array.isArray(value)) return value.map(sanitizeForCache)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, sanitizeForCache(val)]))
+  }
+  return value
+}
+
+function cacheSnapshot(allowedKeys = COLLECTIONS.map(([key]) => key)) {
+  const key = currentCacheKey()
+  if (!key) return
+  let previous = {}
+  try {
+    previous = JSON.parse(localStorage.getItem(key) || 'null') || {}
+  } catch (_) {
+    previous = {}
+  }
+  const collections = { ...(previous.collections || {}) }
+  for (const collectionKey of allowedKeys) {
+    collections[collectionKey] = sanitizeForCache(state[collectionKey])
+  }
+  const payload = {
+    savedAt: new Date().toISOString(),
+    collections,
+    settings: sanitizeForCache(state.settings),
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(payload))
+  } catch (err) {
+    console.warn('Store cache skipped:', err)
+  }
+}
+
+function hydrateFromCache(allowedKeys) {
+  const key = currentCacheKey()
+  if (!key) return false
+  try {
+    const cached = JSON.parse(localStorage.getItem(key) || 'null')
+    if (!cached?.collections) return false
+    for (const collectionKey of allowedKeys) {
+      if (Array.isArray(cached.collections[collectionKey])) {
+        state[collectionKey] = cached.collections[collectionKey]
+      }
+    }
+    state.settings = { ...DEFAULT_SETTINGS, ...(cached.settings || {}) }
+    state.loading = false
+    state.syncing = true
+    return true
+  } catch (err) {
+    console.warn('Store cache ignored:', err)
+    return false
+  }
+}
+
+function clearCurrentCache() {
+  const key = currentCacheKey()
+  if (!key) return
+  try { localStorage.removeItem(key) } catch (_) {}
+}
+
 async function refetch(key, path, { silent = false } = {}) {
   try {
     state[key] = await api.get(path)
+    cacheSnapshot([key])
   } catch (err) {
     console.error(err)
   }
@@ -84,6 +160,7 @@ async function refetch(key, path, { silent = false } = {}) {
 export async function refetchSettings({ silent = false } = {}) {
   try {
     state.settings = { ...DEFAULT_SETTINGS, ...(await api.get('/settings')) }
+    cacheSnapshot([])
   } catch (err) {
     console.error(err)
   }
@@ -108,15 +185,22 @@ export async function initSubscriptions() {
   _initialized = true
   const role = state.currentUser?.role
   const allowedCollections = COLLECTIONS.filter(([, , roles]) => roles.includes(role))
+  const allowedKeys = allowedCollections.map(([key]) => key)
+  const hydrated = hydrateFromCache(allowedKeys)
+  if (hydrated) notify()
+  else state.syncing = true
   await Promise.all([
     ...allowedCollections.map(([key, path]) => refetch(key, path, { silent: true })),
     refetchSettings({ silent: true }),
   ])
   state.loading = false
+  state.syncing = false
+  cacheSnapshot(allowedKeys)
   notify()
 }
 
 export function clearSubscriptions() {
+  clearCurrentCache()
   localStorage.removeItem(SESSION_HINT_KEY)
   _initialized = false
   Object.assign(state, {
@@ -124,7 +208,7 @@ export function clearSubscriptions() {
     inventory: [], messages: [], users: [], medicalRecords: [],
     billing: [], shifts: [], rooms: [], labResults: [],
     prescriptions: [], expenses: [], documents: [], notifications: [], claims: [],
-    pharmacyOrders: [], notifications: [], settings: { ...DEFAULT_SETTINGS }, loading: true,
+    pharmacyOrders: [], notifications: [], settings: { ...DEFAULT_SETTINGS }, loading: true, syncing: false,
     currentUser: null,
   })
   notify()
@@ -409,6 +493,7 @@ export function useStore() {
     pharmacyOrders: state.pharmacyOrders,
     settings:       state.settings,
     loading:        state.loading,
+    syncing:        state.syncing,
     currentUser:    state.currentUser,
   }
 }

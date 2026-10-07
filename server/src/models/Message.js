@@ -11,4 +11,8 @@ const messageSchema = new mongoose.Schema({
   readBy: [{ userId: String, readAt: String }],
 }, docSchemaOpts)
 
+messageSchema.index({ createdAt: 1 })
+messageSchema.index({ recipientId: 1, createdAt: 1 })
+messageSchema.index({ senderId: 1, recipientId: 1, createdAt: 1 })
+
 export default mongoose.model('Message', messageSchema)

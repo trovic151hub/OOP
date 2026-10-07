@@ -16,4 +16,9 @@ const invoiceSchema = new mongoose.Schema({
   notes:         String,
 }, docSchemaOpts)
 
+invoiceSchema.index({ date: -1 })
+invoiceSchema.index({ patientId: 1, date: -1 })
+invoiceSchema.index({ patientEmail: 1, date: -1 })
+invoiceSchema.index({ status: 1, date: -1 })
+
 export default mongoose.model('Invoice', invoiceSchema)

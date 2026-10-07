@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Activity, UserPlus, Info, FileText, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, Info, FileText, ArrowLeft } from 'lucide-react'
 import { api } from '../api/client'
 import { setCurrentUser, initSubscriptions } from '../store/useStore'
 import { useToast } from '../context/ToastContext'
 import Modal from '../components/ui/Modal'
+import BrandLogo from '../components/ui/BrandLogo'
+import AlertModal from '../components/ui/AlertModal'
 
 function getPasswordStrength(password) {
   if (!password) return null
@@ -27,6 +29,7 @@ export default function Register({ onSwitch, onHome }) {
   const [agreed, setAgreed]         = useState(false)
   const [loading, setLoading]       = useState(false)
   const [showTerms, setShowTerms]   = useState(false)
+  const [alert, setAlert]           = useState(null)
   const showToast = useToast()
   const strength = getPasswordStrength(form.password)
 
@@ -45,7 +48,11 @@ export default function Register({ onSwitch, onHome }) {
       initSubscriptions()
       showToast(user.role === 'Admin' ? 'Admin account created!' : 'Patient account created!', 'success')
     } catch (err) {
-      showToast(err.message || 'Registration failed. Please try again.', 'error')
+      setAlert({
+        title: 'Account creation failed',
+        message: err.message || 'Registration failed. Please try again.',
+        variant: 'error',
+      })
     } finally {
       setLoading(false)
     }
@@ -54,12 +61,7 @@ export default function Register({ onSwitch, onHome }) {
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-slate-800 dark:to-slate-900 p-10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
-            <Activity size={18} className="text-teal-600" />
-          </div>
-          <span className="text-lg font-bold text-slate-800 dark:text-slate-200">MedCore</span>
-        </div>
+        <BrandLogo markClassName="w-9 h-9" textClassName="text-lg text-slate-800 dark:text-slate-200" />
         <div>
           <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-200 mb-3">Your Care,<br />Clearly Organized</h2>
           <p className="text-slate-500 text-sm leading-relaxed">Create a patient account to view appointments, prescriptions, lab results, documents, and bills securely.</p>
@@ -183,6 +185,7 @@ export default function Register({ onSwitch, onHome }) {
           Close
         </button>
       </Modal>
+      <AlertModal open={!!alert} onClose={() => setAlert(null)} {...(alert || {})} />
     </div>
   )
 }
